@@ -1,6 +1,5 @@
 FROM node:20-slim
 
-# Instalar dependências necessárias para Prisma no Debian slim
 RUN apt-get update && apt-get install -y \
     openssl \
     && rm -rf /var/lib/apt/lists/*
@@ -13,11 +12,18 @@ RUN npm ci
 COPY prisma ./prisma
 COPY . .
 
-# Gerar Prisma Client
 RUN npx prisma generate
+
+ENV DESKTOP_MODE=false
+ENV NEXT_PUBLIC_DESKTOP_MODE=false
+ENV DATABASE_URL=file:../data/cashflow-desktop.db
+
+RUN mkdir -p /app/data
 
 RUN npm run build
 
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+CMD ["npx", "next", "start", "-H", "0.0.0.0", "-p", "3000"]

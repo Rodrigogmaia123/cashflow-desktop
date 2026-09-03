@@ -1,0 +1,15 @@
+node_modules
+.next
+.next-desktop
+.git
+data
+dist
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.*
+electron
+public/installers/*.exe
+tsconfig.tsbuildinfo
