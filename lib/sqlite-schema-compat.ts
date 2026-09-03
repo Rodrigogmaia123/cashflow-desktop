@@ -61,9 +61,11 @@ export async function ensureSqliteSchema() {
   await prisma.$executeRawUnsafe(
     `CREATE INDEX IF NOT EXISTS "RecurringExpense_workspaceId_isActive_idx" ON "RecurringExpense"("workspaceId", "isActive")`
   );
-  await prisma.$executeRawUnsafe(
-    `CREATE INDEX IF NOT EXISTS "Expense_recurringExpenseId_date_idx" ON "Expense"("recurringExpenseId", "date")`
-  );
+  if (await tableExists("Expense")) {
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "Expense_recurringExpenseId_date_idx" ON "Expense"("recurringExpenseId", "date")`
+    );
+  }
 
   await ensureTable(`
     CREATE TABLE IF NOT EXISTS "SpendPlan" (
