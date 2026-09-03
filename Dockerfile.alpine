@@ -1,0 +1,24 @@
+# Dockerfile alternativo para Alpine Linux
+# Use este arquivo se preferir uma imagem menor (mas pode ter problemas com Prisma)
+FROM node:20-alpine
+
+# Instalar dependências necessárias para Prisma no Alpine
+RUN apk add --no-cache openssl libc6-compat
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY prisma ./prisma
+COPY . .
+
+# Gerar Prisma Client (use binaryTargets apropriado para Alpine)
+RUN npx prisma generate
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
+

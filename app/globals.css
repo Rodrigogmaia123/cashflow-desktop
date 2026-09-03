@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds - Dark Premium */
+  --background: 220 25% 7%; /* #0B0D10 */
+  --background-secondary: 220 24% 9%; /* #111318 */
+  --card: 220 20% 13%; /* #161A22 */
+  --card-secondary: 220 20% 13%;
+  --card-hover: 220 22% 17%; /* #1B2030 */
+  --popover: 220 20% 13%;
+  
+  /* Text Colors */
+  --foreground: 220 13% 91%; /* #E5E7EB */
+  --card-foreground: 220 13% 91%;
+  --popover-foreground: 220 13% 91%;
+  --muted-foreground: 215 16% 63%; /* #9CA3AF */
+  --muted: 215 13% 45%; /* #6B7280 */
+  
+  /* Borders */
+  --border: 0 0% 100% / 0.06;
+  --input: 0 0% 100% / 0.08;
+  --ring: 270 91% 65%; /* #A855F7 */
+  
+  /* Brand Colors (Identidade Premium) */
+  --primary: 270 91% 65%; /* #A855F7 - Violeta premium */
+  --primary-soft: 270 91% 65% / 0.1;
+  --primary-foreground: 0 0% 100%;
+  
+  --accent: 72 100% 50%; /* #C7F000 - Verde-lima elegante */
+  --accent-soft: 72 100% 50% / 0.1;
+  --accent-foreground: 220 25% 7%; /* Texto escuro sobre lime */
+  
+  --secondary: 240 5% 25%;
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Semantic Colors (Financeiro - mantém significado) */
+  --success: 142 76% 46%; /* #22C55E - Lucro */
+  --success-vibrant: 142 81% 56%; /* #4ADE80 */
+  --success-soft: 142 76% 46% / 0.1;
+  --success-foreground: 0 0% 100%;
+  
+  --destructive: 0 84% 60%; /* #EF4444 - Prejuízo */
+  --destructive-vibrant: 0 84% 66%; /* #F87171 */
+  --destructive-soft: 0 84% 60% / 0.1;
+  --destructive-foreground: 0 0% 100%;
+  
+  --warning: 48 96% 53%; /* #FACC15 - Alerta */
+  --warning-soft: 48 96% 53% / 0.1;
+  --warning-foreground: 220 25% 7%;
+  
+  /* Border Radius */
+  --radius: 0.75rem; /* 12px */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Smooth transitions */
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+}
+
+/* Driver.js Custom Theme */
+.driverjs-theme {
+  --driver-popover-color: hsl(var(--card));
+  --driver-popover-border-radius: 16px;
+  --driver-popover-padding: 24px;
+  --driver-popover-title-color: hsl(var(--foreground));
+  --driver-popover-description-color: hsl(var(--muted-foreground));
+  --driver-popover-footer-button-border-radius: 8px;
+  --driver-popover-footer-button-padding: 8px 16px;
+  --driver-popover-footer-button-font-size: 14px;
+  --driver-popover-footer-button-font-weight: 500;
+  --driver-popover-footer-button-color: hsl(var(--foreground));
+  --driver-popover-footer-button-background: hsl(var(--primary));
+  --driver-popover-footer-button-hover-background: hsl(var(--primary) / 0.9);
+  --driver-popover-footer-button-hover-color: hsl(var(--primary-foreground));
+  --driver-popover-footer-button-active-background: hsl(var(--primary));
+  --driver-popover-footer-button-active-color: hsl(var(--primary-foreground));
+  --driver-popover-footer-button-skip-color: hsl(var(--muted-foreground));
+  --driver-popover-footer-button-skip-background: transparent;
+  --driver-popover-footer-button-skip-hover-background: hsl(var(--card-hover));
+  --driver-popover-footer-button-skip-hover-color: hsl(var(--foreground));
+  --driver-popover-progress-color: hsl(var(--accent));
+  --driver-popover-progress-text-color: hsl(var(--muted-foreground));
+  --driver-popover-close-button-color: hsl(var(--muted-foreground));
+  --driver-popover-close-button-hover-color: hsl(var(--foreground));
+  --driver-popover-close-button-hover-background: hsl(var(--card-hover));
+  --driver-popover-arrow-color: hsl(var(--card));
+  --driver-popover-arrow-border-color: hsl(var(--border));
+}
+
+.driverjs-popover {
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.driverjs-popover-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.driverjs-popover-description {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.driverjs-popover-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.driverjs-popover-footer button {
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.driverjs-popover-footer button.driverjs-btn-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.driverjs-popover-footer button.driverjs-btn-primary:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+.driverjs-popover-footer button.driverjs-btn-skip {
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+
+.driverjs-popover-footer button.driverjs-btn-skip:hover {
+  background-color: hsl(var(--card-hover));
+  color: hsl(var(--foreground));
+}
+
+.driverjs-popover-close-btn {
+  color: hsl(var(--muted-foreground));
+  transition: all 0.2s;
+}
+
+.driverjs-popover-close-btn:hover {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card-hover));
+}
+
+.driverjs-popover-progress {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.driverjs-popover-progress-bar {
+  background-color: hsl(var(--accent));
+  height: 2px;
+  margin-top: 8px;
+  border-radius: 1px;
+}
+
+/* Animação pop para menu de ações */
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+

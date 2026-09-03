@@ -1,0 +1,48 @@
+{
+  "appId": "pro.cashflow.desktop.pessoal",
+  "productName": "Cashflow Pessoal",
+  "copyright": "Cashflow Pessoal",
+  "asar": true,
+  "files": [
+    "electron/main.cjs",
+    "electron/preload.cjs",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "dist/pack-server",
+      "to": "app-server"
+    },
+    {
+      "from": "electron/resources/empty.db",
+      "to": "empty.db"
+    },
+    {
+      "from": "electron/resources/edition-pessoal.json",
+      "to": "edition.json"
+    }
+  ],
+  "directories": {
+    "output": "dist"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "artifactName": "Cashflow-Pessoal-Setup-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false,
+    "include": "electron/installer.nsh",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Cashflow Pessoal",
+    "uninstallDisplayName": "Cashflow Pessoal"
+  }
+}

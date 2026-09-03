@@ -1,0 +1,574 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(cuid())
+  name              String?           // OPCIONAL
+  email             String            @unique
+  password          String?           // Hash da senha (bcrypt) - opcional para OAuth
+  accountType       String?
+  plan              String            @default("FREE")
+  isLifetime        Boolean           @default(false)
+  isAdmin           Boolean           @default(false)
+  resetPasswordToken String?
+  resetPasswordExpires DateTime?
+  createdAt         DateTime          @default(now())
+  emailVerified     DateTime?
+  image             String?
+  onboardingCompleted Boolean         @default(false)
+  stripeCustomerId  String?           @unique // ID do customer no Stripe
+  accounts          Account[]
+  sessions          Session[]
+  activeWorkspaceId String?
+  activeWorkspace   Workspace?        @relation("ActiveWorkspace", fields: [activeWorkspaceId], references: [id])
+  workspaces        UserWorkspace[]
+  personalExpenses  PersonalExpense[]
+  stripeCustomer    StripeCustomer?  // Relação 1:1 com StripeCustomer
+  subscriptions     Subscription[]   // Relação 1:N com Subscription (histórico)
+}
+
+model Workspace {
+  id           String          @id @default(cuid())
+  name         String
+  baseCurrency String          @default("BRL")
+  createdAt    DateTime        @default(now())
+  users        UserWorkspace[]
+  offers       Offer[]
+  expenses     Expense[]
+  recurringExpenses RecurringExpense[]
+  categories   Category[]
+  manualIncomes ManualIncome[]
+  investments  Investment[]
+  activeUsers  User[]          @relation("ActiveWorkspace")
+  feeConfig    WorkspaceFeeConfig? @relation("WorkspaceFeeConfigWorkspace")
+  feeProfiles  FeeProfile[]        @relation("WorkspaceFeeProfiles")
+  exchangeRates ExchangeRateConfig[]
+  apiKeys      ApiKey[]
+  invites      WorkspaceInvite[]
+  savedReports SavedReport[]
+  budgets      Budget[]
+  budgetNotifications BudgetNotification[]
+  spendPlans   SpendPlan[]
+}
+
+model UserWorkspace {
+  userId      String
+  workspaceId String
+  role        String        @default("OWNER")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@id([userId, workspaceId])
+}
+
+model Offer {
+  id                  String              @id @default(cuid())
+  workspaceId         String
+  name                String
+  status              String               @default("ACTIVE")
+  country             String?
+  currency            String              @default("BRL")
+  createdAt           DateTime            @default(now())
+
+  workspace           Workspace           @relation(fields: [workspaceId], references: [id])
+  dailyPerformances   DailyPerformance[]
+  periodPerformances  PeriodPerformance[]
+  feeProfileId        String?
+  feeProfile          FeeProfile?         @relation(fields: [feeProfileId], references: [id])
+}
+
+model DailyPerformance {
+  id          String   @id @default(cuid())
+  offerId     String
+  date        DateTime
+  investment  Decimal
+  revenue     Decimal
+  sales       Int
+  comment     String?
+  createdAt   DateTime @default(now())
+  checkoutPercentageSnapshot Decimal @default(0)
+  gatewayFeePerSaleSnapshot  Decimal @default(0)
+  taxPercentageSnapshot      Decimal @default(0)
+  currency            String              @default("BRL")
+  exchangeRateSnapshot       Decimal  @default(1)
+
+  offer       Offer    @relation(fields: [offerId], references: [id])
+
+  @@unique([offerId, date])
+}
+
+model PeriodPerformance {
+  id          String   @id @default(cuid())
+  offerId     String
+  startDate   DateTime
+  endDate     DateTime
+  investment  Decimal
+  revenue     Decimal
+  sales       Int
+  fee         Decimal
+  roi         Decimal
+  profit      Decimal
+  createdAt   DateTime @default(now())
+
+  offer       Offer    @relation(fields: [offerId], references: [id])
+
+  @@index([offerId, startDate, endDate])
+}
+
+model Expense {
+  id          String      @id @default(cuid())
+  workspaceId String
+  date        DateTime
+  description String      @map("tag")
+  amount      Decimal
+
+  type        String      @default("VARIABLE")
+  categoryId  String?
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  recurringExpenseId String?
+  paymentMethod String?
+  paymentBrand  String?
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime    @default(now())
+
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, date])
+  @@index([workspaceId, categoryId, date]) // Para relatórios por categoria
+  @@index([categoryId, date]) // Para análise de orçamentos
+  @@index([recurringExpenseId, date])
+
+  spendPlanItem SpendPlanItem?
+  spendPlanEntry SpendPlanEntry?
+}
+
+model RecurringExpense {
+  id          String    @id @default(cuid())
+  workspaceId String
+  description String
+  amount      Decimal
+  type        String    @default("FIXED")
+  categoryId  String?
+  dayOfMonth  Int
+  isActive    Boolean   @default(true)
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  expenses  Expense[]
+
+  @@index([workspaceId, isActive])
+}
+
+// Planejamento (viagem, obra, compra). NÃO entra no caixa até virar Expense.
+model SpendPlan {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  notes       String?
+  cap         Decimal?
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  groups    SpendPlanGroup[]
+
+  @@index([workspaceId, status])
+}
+
+model SpendPlanGroup {
+  id        String @id @default(cuid())
+  planId    String
+  name      String
+  sortOrder Int    @default(0)
+
+  plan  SpendPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  items SpendPlanItem[]
+
+  @@index([planId, sortOrder])
+}
+
+model SpendPlanItem {
+  id             String    @id @default(cuid())
+  groupId        String
+  description    String
+  plannedAmount  Decimal
+  actualAmount   Decimal?
+  paidAt         DateTime?
+  skipped        Boolean   @default(false)
+  repeatable     Boolean   @default(false)
+  sortOrder      Int       @default(0)
+  categoryId     String?
+  expenseId      String?   @unique
+
+  group    SpendPlanGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  category Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  expense  Expense?        @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  entries  SpendPlanEntry[]
+
+  @@index([groupId, sortOrder])
+}
+
+// Cada gasto lançado num item (hotel = 1; lembrancinha = vários).
+model SpendPlanEntry {
+  id        String   @id @default(cuid())
+  itemId    String
+  expenseId String   @unique
+  amount    Decimal
+  note      String?
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  item    SpendPlanItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  expense Expense       @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, date])
+}
+
+model ManualIncome {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  description String
+  amount      Decimal
+  date        DateTime
+
+  categoryId  String?
+  category    Category?  @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId, date])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+
+  name        String
+  type        String
+
+  createdAt   DateTime @default(now())
+
+  expenses    Expense[]
+  recurringExpenses RecurringExpense[]
+  incomes     ManualIncome[]
+  budgets     Budget[]
+  spendPlanItems SpendPlanItem[]
+
+  @@unique([workspaceId, name, type])
+  @@index([workspaceId, type])
+}
+
+// Investimentos: dinheiro direcionado para reserva/ investimentos (referência: caixinha Nubank)
+model Investment {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  description String    // ex: "Reserva de emergência", "CDB", "Tesouro Selic"
+  amount      Decimal
+  date        DateTime
+
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId, date])
+}
+
+model PersonalExpense {
+  id       String   @id @default(cuid())
+  userId   String
+  tag      String
+  amount   Decimal
+  date     DateTime
+
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model WorkspaceFeeConfig {
+  id                 String   @id @default(cuid())
+  workspaceId        String   @unique
+  checkoutPercentage Decimal
+  gatewayFeePerSale  Decimal
+  taxPercentage      Decimal
+  currency            String              @default("BRL")
+
+  workspace Workspace @relation("WorkspaceFeeConfigWorkspace", fields: [workspaceId], references: [id])
+}
+
+model FeeProfile {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  name               String
+
+  checkoutPercentage Decimal
+  gatewayFeePerSale  Decimal
+  taxPercentage      Decimal
+  currency            String              @default("BRL")
+
+  createdAt          DateTime @default(now())
+
+  workspace          Workspace @relation("WorkspaceFeeProfiles", fields: [workspaceId], references: [id])
+  offers             Offer[]
+}
+
+/// Taxa de câmbio configurada no workspace.
+/// rate = quantas unidades de toCurrency equivalem a 1 fromCurrency.
+model ExchangeRateConfig {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  fromCurrency String
+  toCurrency   String
+  rate         Decimal
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, fromCurrency, toCurrency])
+  @@index([workspaceId])
+}
+
+model MetricEvent {
+  id          String   @id @default(cuid())
+  name        String
+  durationMs  Int
+  level       String
+  success     Boolean
+
+  // contexto
+  workspaceId String?
+  offerId     String?
+  action      String?
+
+  metadata    String?  @map("metadata_json")
+
+  createdAt   DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([workspaceId])
+  @@index([offerId])
+}
+
+model StripeCustomer {
+  id                String         @id @default(cuid())
+  userId            String         @unique
+  stripeCustomerId  String         @unique // ID do customer no Stripe
+  email             String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @default(now())
+
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions     Subscription[]
+
+  @@index([stripeCustomerId])
+  @@index([userId])
+}
+
+model Subscription {
+  id                  String          @id @default(cuid())
+  userId              String
+  stripeCustomerDbId  String          // ID do registro StripeCustomer no nosso DB
+  stripeSubscriptionId String         @unique // ID da subscription no Stripe
+  stripePriceId       String?        // ID do price no Stripe
+  status              String
+  plan                String
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean        @default(false)
+  canceledAt          DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @default(now())
+
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomer      StripeCustomer @relation(fields: [stripeCustomerDbId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerDbId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+}
+
+// API Keys (BUSINESS ONLY)
+model ApiKey {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  key         String   @unique // Hash da chave real
+  keyPrefix   String   // Primeiros 8 caracteres para exibição (ex: "cfp_live_")
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime? // Opcional: chaves podem expirar
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([key])
+}
+
+// Convites para Workspace (BUSINESS ONLY)
+model WorkspaceInvite {
+  id          String       @id @default(cuid())
+  workspaceId String
+  email       String
+  role        String
+  status      String       @default("PENDING")
+  token       String       @unique
+  invitedBy   String       // userId do criador do convite
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime     @default(now())
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+}
+
+// Relatórios Personalizados (BUSINESS ONLY)
+model SavedReport {
+  id            String              @id @default(cuid())
+  workspaceId   String
+  name          String
+  description   String?
+  type          String              @default("CASHFLOW")
+  filters       String               @map("filters_json") // JSON com filtros: { startDate, endDate, categories, transactionType }
+  visualization String               @default("TABLE")
+  createdBy     String               // userId
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([createdBy])
+}
+
+// Orçamentos (Budgets)
+model Budget {
+  id          String            @id @default(cuid())
+  workspaceId String
+  categoryId  String
+  name        String
+  amount      Decimal           // Valor previsto/orçado
+  periodType  String            @default("MONTHLY")
+  startDate   DateTime
+  endDate     DateTime
+  createdBy   String            // userId
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category    Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  notifications BudgetNotification[]
+
+  @@index([workspaceId])
+  @@index([categoryId])
+  @@index([startDate, endDate])
+}
+
+// Notificações de Orçamento
+model BudgetNotification {
+  id          String            @id @default(cuid())
+  workspaceId String
+  budgetId    String
+  userId      String            // Destinatário
+  type        String
+  status      String            @default("UNREAD")
+  title       String
+  message     String
+  metadata    String?           @map("metadata_json") // JSON: { percentUsed, spent, amount, categoryName }
+  createdAt   DateTime          @default(now())
+  readAt      DateTime?
+  dismissedAt DateTime?
+
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  budget      Budget            @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([budgetId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Licença desktop (domínio). O texto do serial nunca é gravado — só o hash.
+// Prazo começa em activatedAt, não no pagamento. machineId é a cópia (pendrive = a mesma).
+model License {
+  id              String    @id @default(cuid())
+  serialHash      String    @unique
+  serialCipher    String?
+  serialEmailedAt DateTime?
+  edition         String
+  duration        String
+  status          String    @default("paid")
+  stripeSessionId String    @unique
+  email           String
+  activatedAt     DateTime?
+  expiresAt       DateTime?
+  machineId       String?
+  revokedAt       DateTime?
+  revokedByUserId String?
+  revokedByEmail  String?
+  revokeReason    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([machineId])
+}
+
