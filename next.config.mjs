@@ -2,11 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
-  distDir:
-    process.env.DESKTOP_MODE === "true" ||
-    process.env.NEXT_PUBLIC_DESKTOP_MODE === "true"
-      ? ".next-desktop"
-      : ".next",
+  distDir: process.env.DESKTOP_MODE === "true" ? ".next-desktop" : ".next",
   serverExternalPackages: ["@prisma/client", "prisma"],
   typescript: {
     ignoreBuildErrors: true,
