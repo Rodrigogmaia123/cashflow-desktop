@@ -54,7 +54,10 @@ function copyDir(src, dest) {
   fs.cpSync(src, dest, { recursive: true, force: true });
 }
 
-const standaloneDir = findStandaloneDir(path.join(root, ".next", "standalone"));
+const standaloneDir = desktop
+  ? findStandaloneDir(path.join(root, ".next-desktop", "standalone")) ||
+    findStandaloneDir(path.join(root, ".next", "standalone"))
+  : null;
 
 if (!desktop && standaloneDir) {
   fs.mkdirSync(path.join(standaloneDir, ".next"), { recursive: true });

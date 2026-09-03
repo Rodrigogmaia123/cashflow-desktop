@@ -23,6 +23,7 @@ ENV NEXT_PUBLIC_DESKTOP_MODE=false
 ENV DATABASE_URL=file:../data/cashflow-desktop.db
 
 RUN mkdir -p /app/data
+RUN npx prisma db push --skip-generate
 RUN npm run build
 
 ENV PORT=3000

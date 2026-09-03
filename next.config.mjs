@@ -1,7 +1,7 @@
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  output: process.env.DESKTOP_MODE === "true" ? "standalone" : undefined,
   distDir: process.env.DESKTOP_MODE === "true" ? ".next-desktop" : ".next",
   serverExternalPackages: ["@prisma/client", "prisma"],
   typescript: {
