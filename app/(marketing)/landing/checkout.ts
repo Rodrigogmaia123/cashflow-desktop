@@ -13,7 +13,9 @@ export type { LicenseEdition, LicenseDuration };
 
 function stripeReady() {
   const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
-  return key.startsWith("sk_test_") && !key.includes("not_used") && key.length > 40;
+  const isStripeKey =
+    key.startsWith("sk_test_") || key.startsWith("sk_live_");
+  return isStripeKey && !key.includes("not_used") && key.length > 40;
 }
 
 export async function startLicenseCheckout(
@@ -37,7 +39,7 @@ export async function startLicenseCheckout(
   if (!stripeReady()) {
     return {
       error:
-        "O Stripe de teste ainda não está configurado neste ambiente.",
+        "O pagamento ainda não está configurado neste ambiente. Confirma a STRIPE_SECRET_KEY no servidor.",
     };
   }
 
