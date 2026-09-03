@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -19,7 +23,6 @@ ENV NEXT_PUBLIC_DESKTOP_MODE=false
 ENV DATABASE_URL=file:../data/cashflow-desktop.db
 
 RUN mkdir -p /app/data
-
 RUN npm run build
 
 ENV PORT=3000
@@ -27,4 +30,4 @@ ENV HOSTNAME=0.0.0.0
 ENV HOST=0.0.0.0
 EXPOSE 3000
 
-CMD ["sh", "-c", "mkdir -p /app/data && ./node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["node", "scripts/start.cjs"]
