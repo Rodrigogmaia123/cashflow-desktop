@@ -16,3 +16,6 @@ electron/resources/empty.db
 *.db-journal
 *.db-wal
 *.db-shm
+*.db.backup
+prisma/dev.db
+
