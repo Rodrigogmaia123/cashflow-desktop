@@ -8,19 +8,38 @@ import { DESKTOP_LICENSE_PRODUCT } from "@/lib/license/catalog";
 import { fulfillDesktopLicenseSession } from "@/lib/license/fulfill-checkout";
 import { deliverIssuedLicenseById } from "@/lib/license/deliver";
 import {
+  markLicenseOrderCanceled,
+  markLicenseOrderFailed,
+} from "@/lib/license/orders";
+import {
   sendSubscriptionConfirmedEmail,
   sendSubscriptionCanceledEmail,
   sendSubscriptionFailedEmail,
 } from "@/lib/email/send-email";
 
+function desktopLicenseEmail(session: Stripe.Checkout.Session) {
+  return (
+    session.customer_details?.email?.trim() ||
+    session.customer_email?.trim() ||
+    null
+  );
+}
+
+function paymentIntentIdFrom(
+  value: string | Stripe.PaymentIntent | null | undefined
+) {
+  if (!value) return null;
+  return typeof value === "string" ? value : value.id;
+}
+
 /**
  * Webhook handler para eventos do Stripe
- * 
+ *
  * IMPORTANTE: Este webhook converte eventos do Stripe (gateway)
  * para operações em nossos planos internos (fonte de verdade).
- * 
+ *
  * A lógica de mapeamento Stripe → Planos está em syncSubscriptionFromStripe.
- * 
+ *
  * CRÍTICO: Validar assinatura e processar eventos de forma idempotente
  */
 export async function POST(req: NextRequest) {
@@ -85,6 +104,20 @@ export async function POST(req: NextRequest) {
                   deliverError
                 );
               }
+            } else if (
+              result.outcome === "ignored" &&
+              result.reason !== "not_paid" &&
+              result.reason !== "not_desktop_license" &&
+              result.reason !== "not_one_time_payment"
+            ) {
+              await markLicenseOrderFailed({
+                stripeSessionId: session.id,
+                stripePaymentIntentId: paymentIntentIdFrom(
+                  session.payment_intent
+                ),
+                email: desktopLicenseEmail(session),
+                reason: result.reason,
+              });
             }
           } catch (error) {
             console.error(
@@ -164,6 +197,57 @@ export async function POST(req: NextRequest) {
             );
             // Não bloqueia o fluxo
           }
+        }
+        break;
+      }
+
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.product === DESKTOP_LICENSE_PRODUCT) {
+          await markLicenseOrderCanceled({
+            stripeSessionId: session.id,
+            email: desktopLicenseEmail(session),
+          });
+        }
+        break;
+      }
+
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.product === DESKTOP_LICENSE_PRODUCT) {
+          await markLicenseOrderFailed({
+            stripeSessionId: session.id,
+            stripePaymentIntentId: paymentIntentIdFrom(session.payment_intent),
+            email: desktopLicenseEmail(session),
+            reason: "async_payment_failed",
+          });
+        }
+        break;
+      }
+
+      case "payment_intent.payment_failed": {
+        const intent = event.data.object as Stripe.PaymentIntent;
+        if (intent.metadata?.product === DESKTOP_LICENSE_PRODUCT) {
+          let sessionId: string | null = null;
+          try {
+            const listed = await stripe.checkout.sessions.list({
+              payment_intent: intent.id,
+              limit: 1,
+            });
+            sessionId = listed.data[0]?.id ?? null;
+          } catch (error) {
+            console.error(
+              "[webhook/stripe] sessão do payment_intent:",
+              intent.id,
+              error
+            );
+          }
+          await markLicenseOrderFailed({
+            stripeSessionId: sessionId,
+            stripePaymentIntentId: intent.id,
+            email: intent.receipt_email,
+            reason: intent.last_payment_error?.code ?? "payment_failed",
+          });
         }
         break;
       }

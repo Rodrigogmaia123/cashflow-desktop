@@ -204,6 +204,48 @@ export async function ensureSqliteSchema() {
   await ensureColumn("License", "revokedByUserId", `"revokedByUserId" TEXT`);
   await ensureColumn("License", "revokedByEmail", `"revokedByEmail" TEXT`);
   await ensureColumn("License", "revokeReason", `"revokeReason" TEXT`);
+
+  await ensureTable(`
+    CREATE TABLE IF NOT EXISTS "LicenseOrder" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "stripeSessionId" TEXT NOT NULL,
+      "stripePaymentIntentId" TEXT,
+      "email" TEXT,
+      "edition" TEXT NOT NULL,
+      "duration" TEXT NOT NULL,
+      "amountCents" INTEGER NOT NULL,
+      "currency" TEXT NOT NULL DEFAULT 'brl',
+      "status" TEXT NOT NULL DEFAULT 'generated',
+      "failureReason" TEXT,
+      "utmSource" TEXT,
+      "utmMedium" TEXT,
+      "utmCampaign" TEXT,
+      "licenseId" TEXT,
+      "paidAt" DATETIME,
+      "failedAt" DATETIME,
+      "canceledAt" DATETIME,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE UNIQUE INDEX IF NOT EXISTS "LicenseOrder_stripeSessionId_key" ON "LicenseOrder"("stripeSessionId")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_status_idx" ON "LicenseOrder"("status")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_email_idx" ON "LicenseOrder"("email")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_createdAt_idx" ON "LicenseOrder"("createdAt")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_stripePaymentIntentId_idx" ON "LicenseOrder"("stripePaymentIntentId")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_licenseId_idx" ON "LicenseOrder"("licenseId")`
+  );
 }
 
 let ensuring: Promise<void> | null = null;

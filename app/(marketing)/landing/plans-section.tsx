@@ -58,7 +58,12 @@ export function PlansSection() {
     }
     setError(null);
     startTransition(async () => {
-      const result = await startLicenseCheckout(edition, duration);
+      const params = new URLSearchParams(window.location.search);
+      const result = await startLicenseCheckout(edition, duration, {
+        utmSource: params.get("utm_source"),
+        utmMedium: params.get("utm_medium"),
+        utmCampaign: params.get("utm_campaign"),
+      });
       if (result?.error) setError(result.error);
     });
   }

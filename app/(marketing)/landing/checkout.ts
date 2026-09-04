@@ -7,6 +7,7 @@ import {
   DESKTOP_LICENSE_PRODUCT,
   getPricedLicenseOffer,
 } from "@/lib/license/catalog";
+import { recordLicenseOrderCreated } from "@/lib/license/orders";
 import type { LicenseDuration, LicenseEdition } from "@/lib/prisma-enums";
 
 export type { LicenseEdition, LicenseDuration };
@@ -20,7 +21,12 @@ function stripeReady() {
 
 export async function startLicenseCheckout(
   edition: LicenseEdition,
-  duration: LicenseDuration
+  duration: LicenseDuration,
+  traffic?: {
+    utmSource?: string | null;
+    utmMedium?: string | null;
+    utmCampaign?: string | null;
+  }
 ) {
   const offer = getPricedLicenseOffer(edition, duration);
   if (!offer) {
@@ -65,7 +71,7 @@ export async function startLicenseCheckout(
         },
       ],
       success_url: `${origin}/compra/sucesso?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/#planos`,
+      cancel_url: `${origin}/compra/cancelado?session_id={CHECKOUT_SESSION_ID}`,
       metadata: {
         product: DESKTOP_LICENSE_PRODUCT,
         edition: offer.edition,
@@ -82,6 +88,24 @@ export async function startLicenseCheckout(
 
     if (!session.url) {
       return { error: "Não foi possível abrir o pagamento. Tente de novo." };
+    }
+
+    const paymentIntent =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : null;
+
+    try {
+      await recordLicenseOrderCreated({
+        stripeSessionId: session.id,
+        stripePaymentIntentId: paymentIntent,
+        edition: offer.edition,
+        duration: offer.duration,
+        amountCents: offer.amountCents,
+        traffic,
+      });
+    } catch (error) {
+      console.error("[checkout/license] pedido financeiro:", error);
     }
 
     checkoutUrl = session.url;
