@@ -18,6 +18,10 @@ const DURATION_COPY: Record<
   LicenseDuration,
   { label: string; sublabel: string }
 > = {
+  "1d": {
+    label: "1 dia",
+    sublabel: "Só para teste interno — 24h a partir da ativação",
+  },
   "3m": {
     label: "3 meses",
     sublabel: "90 dias a partir da ativação",
@@ -37,6 +41,7 @@ const DURATION_COPY: Record<
 };
 
 const ENV_KEYS: Record<LicenseDuration, string> = {
+  "1d": "LICENSE_PRICE_1D_CENTS",
   "3m": "LICENSE_PRICE_3M_CENTS",
   "5m": "LICENSE_PRICE_5M_CENTS",
   annual: "LICENSE_PRICE_ANNUAL_CENTS",
@@ -64,7 +69,9 @@ export function licensePriceCents(duration: LicenseDuration): number | null {
 }
 
 export function listLicenseOffers(): LicenseOffer[] {
-  return (Object.keys(DURATION_COPY) as LicenseDuration[]).map((duration) => ({
+  return (Object.keys(DURATION_COPY) as LicenseDuration[])
+    .filter((duration) => duration !== "1d")
+    .map((duration) => ({
     duration,
     label: DURATION_COPY[duration].label,
     sublabel: DURATION_COPY[duration].sublabel,

@@ -42,6 +42,7 @@ export function DateRangePicker({
   className
 }: DateRangePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
   const [selectionState, setSelectionState] = React.useState<{
     from: Date | null;
@@ -52,6 +53,10 @@ export function DateRangePicker({
     to: value?.to || null,
     hoverDate: null
   });
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Atualiza estado interno quando value externo muda
   React.useEffect(() => {
@@ -264,6 +269,24 @@ export function DateRangePicker({
     return formatShortDate(formatLocalDate(selectionState.from));
   }, [selectionState.from, selectionState.to, placeholder]);
 
+  const triggerClassName = cn(
+    "h-9 justify-start text-left font-normal",
+    !selectionState.from && "text-muted-foreground",
+    className
+  );
+
+  const triggerButton = (
+    <Button
+      variant="outline"
+      disabled={disabled}
+      className={triggerClassName}
+      type="button"
+    >
+      <Calendar className="mr-2 h-4 w-4" />
+      {displayText}
+    </Button>
+  );
+
   const days = getDaysInMonth(currentMonth);
 
   const previousMonth = () => {
@@ -298,21 +321,14 @@ export function DateRangePicker({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, canApply, selectionState.from, selectionState.to, onApply]);
 
+  if (!mounted) {
+    return triggerButton;
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          disabled={disabled}
-          className={cn(
-            "h-9 justify-start text-left font-normal",
-            !selectionState.from && "text-muted-foreground",
-            className
-          )}
-        >
-          <Calendar className="mr-2 h-4 w-4" />
-          {displayText}
-        </Button>
+        {triggerButton}
       </PopoverTrigger>
       <PopoverContent 
         className="w-auto p-0" 

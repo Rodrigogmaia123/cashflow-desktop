@@ -5,7 +5,7 @@ import type {
 } from "@/lib/prisma-enums";
 
 export const LICENSE_EDITIONS = ["pro", "pessoal"] as const;
-export const LICENSE_DURATIONS = ["3m", "5m", "annual", "lifetime"] as const;
+export const LICENSE_DURATIONS = ["1d", "3m", "5m", "annual", "lifetime"] as const;
 export const LICENSE_STATUSES = [
   "paid",
   "active",
@@ -17,6 +17,7 @@ export const LICENSE_DURATION_DAYS: Record<
   Exclude<LicenseDuration, "lifetime">,
   number
 > = {
+  "1d": 1,
   "3m": 90,
   "5m": 150,
   annual: 365,

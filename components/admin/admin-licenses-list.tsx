@@ -18,6 +18,7 @@ import {
   revokeAdminLicense,
   type AdminLicenseRow,
 } from "@/app/app/admin/licenses-actions";
+import type { LicenseDuration, LicenseEdition } from "@/lib/prisma-enums";
 
 function formatWhen(iso: string | null) {
   if (!iso) return "—";
@@ -49,12 +50,13 @@ const CREATE_EDITIONS = [
   { value: "pessoal", label: "Cashflow Pessoal" },
 ] as const;
 
-const CREATE_DURATIONS = [
+const CREATE_DURATIONS: { value: LicenseDuration; label: string }[] = [
+  { value: "1d", label: "1 dia (teste)" },
   { value: "3m", label: "3 meses" },
   { value: "5m", label: "5 meses" },
   { value: "annual", label: "12 meses" },
   { value: "lifetime", label: "Vitalício" },
-] as const;
+];
 
 const selectClass =
   "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm";
@@ -72,10 +74,8 @@ export function AdminLicensesList({
   const [revokeReason, setRevokeReason] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [createEmail, setCreateEmail] = useState("");
-  const [createEdition, setCreateEdition] = useState<"pro" | "pessoal">("pro");
-  const [createDuration, setCreateDuration] = useState<
-    "3m" | "5m" | "annual" | "lifetime"
-  >("3m");
+  const [createEdition, setCreateEdition] = useState<LicenseEdition>("pro");
+  const [createDuration, setCreateDuration] = useState<LicenseDuration>("3m");
   const [createSendEmail, setCreateSendEmail] = useState(true);
   const [createdSerial, setCreatedSerial] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -380,7 +380,7 @@ export function AdminLicensesList({
                 className={selectClass}
                 value={createEdition}
                 onChange={(event) =>
-                  setCreateEdition(event.target.value as "pro" | "pessoal")
+                  setCreateEdition(event.target.value as LicenseEdition)
                 }
               >
                 {CREATE_EDITIONS.map((option) => (
@@ -396,9 +396,7 @@ export function AdminLicensesList({
                 className={selectClass}
                 value={createDuration}
                 onChange={(event) =>
-                  setCreateDuration(
-                    event.target.value as "3m" | "5m" | "annual" | "lifetime"
-                  )
+                  setCreateDuration(event.target.value as LicenseDuration)
                 }
               >
                 {CREATE_DURATIONS.map((option) => (

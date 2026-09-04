@@ -27,5 +27,5 @@ export type NotificationType =
   | "BUDGET_CRITICAL_EXCEEDED";
 export type NotificationStatus = "UNREAD" | "READ" | "DISMISSED";
 export type LicenseEdition = "pro" | "pessoal";
-export type LicenseDuration = "3m" | "5m" | "annual" | "lifetime";
+export type LicenseDuration = "1d" | "3m" | "5m" | "annual" | "lifetime";
 export type LicenseStatus = "paid" | "active" | "revoked" | "expired";
