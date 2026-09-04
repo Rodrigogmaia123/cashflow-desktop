@@ -572,3 +572,32 @@ model License {
   @@index([machineId])
 }
 
+// Pedido de licença no Stripe Checkout (tráfego pago / funil).
+model LicenseOrder {
+  id                     String    @id @default(cuid())
+  stripeSessionId        String    @unique
+  stripePaymentIntentId  String?
+  email                  String?
+  edition                String
+  duration               String
+  amountCents            Int
+  currency               String    @default("brl")
+  status                 String    @default("generated")
+  failureReason          String?
+  utmSource              String?
+  utmMedium              String?
+  utmCampaign            String?
+  licenseId              String?
+  paidAt                 DateTime?
+  failedAt               DateTime?
+  canceledAt             DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@index([stripePaymentIntentId])
+  @@index([licenseId])
+}
+
