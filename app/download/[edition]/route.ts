@@ -1,22 +1,16 @@
-import { createReadStream, existsSync, readFileSync, statSync } from "fs";
+import { createReadStream, existsSync, statSync } from "fs";
 import path from "path";
 import { Readable } from "stream";
+import {
+  appInstallerVersion,
+  githubInstallerAssetUrl,
+} from "@/lib/license/installers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function appVersion() {
-  try {
-    const raw = readFileSync(path.join(process.cwd(), "package.json"), "utf8");
-    const parsed = JSON.parse(raw) as { version?: string };
-    return parsed.version?.trim() || "0.1.5";
-  } catch {
-    return "0.1.5";
-  }
-}
-
 function installerCandidates(edition: "pro" | "pessoal") {
-  const version = appVersion();
+  const version = appInstallerVersion();
   const names =
     edition === "pessoal"
       ? [
@@ -38,9 +32,10 @@ function installerCandidates(edition: "pro" | "pessoal") {
 }
 
 function downloadName(edition: "pro" | "pessoal") {
+  const version = appInstallerVersion();
   return edition === "pessoal"
-    ? `Cashflow-Pessoal-Setup-${appVersion()}.exe`
-    : `Cashflow-Pro-Setup-${appVersion()}.exe`;
+    ? `Cashflow-Pessoal-Setup-${version}.exe`
+    : `Cashflow-Pro-Setup-${version}.exe`;
 }
 
 export async function GET(
@@ -57,13 +52,7 @@ export async function GET(
   );
 
   if (!file) {
-    return new Response(
-      "O instalador desta edição ainda não foi publicado. O serial já vale — o download entra quando o .exe estiver no servidor.",
-      {
-        status: 404,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
-      }
-    );
+    return Response.redirect(githubInstallerAssetUrl(edition), 302);
   }
 
   const { size } = statSync(file);

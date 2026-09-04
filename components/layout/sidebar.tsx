@@ -122,6 +122,13 @@ export function Sidebar({
               onClick={onLinkClick}
             />
           ))}
+          {isDesktopMode() && (
+            <SidebarLink
+              href="/app/support"
+              label="Suporte"
+              onClick={onLinkClick}
+            />
+          )}
         </div>
         <div className="space-y-1 pt-4">
           <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

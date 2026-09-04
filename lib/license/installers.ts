@@ -1,4 +1,8 @@
 import type { LicenseEdition } from "@/lib/prisma-enums";
+import { readFileSync } from "fs";
+import path from "path";
+
+const GITHUB_INSTALLER_REPO = "Rodrigogmaia123/cashflow-desktop";
 
 function readUrl(key: string): string | null {
   const raw =
@@ -18,6 +22,25 @@ function appBaseUrl() {
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     "http://127.0.0.1:3456"
   );
+}
+
+export function appInstallerVersion(): string {
+  try {
+    const raw = readFileSync(path.join(process.cwd(), "package.json"), "utf8");
+    const parsed = JSON.parse(raw) as { version?: string };
+    return parsed.version?.trim() || "0.1.6";
+  } catch {
+    return "0.1.6";
+  }
+}
+
+export function githubInstallerAssetUrl(edition: LicenseEdition): string {
+  const version = appInstallerVersion();
+  const name =
+    edition === "pessoal"
+      ? `Cashflow-Pessoal-Setup-${version}.exe`
+      : `Cashflow-Pro-Setup-${version}.exe`;
+  return `https://github.com/${GITHUB_INSTALLER_REPO}/releases/download/v${version}/${name}`;
 }
 
 /** Sempre devolve um link. CDN via env; senão o download do próprio site. */

@@ -601,3 +601,33 @@ model LicenseOrder {
   @@index([licenseId])
 }
 
+// Um fio por e-mail de compra (Pro e Pessoal juntos).
+model SupportThread {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  status          String            @default("open")
+  lastMessageAt   DateTime?
+  lastPreview     String?
+  lastAuthor      String?
+  unreadAdmin     Int               @default(0)
+  unreadCustomer  Int               @default(0)
+  resolvedAt      DateTime?
+  archivedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  messages        SupportMessage[]
+
+  @@index([status, lastMessageAt])
+}
+
+model SupportMessage {
+  id        String         @id @default(cuid())
+  threadId  String
+  author    String
+  body      String
+  createdAt DateTime       @default(now())
+  thread    SupportThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+

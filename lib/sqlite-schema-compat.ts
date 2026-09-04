@@ -246,6 +246,43 @@ export async function ensureSqliteSchema() {
   await prisma.$executeRawUnsafe(
     `CREATE INDEX IF NOT EXISTS "LicenseOrder_licenseId_idx" ON "LicenseOrder"("licenseId")`
   );
+
+  await ensureTable(`
+    CREATE TABLE IF NOT EXISTS "SupportThread" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "email" TEXT NOT NULL,
+      "status" TEXT NOT NULL DEFAULT 'open',
+      "lastMessageAt" DATETIME,
+      "lastPreview" TEXT,
+      "lastAuthor" TEXT,
+      "unreadAdmin" INTEGER NOT NULL DEFAULT 0,
+      "unreadCustomer" INTEGER NOT NULL DEFAULT 0,
+      "resolvedAt" DATETIME,
+      "archivedAt" DATETIME,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE UNIQUE INDEX IF NOT EXISTS "SupportThread_email_key" ON "SupportThread"("email")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "SupportThread_status_lastMessageAt_idx" ON "SupportThread"("status", "lastMessageAt")`
+  );
+
+  await ensureTable(`
+    CREATE TABLE IF NOT EXISTS "SupportMessage" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "threadId" TEXT NOT NULL,
+      "author" TEXT NOT NULL,
+      "body" TEXT NOT NULL,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "SupportMessage_threadId_fkey" FOREIGN KEY ("threadId") REFERENCES "SupportThread" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    )
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "SupportMessage_threadId_createdAt_idx" ON "SupportMessage"("threadId", "createdAt")`
+  );
 }
 
 let ensuring: Promise<void> | null = null;
