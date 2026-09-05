@@ -68,7 +68,6 @@ export function OpsSidebar({
           <SidebarLink
             href="/app/admin/support"
             label="Suporte"
-            badge="Em breve"
             onClick={onLinkClick}
           />
         </div>

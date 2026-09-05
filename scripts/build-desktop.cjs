@@ -17,4 +17,4 @@ cleanStaleInstallers();
 run("npx electron-builder --config electron-builder.pessoal.json --win nsis");
 cleanStaleInstallers();
 run("node scripts/publish-installers.cjs");
-console.log("Instaladores 0.1.5 Pro e Pessoal prontos em dist/ e public/installers/");
+console.log("Instaladores Pro e Pessoal prontos em dist/ e public/installers/");
