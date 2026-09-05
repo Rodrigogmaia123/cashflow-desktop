@@ -34,13 +34,23 @@ export function appInstallerVersion(): string {
   }
 }
 
-export function githubInstallerAssetUrl(edition: LicenseEdition): string {
+export function githubInstallerFileName(
+  edition: LicenseEdition,
+  versioned = false
+): string {
   const version = appInstallerVersion();
-  const name =
-    edition === "pessoal"
+  if (edition === "pessoal") {
+    return versioned
       ? `Cashflow-Pessoal-Setup-${version}.exe`
-      : `Cashflow-Pro-Setup-${version}.exe`;
-  return `https://github.com/${GITHUB_INSTALLER_REPO}/releases/download/v${version}/${name}`;
+      : "Cashflow-Pessoal-Setup.exe";
+  }
+  return versioned
+    ? `Cashflow-Pro-Setup-${version}.exe`
+    : "Cashflow-Pro-Setup.exe";
+}
+
+export function githubInstallerAssetUrl(edition: LicenseEdition): string {
+  return `https://github.com/${GITHUB_INSTALLER_REPO}/releases/latest/download/${githubInstallerFileName(edition)}`;
 }
 
 /** Sempre devolve um link. CDN via env; senão o download do próprio site. */
