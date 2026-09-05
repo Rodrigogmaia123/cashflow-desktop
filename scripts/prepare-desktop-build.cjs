@@ -71,6 +71,8 @@ function copyDir(src, dest) {
 fs.mkdirSync(path.join(standalone, ".next"), { recursive: true });
 if (fs.existsSync(staticSrc)) {
   copyDir(staticSrc, path.join(standalone, ".next", "static"));
+  copyDir(staticSrc, path.join(standalone, ".next-desktop", "static"));
+  console.log("CSS/static copiado para .next e .next-desktop");
 }
 if (fs.existsSync(publicSrc)) {
   copyDir(publicSrc, path.join(standalone, "public"));
@@ -119,6 +121,12 @@ if (fs.existsSync(packServer)) {
 }
 fs.mkdirSync(packServer, { recursive: true });
 copyDir(standalone, packServer);
+
+const nestedDist = path.join(packServer, "dist");
+if (fs.existsSync(nestedDist)) {
+  fs.rmSync(nestedDist, { recursive: true, force: true });
+  console.log("Removido dist aninhado do pacote desktop");
+}
 
 const packedNm = path.join(packServer, "node_modules");
 const stagedNm = path.join(packServer, "_node_modules");
