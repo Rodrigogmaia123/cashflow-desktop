@@ -28,9 +28,9 @@ export function appInstallerVersion(): string {
   try {
     const raw = readFileSync(path.join(process.cwd(), "package.json"), "utf8");
     const parsed = JSON.parse(raw) as { version?: string };
-    return parsed.version?.trim() || "0.1.7";
+    return parsed.version?.trim() || "0.1.8";
   } catch {
-    return "0.1.7";
+    return "0.1.8";
   }
 }
 
