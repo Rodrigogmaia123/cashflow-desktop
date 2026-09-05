@@ -22,6 +22,7 @@ const MAIN_NAV_ITEMS: NavItem[] = [
   { href: "/app/budgets", label: "Orçamentos" },
   { href: "/app/reports", label: "Relatórios" },
   { href: "/app/notifications", label: "Notificações" },
+  { href: "/app/support", label: "Suporte" },
 ];
 
 const SETTINGS_NAV_ITEMS: NavItem[] = [
@@ -53,6 +54,7 @@ export type SidebarProps = {
   variant?: "desktop" | "mobile";
   onLinkClick?: () => void;
   edition?: DesktopEdition;
+  desktopMode?: boolean;
 };
 
 const BUSINESS_NAV_ITEMS_BASE: { href: string; label: string; feature?: Feature }[] = [
@@ -74,10 +76,13 @@ export function Sidebar({
   variant = "desktop",
   onLinkClick,
   edition = "pro",
+  desktopMode = false,
 }: SidebarProps) {
   const isMobile = variant === "mobile";
   const productName = desktopProductName(edition);
-  const mainItems = MAIN_NAV_ITEMS.filter((item) => visibleForEdition(item, edition));
+  const mainItems = MAIN_NAV_ITEMS.filter((item) => visibleForEdition(item, edition)).filter(
+    (item) => item.href !== "/app/support" || desktopMode
+  );
   const settingsItems = SETTINGS_NAV_ITEMS.filter((item) => visibleForEdition(item, edition));
   const accountItems = ACCOUNT_NAV_ITEMS.filter((item) => visibleForEdition(item, edition));
   
@@ -122,13 +127,6 @@ export function Sidebar({
               onClick={onLinkClick}
             />
           ))}
-          {isDesktopMode() && (
-            <SidebarLink
-              href="/app/support"
-              label="Suporte"
-              onClick={onLinkClick}
-            />
-          )}
         </div>
         <div className="space-y-1 pt-4">
           <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
