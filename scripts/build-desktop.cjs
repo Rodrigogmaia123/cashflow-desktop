@@ -8,6 +8,10 @@ const desktopEnv = {
   ...process.env,
   DESKTOP_MODE: "true",
   NEXT_PUBLIC_DESKTOP_MODE: "true",
+  LICENSE_API_BASE_URL:
+    process.env.LICENSE_API_BASE_URL || "https://getcashflow.pro",
+  NEXT_PUBLIC_LICENSE_API_BASE_URL:
+    process.env.NEXT_PUBLIC_LICENSE_API_BASE_URL || "https://getcashflow.pro",
 };
 
 function run(command) {
