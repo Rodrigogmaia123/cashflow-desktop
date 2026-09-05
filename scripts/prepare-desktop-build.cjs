@@ -50,6 +50,18 @@ if (fs.existsSync(publicSrc)) {
   copyDir(publicSrc, path.join(standalone, "public"));
 }
 
+function stripPackedInstallerExes(publicDir) {
+  const folder = path.join(publicDir, "installers");
+  if (!fs.existsSync(folder)) return;
+  for (const name of fs.readdirSync(folder)) {
+    if (!name.toLowerCase().endsWith(".exe")) continue;
+    fs.unlinkSync(path.join(folder, name));
+    console.log("Fora do pacote desktop:", name);
+  }
+}
+
+stripPackedInstallerExes(path.join(standalone, "public"));
+
 const prismaEngineSrc = path.join(root, "node_modules", ".prisma");
 if (fs.existsSync(prismaEngineSrc)) {
   copyDir(prismaEngineSrc, path.join(standalone, "node_modules", ".prisma"));
