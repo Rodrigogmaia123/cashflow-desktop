@@ -4,8 +4,14 @@ const { cleanStaleInstallers } = require("./clean-stale-installers.cjs");
 
 const root = path.join(__dirname, "..");
 
+const desktopEnv = {
+  ...process.env,
+  DESKTOP_MODE: "true",
+  NEXT_PUBLIC_DESKTOP_MODE: "true",
+};
+
 function run(command) {
-  execSync(command, { cwd: root, stdio: "inherit", env: process.env, shell: true });
+  execSync(command, { cwd: root, stdio: "inherit", env: desktopEnv, shell: true });
 }
 
 cleanStaleInstallers();

@@ -3,10 +3,52 @@ const path = require("path");
 const { execSync } = require("child_process");
 
 const root = path.join(__dirname, "..");
-const standalone = path.join(root, ".next", "standalone");
-const staticSrc = path.join(root, ".next", "static");
+
+function findStandaloneRoots() {
+  const candidates = [
+    {
+      standalone: path.join(root, ".next-desktop", "standalone"),
+      staticSrc: path.join(root, ".next-desktop", "static"),
+    },
+    {
+      standalone: path.join(root, ".next", "standalone"),
+      staticSrc: path.join(root, ".next", "static"),
+    },
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(path.join(candidate.standalone, "server.js"))) {
+      return candidate;
+    }
+    if (!fs.existsSync(candidate.standalone)) continue;
+    const nested = fs
+      .readdirSync(candidate.standalone, { withFileTypes: true })
+      .find(
+        (entry) =>
+          entry.isDirectory() &&
+          fs.existsSync(path.join(candidate.standalone, entry.name, "server.js"))
+      );
+    if (nested) {
+      return {
+        standalone: path.join(candidate.standalone, nested.name),
+        staticSrc: candidate.staticSrc,
+      };
+    }
+  }
+  return null;
+}
+
+const found = findStandaloneRoots();
+if (!found) {
+  throw new Error(
+    "next build não gerou standalone. Rode o build desktop com DESKTOP_MODE=true."
+  );
+}
+
+const standalone = found.standalone;
+const staticSrc = found.staticSrc;
 const publicSrc = path.join(root, "public");
 const resources = path.join(root, "electron", "resources");
+console.log("Usando standalone:", standalone);
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -24,22 +66,6 @@ function copyDir(src, dest) {
     return;
   }
   fs.cpSync(src, dest, { recursive: true, force: true });
-}
-
-const serverJs = path.join(standalone, "server.js");
-if (!fs.existsSync(standalone) || !fs.existsSync(serverJs)) {
-  const nested = fs.existsSync(standalone)
-    ? fs
-        .readdirSync(standalone, { withFileTypes: true })
-        .find(
-          (entry) =>
-            entry.isDirectory() &&
-            fs.existsSync(path.join(standalone, entry.name, "server.js"))
-        )
-    : null;
-  if (!nested) {
-    throw new Error("next build não gerou .next/standalone. Rode npm run build antes.");
-  }
 }
 
 fs.mkdirSync(path.join(standalone, ".next"), { recursive: true });

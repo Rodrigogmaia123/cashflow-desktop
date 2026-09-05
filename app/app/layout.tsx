@@ -83,6 +83,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         isAdmin={user.isAdmin}
         userPlan={user.plan}
         edition={edition}
+        desktopMode={isDesktopMode()}
       >
         {children}
       </AppLayoutClient>
