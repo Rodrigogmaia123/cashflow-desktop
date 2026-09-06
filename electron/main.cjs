@@ -350,10 +350,11 @@ function sqliteUrl() {
 }
 
 function desktopEnv() {
-  const licenseApi =
+  const licenseApi = (
     process.env.LICENSE_API_BASE_URL ||
     process.env.NEXT_PUBLIC_LICENSE_API_BASE_URL ||
-    "";
+    (isPackaged() ? "https://getcashflow.pro" : "")
+  ).replace(/\/$/, "");
 
   const env = {
     ...process.env,

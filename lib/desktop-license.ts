@@ -191,11 +191,14 @@ export function shouldHeartbeatNow(now = new Date()): boolean {
 }
 
 export function licenseApiBaseUrl(): string {
-  return (
-    process.env.LICENSE_API_BASE_URL?.replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_LICENSE_API_BASE_URL?.replace(/\/$/, "") ||
+  const fromEnv = (
+    process.env.LICENSE_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_LICENSE_API_BASE_URL ||
     ""
-  );
+  ).replace(/\/$/, "");
+  if (fromEnv) return fromEnv;
+  if (isPackagedDesktop()) return "https://getcashflow.pro";
+  return "";
 }
 
 function isLoopback(url: string) {
