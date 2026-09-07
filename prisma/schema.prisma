@@ -572,11 +572,18 @@ model License {
   @@index([machineId])
 }
 
-// Pedido de licença no Stripe Checkout (tráfego pago / funil).
+// Pedido de licença (Stripe cartão ou PIX Pushin Pay).
 model LicenseOrder {
   id                     String    @id @default(cuid())
   stripeSessionId        String    @unique
   stripePaymentIntentId  String?
+  provider               String    @default("stripe")
+  pixTransactionId       String?   @unique
+  pixQrCode              String?
+  pixQrCodeBase64        String?
+  pixConsultedAt         DateTime?
+  fbp                    String?
+  fbc                    String?
   email                  String?
   edition                String
   duration               String
@@ -599,6 +606,7 @@ model LicenseOrder {
   @@index([createdAt])
   @@index([stripePaymentIntentId])
   @@index([licenseId])
+  @@index([provider])
 }
 
 // Um fio por e-mail de compra (Pro e Pessoal juntos).

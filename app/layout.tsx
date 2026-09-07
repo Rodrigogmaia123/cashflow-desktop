@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { MetaPixel } from "@/components/ads/meta-pixel";
 
 export const metadata: Metadata = {
   title: "Cashflow — Clareza de caixa no seu computador",
@@ -20,10 +21,9 @@ export default function RootLayout({
           "h-full bg-background font-sans antialiased text-sm text-foreground"
         )}
       >
+        <MetaPixel />
         {children}
       </body>
     </html>
   );
 }
-
-

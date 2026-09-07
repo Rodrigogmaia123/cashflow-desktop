@@ -1,10 +1,15 @@
 import type Stripe from "stripe";
 import { createPaidLicense } from "./store";
-import { markLicenseOrderPaid } from "./orders";
+import {
+  findLicenseOrderByPixId,
+  markLicenseOrderPaid,
+  pixCheckoutRef,
+} from "./orders";
 import {
   DESKTOP_LICENSE_PRODUCT,
   getPricedLicenseOffer,
 } from "./catalog";
+import { isPushinPaid, type PushinPayTransaction } from "@/lib/payments/pushinpay";
 
 export type DesktopLicenseSession = Pick<
   Stripe.Checkout.Session,
@@ -95,6 +100,64 @@ export async function fulfillDesktopLicenseSession(
     });
   } catch (error) {
     console.error("[license/fulfill] pedido financeiro:", session.id, error);
+  }
+
+  return result.alreadyExisted
+    ? { outcome: "exists", licenseId: result.license.id }
+    : { outcome: "created", licenseId: result.license.id };
+}
+
+export async function fulfillPixLicenseTransaction(
+  tx: Pick<PushinPayTransaction, "id" | "status" | "value">
+): Promise<FulfillOutcome> {
+  if (!isPushinPaid(tx.status)) {
+    return { outcome: "ignored", reason: "not_paid" };
+  }
+
+  const order = await findLicenseOrderByPixId(tx.id);
+  if (!order) {
+    return { outcome: "ignored", reason: "order_not_found" };
+  }
+
+  const offer = getPricedLicenseOffer(order.edition, order.duration);
+  if (!offer) {
+    return { outcome: "ignored", reason: "unpriced_or_invalid" };
+  }
+
+  if (tx.value !== offer.amountCents && tx.value !== order.amountCents) {
+    console.error(
+      "[license/fulfill-pix] valor pago não bate com o pedido",
+      tx.id,
+      tx.value,
+      order.amountCents
+    );
+    return { outcome: "ignored", reason: "amount_mismatch" };
+  }
+
+  const email = order.email?.trim().toLowerCase() ?? "";
+  if (!email.includes("@")) {
+    return { outcome: "ignored", reason: "missing_email" };
+  }
+
+  const checkoutRef = order.stripeSessionId || pixCheckoutRef(tx.id);
+  const result = await createPaidLicense({
+    edition: offer.edition,
+    duration: offer.duration,
+    email,
+    stripeSessionId: checkoutRef,
+  });
+
+  try {
+    await markLicenseOrderPaid({
+      stripeSessionId: checkoutRef,
+      email,
+      amountCents: order.amountCents,
+      licenseId: result.license.id,
+      edition: offer.edition,
+      duration: offer.duration,
+    });
+  } catch (error) {
+    console.error("[license/fulfill-pix] pedido financeiro:", tx.id, error);
   }
 
   return result.alreadyExisted

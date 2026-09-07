@@ -246,6 +246,19 @@ export async function ensureSqliteSchema() {
   await prisma.$executeRawUnsafe(
     `CREATE INDEX IF NOT EXISTS "LicenseOrder_licenseId_idx" ON "LicenseOrder"("licenseId")`
   );
+  await ensureColumn("LicenseOrder", "provider", `"provider" TEXT NOT NULL DEFAULT 'stripe'`);
+  await ensureColumn("LicenseOrder", "pixTransactionId", `"pixTransactionId" TEXT`);
+  await ensureColumn("LicenseOrder", "pixQrCode", `"pixQrCode" TEXT`);
+  await ensureColumn("LicenseOrder", "pixQrCodeBase64", `"pixQrCodeBase64" TEXT`);
+  await ensureColumn("LicenseOrder", "pixConsultedAt", `"pixConsultedAt" DATETIME`);
+  await ensureColumn("LicenseOrder", "fbp", `"fbp" TEXT`);
+  await ensureColumn("LicenseOrder", "fbc", `"fbc" TEXT`);
+  await prisma.$executeRawUnsafe(
+    `CREATE UNIQUE INDEX IF NOT EXISTS "LicenseOrder_pixTransactionId_key" ON "LicenseOrder"("pixTransactionId")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "LicenseOrder_provider_idx" ON "LicenseOrder"("provider")`
+  );
 
   await ensureTable(`
     CREATE TABLE IF NOT EXISTS "SupportThread" (

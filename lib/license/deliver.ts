@@ -29,6 +29,10 @@ function isCheckoutSessionId(value: string) {
   return value.startsWith("cs_test_") || value.startsWith("cs_live_");
 }
 
+function isLicenseCheckoutRef(value: string) {
+  return isCheckoutSessionId(value) || value.startsWith("pix:");
+}
+
 async function sendSerialEmail(
   licenseId: string,
   serial: string,
@@ -125,13 +129,13 @@ export async function revealLicenseForCheckoutSession(
   sessionId: string
 ): Promise<LicenseReveal> {
   const id = sessionId.trim();
-  if (!isCheckoutSessionId(id)) {
+  if (!isLicenseCheckoutRef(id)) {
     return { status: "invalid" };
   }
 
   let license = await findLicenseByStripeSession(id);
 
-  if (!license) {
+  if (!license && isCheckoutSessionId(id)) {
     try {
       const session = await stripe.checkout.sessions.retrieve(id);
       const fulfilled = await fulfillDesktopLicenseSession(session);

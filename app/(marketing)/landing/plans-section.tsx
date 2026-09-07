@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import {
   startLicenseCheckout,
+  startPixCheckout,
   type LicenseEdition,
 } from "./checkout";
 import type { LicenseDuration } from "@/lib/prisma-enums";
@@ -11,6 +12,10 @@ import {
   formatLicensePrice,
   listLicenseOffers,
 } from "@/lib/license/catalog";
+import {
+  readClientAdsContext,
+  trackMetaBrowserEvent,
+} from "@/lib/ads/meta-client";
 
 const INCLUDES: Record<LicenseEdition, string[]> = {
   pro: [
@@ -29,9 +34,13 @@ const INCLUDES: Record<LicenseEdition, string[]> = {
 
 const OFFERS = listLicenseOffers();
 
+type PayMethod = "card" | "pix";
+
 export function PlansSection() {
   const [edition, setEdition] = useState<LicenseEdition>("pro");
   const [duration, setDuration] = useState<LicenseDuration>("3m");
+  const [method, setMethod] = useState<PayMethod>("card");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -51,19 +60,49 @@ export function PlansSection() {
     setIndicator({ width: active.offsetWidth, x: active.offsetLeft });
   }, [edition]);
 
+  function traffic() {
+    const params = new URLSearchParams(window.location.search);
+    const ads = readClientAdsContext();
+    return {
+      utmSource: params.get("utm_source"),
+      utmMedium: params.get("utm_medium"),
+      utmCampaign: params.get("utm_campaign"),
+      fbp: ads.fbp,
+      fbc: ads.fbc,
+      eventId: ads.eventId,
+      ads,
+    };
+  }
+
+  function fireCheckoutPixels(eventId: string, value: number) {
+    const params = {
+      value: value / 100,
+      currency: "BRL",
+      content_name: `${editionLabel(edition)} · ${offer.label}`,
+      content_ids: [`desktop-license:${edition}:${duration}`],
+      content_type: "product",
+    };
+    trackMetaBrowserEvent("InitiateCheckout", `${eventId}:checkout`, params);
+    trackMetaBrowserEvent("Lead", `${eventId}:lead`, params);
+  }
+
   function buy() {
     if (!priced) {
       setError("Este prazo ainda não está à venda.");
       return;
     }
+    if (method === "pix" && !email.trim().includes("@")) {
+      setError("Para PIX, informa o e-mail onde a chave deve chegar.");
+      return;
+    }
     setError(null);
     startTransition(async () => {
-      const params = new URLSearchParams(window.location.search);
-      const result = await startLicenseCheckout(edition, duration, {
-        utmSource: params.get("utm_source"),
-        utmMedium: params.get("utm_medium"),
-        utmCampaign: params.get("utm_campaign"),
-      });
+      const ctx = traffic();
+      fireCheckoutPixels(ctx.eventId, offer.amountCents!);
+      const result =
+        method === "pix"
+          ? await startPixCheckout(edition, duration, email, ctx)
+          : await startLicenseCheckout(edition, duration, ctx);
       if (result?.error) setError(result.error);
     });
   }
@@ -77,8 +116,8 @@ export function PlansSection() {
               <div className="kicker">PLANO</div>
               <h2>Um prazo, uma chave, uma cópia do programa</h2>
               <p>
-                Escolhe a edição e o prazo. O serial só nasce se o pagamento
-                passar. O relógio começa na ativação, não na compra.
+                Escolhe a edição, o prazo e como pagar. O serial só nasce se o
+                pagamento passar. O relógio começa na ativação, não na compra.
               </p>
             </div>
 
@@ -149,6 +188,43 @@ export function PlansSection() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+
+              <div className="pay-methods" role="tablist" aria-label="Forma de pagamento">
+                <button
+                  type="button"
+                  className={method === "card" ? "is-active" : undefined}
+                  onClick={() => {
+                    setMethod("card");
+                    setError(null);
+                  }}
+                >
+                  Cartão
+                </button>
+                <button
+                  type="button"
+                  className={method === "pix" ? "is-active" : undefined}
+                  onClick={() => {
+                    setMethod("pix");
+                    setError(null);
+                  }}
+                >
+                  PIX
+                </button>
+              </div>
+
+              {method === "pix" ? (
+                <label className="pay-email">
+                  <span>E-mail da chave</span>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="voce@email.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </label>
+              ) : null}
+
               <button
                 type="button"
                 className="btn btn-primary"
@@ -156,11 +232,26 @@ export function PlansSection() {
                 disabled={pending || !priced}
               >
                 {pending
-                  ? "Abrindo o pagamento…"
+                  ? method === "pix"
+                    ? "Gerando o PIX…"
+                    : "Abrindo o pagamento…"
                   : priced
-                    ? `Comprar ${offer.label} — ${priceLabel}`
+                    ? method === "pix"
+                      ? `Pagar no PIX — ${priceLabel}`
+                      : `Comprar no cartão — ${priceLabel}`
                     : "Preço a definir"}
               </button>
+              {method === "pix" ? (
+                <p className="pay-note">
+                  O PIX é processado pela Pushin Pay. Depois do pagamento, a
+                  chave e o instalador saem no e-mail e nesta tela.
+                </p>
+              ) : (
+                <p className="pay-note">
+                  Cartão via Stripe. O e-mail da chave é o que você informa no
+                  checkout.
+                </p>
+              )}
               {error ? <p className="plan-error">{error}</p> : null}
             </div>
           </div>
