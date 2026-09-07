@@ -17,29 +17,67 @@ function webhookAuthorized(req: NextRequest) {
   const headerName = (
     process.env.PUSHINPAY_WEBHOOK_HEADER?.trim() || "x-pushinpay-token"
   ).toLowerCase();
-  const got = req.headers.get(headerName);
+  const got =
+    req.headers.get(headerName) ||
+    req.headers.get("x-pushinpay-token") ||
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
+    "";
   return got === expected;
 }
 
-type PushinWebhookBody = {
-  id?: string;
-  value?: number;
-  status?: string;
-};
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function pickString(record: Record<string, unknown> | null, keys: string[]) {
+  if (!record) return "";
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number") return String(value);
+  }
+  return "";
+}
+
+function parsePushinWebhook(body: unknown): {
+  id: string;
+  value: number | null;
+  status: string;
+} {
+  const root = asRecord(body);
+  const nested = asRecord(root?.data) ?? asRecord(root?.transaction);
+  const id =
+    pickString(root, ["id", "transaction_id", "transactionId"]) ||
+    pickString(nested, ["id", "transaction_id", "transactionId"]);
+  const status =
+    pickString(root, ["status"]) || pickString(nested, ["status"]);
+  const rawValue = root?.value ?? nested?.value;
+  const value =
+    typeof rawValue === "number"
+      ? rawValue
+      : typeof rawValue === "string" && rawValue.trim()
+        ? Number(rawValue)
+        : null;
+  return { id, value: Number.isFinite(value) ? value : null, status };
+}
 
 export async function POST(req: NextRequest) {
   if (!webhookAuthorized(req)) {
+    console.error("[webhook/pushinpay] header de autenticação não bateu");
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  let body: PushinWebhookBody;
+  let raw: unknown;
   try {
-    body = (await req.json()) as PushinWebhookBody;
+    raw = await req.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const id = body.id?.trim() ?? "";
+  const body = parsePushinWebhook(raw);
+  const id = body.id;
   if (!id) {
     return NextResponse.json({ error: "id ausente" }, { status: 400 });
   }
