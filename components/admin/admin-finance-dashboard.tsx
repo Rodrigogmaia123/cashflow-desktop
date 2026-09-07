@@ -388,6 +388,7 @@ export function AdminFinanceDashboard({
                     <th className="px-6 py-3 font-medium">Quando</th>
                     <th className="px-4 py-3 font-medium">Cliente</th>
                     <th className="px-4 py-3 font-medium">Oferta</th>
+                    <th className="px-4 py-3 font-medium">Pagamento</th>
                     <th className="px-4 py-3 font-medium">Valor</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Licença / suporte</th>
@@ -492,6 +493,14 @@ function OrderRow({
         <span className="block text-xs text-muted-foreground">
           {order.durationLabel}
         </span>
+      </td>
+      <td className="px-4 py-3">
+        {order.provider === "pushinpay" ? "PIX" : "Cartão"}
+        {order.provider === "pushinpay" && order.status === "generated" ? (
+          <span className="block text-[11px] text-muted-foreground">
+            QR gerado, aguardando pagamento
+          </span>
+        ) : null}
       </td>
       <td className="px-4 py-3 whitespace-nowrap">
         {formatMoney(order.amountCents)}

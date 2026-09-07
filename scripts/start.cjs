@@ -15,6 +15,10 @@ process.env.HOST = host;
 process.env.PORT = port;
 
 fs.mkdirSync(path.join(root, "data"), { recursive: true });
+const {
+  backupExistingSqlite,
+  sqliteAlreadyInitialized,
+} = require("./sqlite-boot-guard.cjs");
 const dbFile = path.join(root, "data", "cashflow-desktop.db").replace(/\\/g, "/");
 if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith("file:")) {
   process.env.DATABASE_URL = `file:${dbFile}`;
@@ -29,13 +33,22 @@ function prismaCli() {
   return unix;
 }
 
-const push = spawnSync(
-  prismaCli(),
-  ["db", "push", "--skip-generate"],
-  { stdio: "inherit", env: process.env, shell: process.platform === "win32" }
-);
-if (push.status !== 0) {
-  console.error("[start] prisma db push falhou; o SQLite pode estar vazio.");
+const dbAlreadyThere = sqliteAlreadyInitialized(dbFile);
+backupExistingSqlite(root, dbFile);
+
+if (dbAlreadyThere) {
+  console.log(
+    "[start] SQLite já existe — não roda prisma db push. Colunas novas entram só com ALTER (sem apagar licenças)."
+  );
+} else {
+  const push = spawnSync(
+    prismaCli(),
+    ["db", "push", "--skip-generate"],
+    { stdio: "inherit", env: process.env, shell: process.platform === "win32" }
+  );
+  if (push.status !== 0) {
+    console.error("[start] prisma db push falhou; o SQLite pode estar vazio.");
+  }
 }
 
 function findStandaloneDir(dir) {

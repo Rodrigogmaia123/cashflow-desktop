@@ -35,6 +35,8 @@ export type FinanceStatusFilter = "all" | LicenseOrderStatus;
 export type AdminFinanceOrderRow = {
   id: string;
   email: string | null;
+  provider: "stripe" | "pushinpay";
+  pixTransactionId: string | null;
   editionLabel: string;
   durationLabel: string;
   amountCents: number;
@@ -127,6 +129,7 @@ export async function getAdminFinance(input?: {
           OR: [
             { email: { contains: query } },
             { stripeSessionId: { contains: query } },
+            { pixTransactionId: { contains: query } },
             { utmCampaign: { contains: query } },
             { utmSource: { contains: query } },
           ],
@@ -195,6 +198,12 @@ export async function getAdminFinance(input?: {
     return {
       id: order.id,
       email: order.email,
+      provider:
+        order.provider === "pushinpay" ||
+        order.stripeSessionId.startsWith("pix:")
+          ? "pushinpay"
+          : "stripe",
+      pixTransactionId: order.pixTransactionId,
       editionLabel: isLicenseEdition(order.edition)
         ? editionLabel(order.edition)
         : order.edition,
