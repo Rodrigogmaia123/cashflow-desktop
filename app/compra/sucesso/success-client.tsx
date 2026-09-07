@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { LicenseReveal } from "@/lib/license/types";
+import { trackMetaBrowserEvent } from "@/lib/ads/meta-client";
 
 const POLL_MS = 2000;
 const TIMEOUT_MS = 60_000;
@@ -22,6 +23,7 @@ export function PurchaseSuccessClient() {
   const [reveal, setReveal] = useState<LicenseReveal | null>(null);
   const [copied, setCopied] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+  const purchaseTracked = useRef(false);
 
   const heading = useMemo(() => {
     if (!sessionId) return "Não encontramos esta compra.";
@@ -47,7 +49,17 @@ export function PurchaseSuccessClient() {
         const data: unknown = await res.json();
         if (cancelled || !isReveal(data)) return;
         setReveal(data);
-        if (data.status === "ready" || data.status === "invalid") {
+        if (data.status === "ready") {
+          if (!purchaseTracked.current) {
+            purchaseTracked.current = true;
+            trackMetaBrowserEvent("Purchase", `${sessionId}:purchase`, {
+              currency: "BRL",
+              content_type: "product",
+            });
+          }
+          return;
+        }
+        if (data.status === "invalid") {
           return;
         }
       } catch {
@@ -86,16 +98,16 @@ export function PurchaseSuccessClient() {
 
       {!sessionId && (
         <p>
-          Abra o link que o Stripe envia depois do pagamento, ou o que chegou
-          no e-mail. Esta página não inventa serial.
+          Abra o link que chega depois do pagamento, ou o que chegou no e-mail.
+          Esta página não inventa serial.
         </p>
       )}
 
       {sessionId && !ready && reveal?.status !== "unpaid" && reveal?.status !== "invalid" && (
         <p>
           {timedOut
-            ? "O webhook do Stripe ainda não confirmou esta sessão. Atualize a página daqui a um minuto — a chave só aparece depois do pagamento registrado no servidor."
-            : "Estamos esperando a confirmação do Stripe. Se o e-mail atrasar, esta tela consulta de novo sozinha. O prazo da licença ainda não começou."}
+            ? "A confirmação do pagamento ainda não chegou. Atualize a página daqui a um minuto — a chave só aparece depois do pagamento registrado no servidor."
+            : "Estamos esperando a confirmação. Se o e-mail atrasar, esta tela consulta de novo sozinha. O prazo da licença ainda não começou."}
         </p>
       )}
 

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
+import { trackLicenseFunnel } from "@/lib/ads/meta";
 import { stripe, syncSubscriptionFromStripe } from "@/lib/billing/stripe";
 import { DEFAULT_PLAN } from "@/lib/billing/plans";
 import { prisma } from "@/lib/db";
-import { DESKTOP_LICENSE_PRODUCT } from "@/lib/license/catalog";
+import { DESKTOP_LICENSE_PRODUCT, getPricedLicenseOffer } from "@/lib/license/catalog";
 import { fulfillDesktopLicenseSession } from "@/lib/license/fulfill-checkout";
 import { deliverIssuedLicenseById } from "@/lib/license/deliver";
 import {
+  findLicenseOrderByCheckoutRef,
   markLicenseOrderCanceled,
   markLicenseOrderFailed,
 } from "@/lib/license/orders";
@@ -103,6 +105,32 @@ export async function POST(req: NextRequest) {
                   session.id,
                   deliverError
                 );
+              }
+              try {
+                const order = await findLicenseOrderByCheckoutRef(session.id);
+                const edition = session.metadata?.edition || order?.edition || "pro";
+                const duration = session.metadata?.duration || order?.duration || "3m";
+                const offer = getPricedLicenseOffer(edition, duration);
+                const email = desktopLicenseEmail(session) || order?.email;
+                if (offer) {
+                  void trackLicenseFunnel({
+                    stage: "purchase",
+                    eventId: session.id,
+                    ads: {
+                      fbp: order?.fbp,
+                      fbc: order?.fbc,
+                      email,
+                    },
+                    content: {
+                      contentName: offer.name,
+                      contentIds: [`desktop-license:${offer.edition}:${offer.duration}`],
+                      valueCents: session.amount_total ?? offer.amountCents,
+                    },
+                    email,
+                  });
+                }
+              } catch (adsError) {
+                console.error("[webhook/stripe] meta purchase:", session.id, adsError);
               }
             } else if (
               result.outcome === "ignored" &&

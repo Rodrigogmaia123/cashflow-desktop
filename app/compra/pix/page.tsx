@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import "../../(marketing)/landing.css";
-import { PurchaseSuccessClient } from "./success-client";
+import { PixCheckoutClient } from "./pix-client";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -22,21 +22,21 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "Pagamento recebido — Cashflow",
-  description: "Serial e instalador da sua licença desktop.",
+  title: "Pagar no PIX — Cashflow",
+  description: "QR Code PIX para liberar o serial da licença desktop.",
 };
 
-function SuccessFallback() {
+function PixFallback() {
   return (
     <div className="cta-final glass success-panel">
       <div className="cta-glow" />
-      <h2>Confirmando o pagamento…</h2>
-      <p>Estamos esperando a confirmação do pagamento.</p>
+      <h2>Gerando o PIX…</h2>
+      <p>Estamos montando o QR Code da cobrança.</p>
     </div>
   );
 }
 
-export default function PurchaseSuccessPage() {
+export default function PixCheckoutPage() {
   return (
     <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`}>
       <div className="bg-fx" aria-hidden>
@@ -49,16 +49,16 @@ export default function PurchaseSuccessPage() {
             <span className="brand-mark" />
             Cashflow
           </a>
-          <a href="/" className="btn btn-ghost">
-            Voltar ao início
+          <a href="/#planos" className="btn btn-ghost">
+            Voltar aos planos
           </a>
         </div>
       </header>
       <main>
         <section>
           <div className="wrap">
-            <Suspense fallback={<SuccessFallback />}>
-              <PurchaseSuccessClient />
+            <Suspense fallback={<PixFallback />}>
+              <PixCheckoutClient />
             </Suspense>
           </div>
         </section>

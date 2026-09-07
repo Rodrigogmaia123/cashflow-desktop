@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { ensureSqliteSchemaOnce } from "@/lib/sqlite-schema-compat";
 import { licensePriceCents } from "./catalog";
 import {
   isLicenseDuration,
@@ -12,6 +13,8 @@ export type LicenseOrderTraffic = {
   utmSource?: string | null;
   utmMedium?: string | null;
   utmCampaign?: string | null;
+  fbp?: string | null;
+  fbc?: string | null;
 };
 
 function trimUtm(value?: string | null) {
@@ -19,24 +22,49 @@ function trimUtm(value?: string | null) {
   return next ? next.slice(0, 120) : null;
 }
 
+function trimCookie(value?: string | null) {
+  const next = value?.trim() ?? "";
+  return next ? next.slice(0, 255) : null;
+}
+
 function isPaidStatus(status: string) {
   return status === PAID;
+}
+
+export function pixCheckoutRef(transactionId: string) {
+  return `pix:${transactionId}`;
+}
+
+export function isPixCheckoutRef(sessionId: string) {
+  return sessionId.startsWith("pix:");
 }
 
 export async function recordLicenseOrderCreated(input: {
   stripeSessionId: string;
   stripePaymentIntentId?: string | null;
+  provider?: "stripe" | "pushinpay";
+  pixTransactionId?: string | null;
+  pixQrCode?: string | null;
+  pixQrCodeBase64?: string | null;
+  email?: string | null;
   edition: string;
   duration: string;
   amountCents: number;
   traffic?: LicenseOrderTraffic;
 }) {
   const now = new Date();
+  const email = input.email?.trim().toLowerCase() || null;
+  await ensureSqliteSchemaOnce();
   await prisma.licenseOrder.upsert({
     where: { stripeSessionId: input.stripeSessionId },
     create: {
       stripeSessionId: input.stripeSessionId,
       stripePaymentIntentId: input.stripePaymentIntentId || null,
+      provider: input.provider ?? "stripe",
+      pixTransactionId: input.pixTransactionId || null,
+      pixQrCode: input.pixQrCode || null,
+      pixQrCodeBase64: input.pixQrCodeBase64 || null,
+      email,
       edition: input.edition,
       duration: input.duration,
       amountCents: input.amountCents,
@@ -44,12 +72,39 @@ export async function recordLicenseOrderCreated(input: {
       utmSource: trimUtm(input.traffic?.utmSource),
       utmMedium: trimUtm(input.traffic?.utmMedium),
       utmCampaign: trimUtm(input.traffic?.utmCampaign),
+      fbp: trimCookie(input.traffic?.fbp),
+      fbc: trimCookie(input.traffic?.fbc),
     },
     update: {
       stripePaymentIntentId:
         input.stripePaymentIntentId || undefined,
+      pixQrCode: input.pixQrCode || undefined,
+      pixQrCodeBase64: input.pixQrCodeBase64 || undefined,
+      email: email ?? undefined,
       updatedAt: now,
     },
+  });
+}
+
+export async function findLicenseOrderByCheckoutRef(sessionId: string) {
+  await ensureSqliteSchemaOnce();
+  return prisma.licenseOrder.findUnique({
+    where: { stripeSessionId: sessionId },
+  });
+}
+
+export async function findLicenseOrderByPixId(pixTransactionId: string) {
+  await ensureSqliteSchemaOnce();
+  return prisma.licenseOrder.findUnique({
+    where: { pixTransactionId },
+  });
+}
+
+export async function touchPixConsultedAt(sessionId: string) {
+  await ensureSqliteSchemaOnce();
+  await prisma.licenseOrder.update({
+    where: { stripeSessionId: sessionId },
+    data: { pixConsultedAt: new Date() },
   });
 }
 

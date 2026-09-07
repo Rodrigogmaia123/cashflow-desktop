@@ -74,6 +74,10 @@ const faqs = [
     a: "Para pagar, baixar e ativar, sim. Para o dia a dia, o programa roda no seu PC — de tempos em tempos ele só confirma se a chave ainda vale.",
   },
   {
+    q: "Como funciona o PIX?",
+    a: "Você informa o e-mail, gera o QR na Pushin Pay e paga. Quando o PIX é confirmado, o serial nasce e vai para esse e-mail — a mesma entrega do cartão. O prazo só começa na ativação.",
+  },
+  {
     q: "É mensalidade?",
     a: "Não. Você paga um prazo uma vez, recebe a chave e usa a partir da ativação. 3 meses está à venda por R$ 30; os outros prazos entram quando o preço existir.",
   },
@@ -423,8 +427,11 @@ export function LandingContent() {
               <div className="step">
                 <div className="step-num">02</div>
                 <div>
-                  <h3>Paga no Stripe</h3>
-                  <p>Cartão, checkout seguro.</p>
+                  <h3>Paga no cartão ou no PIX</h3>
+                  <p>
+                    Cartão no Stripe, ou PIX pela Pushin Pay. No PIX, o serial
+                    só sai depois que o pagamento cair.
+                  </p>
                 </div>
               </div>
               <div className="step">
