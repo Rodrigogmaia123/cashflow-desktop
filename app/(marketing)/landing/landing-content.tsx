@@ -24,6 +24,7 @@ const mono = IBM_Plex_Mono({
 
 const TICKER = [
   "DADOS 100% LOCAIS",
+  "WINDOWS E MAC",
   "ATIVAÇÃO POR SERIAL KEY",
   "ROI POR OFERTA",
   "ALERTA DE ORÇAMENTO",
@@ -62,8 +63,12 @@ const faqs = [
     a: "Não. O caixa, as ofertas e os lançamentos ficam no seu computador. O site só cuida de pagamento, serial e download.",
   },
   {
-    q: "E se eu usar em dois PCs?",
-    a: "A licença é de uma cópia do programa. No pendrive, você leva essa cópia e usa nas suas máquinas. Instalar de forma separada em dois computadores ao mesmo tempo não faz parte do modelo.",
+    q: "E se eu usar em dois computadores?",
+    a: "A licença é de uma cópia do programa, no Windows ou no Mac. No pendrive, você leva essa cópia e usa nas suas máquinas. Instalar de forma separada em dois computadores ao mesmo tempo não faz parte do modelo.",
+  },
+  {
+    q: "Tem para Mac?",
+    a: "Tem. O mesmo programa sai em instalador Windows (.exe) e Mac (.dmg). A chave é a mesma: você baixa a versão do seu sistema, cola o serial e usa.",
   },
   {
     q: "O prazo começa quando eu pago?",
@@ -71,7 +76,7 @@ const faqs = [
   },
   {
     q: "Precisa de internet?",
-    a: "Para pagar, baixar e ativar, sim. Para o dia a dia, o programa roda no seu PC — de tempos em tempos ele só confirma se a chave ainda vale.",
+    a: "Para pagar, baixar e ativar, sim. Para o dia a dia, o programa roda no seu Windows ou Mac — de tempos em tempos ele só confirma se a chave ainda vale.",
   },
   {
     q: "Como funciona o PIX?",
@@ -91,7 +96,7 @@ const faqs = [
   },
   {
     q: "É para celular?",
-    a: "É um programa para computador. Não há versão para celular.",
+    a: "É um programa para computador, no Windows e no Mac. Não há versão para celular.",
   },
   {
     q: "Substitui o banco ou o gerenciador de anúncios?",
@@ -171,7 +176,7 @@ export function LandingContent() {
           <nav className="nav-links">
             <a href="#produto">O PRODUTO</a>
             <a href="#telas">TELAS</a>
-            <a href="#como-funciona">COMO FUNCIONA</a>
+            <a href="#download">BAIXAR</a>
             <a href="#planos">PLANO</a>
             <a href="#faq">DÚVIDAS</a>
           </nav>
@@ -204,16 +209,20 @@ export function LandingContent() {
                 Mora no seu computador.
               </h1>
               <p className="lead">
-                Cashflow é um programa para Windows: você vê o que entra, o que
-                sai e o que sobra — na empresa e na vida pessoal. Os dados
-                ficam salvos no seu PC, não numa conta na nuvem.
+                Cashflow é um programa para Windows e Mac: você vê o que entra,
+                o que sai e o que sobra — na empresa e na vida pessoal. Os dados
+                ficam salvos no seu computador, não numa conta na nuvem.
               </p>
+              <div className="os-row" aria-label="Sistemas disponíveis">
+                <span className="os-chip">Windows</span>
+                <span className="os-chip">macOS</span>
+              </div>
               <div className="hero-cta">
                 <a href="#planos" className="btn btn-primary">
                   Comprar 3 meses — R$ 30
                 </a>
-                <a href="#produto" className="btn btn-ghost">
-                  Ver o que está incluso
+                <a href="#download" className="btn btn-ghost">
+                  Baixar Windows ou Mac
                 </a>
               </div>
               <div className="hero-stats">
@@ -286,8 +295,8 @@ export function LandingContent() {
                     Quer orçamento por categoria, com alerta antes de estourar
                   </li>
                   <li>
-                    Prefere um programa no PC em vez de um app que sobe o
-                    extrato para a nuvem
+                    Prefere um programa no Windows ou no Mac em vez de um app
+                    que sobe o extrato para a nuvem
                   </li>
                 </ul>
                 <p className="aud-quote">
@@ -440,24 +449,24 @@ export function LandingContent() {
                   <h3>Recebe o serial</h3>
                   <p>
                     Por e-mail e na tela de pagamento aprovado, junto com o
-                    instalador.
+                    instalador para Windows e para Mac.
                   </p>
                 </div>
               </div>
               <div className="step">
                 <div className="step-num">04</div>
                 <div>
-                  <h3>Instala e cola a chave</h3>
+                  <h3>Instala no Windows ou no Mac</h3>
                   <p>
-                    O programa pede o Serial Key na primeira abertura. Dá para
-                    usar direto de um pendrive, se preferir.
+                    Baixa o .exe ou o .dmg, abre o programa e cola o Serial Key.
+                    Dá para usar direto de um pendrive, se preferir.
                   </p>
                 </div>
               </div>
               <div className="step">
                 <div className="step-num">05</div>
                 <div>
-                  <h3>Usa no PC</h3>
+                  <h3>Usa no computador</h3>
                   <p>
                     O prazo da licença começa no dia em que você ativa — não no
                     dia em que pagou. Depois disso o dia a dia é local; de
@@ -466,6 +475,58 @@ export function LandingContent() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section id="download">
+          <div className="wrap">
+            <div className="head reveal">
+              <div className="kicker">INSTALADOR</div>
+              <h2>Windows e Mac. Você escolhe o seu.</h2>
+              <p>
+                Baixe o instalador da edição que você comprou. Sem a chave o
+                programa não abre — o serial sai depois do pagamento.
+              </p>
+            </div>
+            <div className="download-grid reveal">
+              <div className="dl-card pro glass">
+                <div className="edition mono">CASHFLOW PRO</div>
+                <h3>Para quem vende e anuncia</h3>
+                <p>
+                  Mesma chave nos dois sistemas. Escolha o instalador do seu
+                  computador.
+                </p>
+                <div className="dl-actions">
+                  <a href="/download/pro" className="btn btn-ghost">
+                    Windows (.exe)
+                  </a>
+                  <a href="/download/pro/mac" className="btn btn-ghost">
+                    Mac (.dmg)
+                  </a>
+                </div>
+              </div>
+              <div className="dl-card pessoal glass">
+                <div className="edition mono">CASHFLOW PESSOAL</div>
+                <h3>Para o caixa do dia a dia</h3>
+                <p>
+                  Controle pessoal no Windows ou no Mac, com os dados no seu
+                  computador.
+                </p>
+                <div className="dl-actions">
+                  <a href="/download/pessoal" className="btn btn-ghost">
+                    Windows (.exe)
+                  </a>
+                  <a href="/download/pessoal/mac" className="btn btn-ghost">
+                    Mac (.dmg)
+                  </a>
+                </div>
+              </div>
+            </div>
+            <p className="dl-note reveal">
+              Ainda não tem chave?{" "}
+              <a href="#planos">Compre 3 meses por R$ 30</a> e ative depois de
+              instalar.
+            </p>
           </div>
         </section>
 
@@ -479,7 +540,8 @@ export function LandingContent() {
               </div>
               <div>
                 <h3>
-                  O sistema fica no seu PC. O site só vende e libera a chave.
+                  O sistema fica no seu Windows ou Mac. O site só vende e
+                  libera a chave.
                 </h3>
                 <p>
                   O caixa, as ofertas e os lançamentos são salvos no seu
@@ -520,8 +582,8 @@ export function LandingContent() {
                 <h2>Pague R$ 30. Receba a chave. Ative quando for usar.</h2>
                 <p>
                   Sem conta grátis, sem cartão preso a assinatura. Você compra 3
-                  meses, recebe o serial por e-mail e o instalador junto — o
-                  tempo só começa a contar quando você ativa.
+                  meses, recebe o serial por e-mail e o instalador para Windows
+                  ou Mac — o tempo só começa a contar quando você ativa.
                 </p>
               </div>
               <a href="#planos" className="btn btn-primary">
@@ -537,10 +599,10 @@ export function LandingContent() {
         <div className="wrap foot-grid">
           <div>Nexpay Vendas Online LTDA · CNPJ 44.681.882/0001-73</div>
           <div className="foot-links">
+            <a href="#download">Baixar</a>
             <a href="#faq">Dúvidas</a>
             <a href="#planos">Plano</a>
             <a href="#telas">Telas</a>
-            <a href="#produto">O produto</a>
           </div>
         </div>
       </footer>

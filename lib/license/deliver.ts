@@ -5,7 +5,7 @@ import {
   licenseDurationLabel,
 } from "./catalog";
 import { fulfillDesktopLicenseSession } from "./fulfill-checkout";
-import { installerUrlForEdition } from "./installers";
+import { installerMacUrlForEdition, installerUrlForEdition } from "./installers";
 import {
   createAdminIssuedLicense,
   findLicenseById,
@@ -48,6 +48,7 @@ async function sendSerialEmail(
     editionLabel: editionLabel(license.edition),
     durationLabel: licenseDurationLabel(license.duration),
     installerUrl: installerUrlForEdition(license.edition),
+    installerMacUrl: installerMacUrlForEdition(license.edition),
     successUrl: license.stripeSessionId.startsWith("admin:")
       ? `${appBaseUrl()}/ativar`
       : `${appBaseUrl()}/compra/sucesso?session_id=${encodeURIComponent(license.stripeSessionId)}`,
@@ -175,6 +176,7 @@ export async function revealLicenseForCheckoutSession(
     editionLabel: editionLabel(issued.license.edition),
     durationLabel: licenseDurationLabel(issued.license.duration),
     installerUrl: installerUrlForEdition(issued.license.edition),
+    installerMacUrl: installerMacUrlForEdition(issued.license.edition),
     email: issued.license.email,
     emailed,
   };

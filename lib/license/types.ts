@@ -71,6 +71,7 @@ export type LicenseReveal =
       editionLabel: string;
       durationLabel: string;
       installerUrl: string;
+      installerMacUrl: string;
       email: string;
       emailed: boolean;
     };

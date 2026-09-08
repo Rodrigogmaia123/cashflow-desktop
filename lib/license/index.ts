@@ -41,7 +41,7 @@ export {
   licenseDurationLabel,
   listLicenseOffers,
 } from "./catalog";
-export { installerUrlForEdition } from "./installers";
+export { installerMacUrlForEdition, installerUrlForEdition } from "./installers";
 export {
   expiresAtFromActivation,
   LICENSE_DURATION_DAYS,

@@ -11,6 +11,7 @@ tsconfig.tsbuildinfo
 data/
 dist
 public/installers/*.exe
+public/installers/*.dmg
 electron/resources/empty.db
 *.db
 *.db-journal

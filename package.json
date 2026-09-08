@@ -16,6 +16,7 @@
     "desktop:build:pro:mac": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --mac dmg && node scripts/publish-installers-mac.cjs",
     "desktop:build:pessoal:mac": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --config electron-builder.pessoal.json --mac dmg && node scripts/publish-installers-mac.cjs",
     "desktop:build:mac": "node scripts/build-desktop-mac.cjs",
+    "desktop:publish:mac": "node scripts/publish-installers-mac.cjs && node scripts/upload-github-installers-mac.cjs",
     "desktop:portable": "node scripts/make-portable-with-my-data.cjs",
     "desktop:import": "tsx scripts/import-from-production.ts",
     "desktop:import:list": "tsx scripts/import-from-production.ts --list-users",

@@ -34,23 +34,30 @@ export function appInstallerVersion(): string {
   }
 }
 
+export type InstallerPlatform = "win" | "mac";
+
 export function githubInstallerFileName(
   edition: LicenseEdition,
-  versioned = false
+  versioned = false,
+  platform: InstallerPlatform = "win"
 ): string {
   const version = appInstallerVersion();
+  const ext = platform === "mac" ? "dmg" : "exe";
   if (edition === "pessoal") {
     return versioned
-      ? `Cashflow-Pessoal-Setup-${version}.exe`
-      : "Cashflow-Pessoal-Setup.exe";
+      ? `Cashflow-Pessoal-Setup-${version}.${ext}`
+      : `Cashflow-Pessoal-Setup.${ext}`;
   }
   return versioned
-    ? `Cashflow-Pro-Setup-${version}.exe`
-    : "Cashflow-Pro-Setup.exe";
+    ? `Cashflow-Pro-Setup-${version}.${ext}`
+    : `Cashflow-Pro-Setup.${ext}`;
 }
 
-export function githubInstallerAssetUrl(edition: LicenseEdition): string {
-  return `https://github.com/${GITHUB_INSTALLER_REPO}/releases/latest/download/${githubInstallerFileName(edition)}`;
+export function githubInstallerAssetUrl(
+  edition: LicenseEdition,
+  platform: InstallerPlatform = "win"
+): string {
+  return `https://github.com/${GITHUB_INSTALLER_REPO}/releases/latest/download/${githubInstallerFileName(edition, false, platform)}`;
 }
 
 /** Sempre devolve um link. CDN via env; senão o download do próprio site. */
@@ -62,4 +69,14 @@ export function installerUrlForEdition(edition: LicenseEdition): string {
   if (fromEnv) return fromEnv;
   const slug = edition === "pessoal" ? "pessoal" : "pro";
   return `${appBaseUrl()}/download/${slug}`;
+}
+
+export function installerMacUrlForEdition(edition: LicenseEdition): string {
+  const fromEnv =
+    edition === "pessoal"
+      ? readUrl("LICENSE_INSTALLER_PESSOAL_MAC_URL")
+      : readUrl("LICENSE_INSTALLER_PRO_MAC_URL");
+  if (fromEnv) return fromEnv;
+  const slug = edition === "pessoal" ? "pessoal" : "pro";
+  return `${appBaseUrl()}/download/${slug}/mac`;
 }
