@@ -1,6 +1,7 @@
 const { spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { prepareProductionSqlite, toFileUrl } = require("./sqlite-boot-guard.cjs");
 
 const root = process.cwd();
 const desktop =
@@ -14,18 +15,6 @@ process.env.HOSTNAME = host;
 process.env.HOST = host;
 process.env.PORT = port;
 
-fs.mkdirSync(path.join(root, "data"), { recursive: true });
-const {
-  backupExistingSqlite,
-  sqliteAlreadyInitialized,
-} = require("./sqlite-boot-guard.cjs");
-const dbFile = path.join(root, "data", "cashflow-desktop.db").replace(/\\/g, "/");
-if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith("file:")) {
-  process.env.DATABASE_URL = `file:${dbFile}`;
-} else if (process.env.DATABASE_URL.includes("../data/cashflow-desktop.db")) {
-  process.env.DATABASE_URL = `file:${dbFile}`;
-}
-
 function prismaCli() {
   const unix = path.join(root, "node_modules", ".bin", "prisma");
   const win = path.join(root, "node_modules", ".bin", "prisma.cmd");
@@ -33,12 +22,13 @@ function prismaCli() {
   return unix;
 }
 
-const dbAlreadyThere = sqliteAlreadyInitialized(dbFile);
-backupExistingSqlite(root, dbFile);
+const prepared = prepareProductionSqlite(root);
+process.env.DATABASE_URL = toFileUrl(prepared.dbFile);
+process.env.CASHFLOW_DATA_DIR = prepared.dataDir;
 
-if (dbAlreadyThere) {
+if (prepared.initialized) {
   console.log(
-    "[start] SQLite já existe — não roda prisma db push. Colunas novas entram só com ALTER (sem apagar licenças)."
+    `[start] SQLite com ${prepared.rows} registros — prisma db push não roda.`
   );
 } else {
   const push = spawnSync(
