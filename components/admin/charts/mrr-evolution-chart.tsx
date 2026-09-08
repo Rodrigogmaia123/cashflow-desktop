@@ -9,46 +9,42 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { MRREvolutionDataPoint } from "@/app/app/admin/actions";
+import type { RevenueEvolutionDataPoint } from "@/app/app/admin/actions";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type Props = {
-  data: MRREvolutionDataPoint[];
+  data: RevenueEvolutionDataPoint[];
 };
 
-/**
- * Gráfico de evolução de MRR (Monthly Recurring Revenue)
- * Últimos 6 meses
- */
-export function MRREvolutionChart({ data }: Props) {
+const MONTH_NAMES = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+
+export function RevenueEvolutionChart({ data }: Props) {
   if (!data || data.length === 0) {
     return (
       <Card>
         <CardHeader className="text-sm font-medium text-muted-foreground">
-          Evolução de MRR (6 meses)
+          Receita da loja (6 meses)
         </CardHeader>
         <CardContent>
           <div className="h-64 flex flex-col items-center justify-center text-center">
-            <div className="rounded-full bg-muted/50 p-3 mb-3">
-              <svg
-                className="h-6 w-6 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                />
-              </svg>
-            </div>
             <p className="text-sm font-medium text-foreground mb-1">
               Sem dados disponíveis
             </p>
             <p className="text-xs text-muted-foreground">
-              Os dados aparecerão quando houver assinaturas ativas
+              Os dados aparecem quando houver pedidos pagos
             </p>
           </div>
         </CardContent>
@@ -56,25 +52,10 @@ export function MRREvolutionChart({ data }: Props) {
     );
   }
 
-  // Formata mês para exibição (MMM/YY)
   const formatMonth = (monthStr: string) => {
     const [year, month] = monthStr.split("-");
-    const monthNames = [
-      "Jan",
-      "Fev",
-      "Mar",
-      "Abr",
-      "Mai",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Set",
-      "Out",
-      "Nov",
-      "Dez",
-    ];
     const monthIndex = parseInt(month, 10) - 1;
-    return `${monthNames[monthIndex]}/${year.slice(2)}`;
+    return `${MONTH_NAMES[monthIndex]}/${year.slice(2)}`;
   };
 
   const formatCurrency = (value: number) => {
@@ -87,7 +68,7 @@ export function MRREvolutionChart({ data }: Props) {
   return (
     <Card>
       <CardHeader className="text-sm font-medium text-muted-foreground">
-        Evolução de MRR (6 meses)
+        Receita da loja (6 meses)
       </CardHeader>
       <CardContent>
         <div className="h-64 w-full">
@@ -123,10 +104,13 @@ export function MRREvolutionChart({ data }: Props) {
                 formatter={(value: unknown) => {
                   if (typeof value === "number") {
                     return [
-                      <span key="value" className="text-sm font-semibold text-purple-400">
+                      <span
+                        key="value"
+                        className="text-sm font-semibold text-purple-400"
+                      >
                         {formatCurrency(value)}
                       </span>,
-                      "MRR",
+                      "Receita",
                     ];
                   }
                   return String(value);
@@ -134,8 +118,8 @@ export function MRREvolutionChart({ data }: Props) {
               />
               <Line
                 type="monotone"
-                dataKey="mrr"
-                name="MRR"
+                dataKey="revenue"
+                name="Receita"
                 stroke="#A855F7"
                 strokeWidth={2.5}
                 dot={{ fill: "#A855F7", r: 4 }}
@@ -147,4 +131,3 @@ export function MRREvolutionChart({ data }: Props) {
     </Card>
   );
 }
-
