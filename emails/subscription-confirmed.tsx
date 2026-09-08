@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface SubscriptionConfirmedEmailProps {
   plan: string;
@@ -28,6 +29,7 @@ export function SubscriptionConfirmedEmail({
       <Preview>Assinatura confirmada - Cashflow Pro</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Assinatura confirmada! 🎉</Heading>
 
           <Text style={text}>

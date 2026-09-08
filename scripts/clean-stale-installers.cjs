@@ -15,7 +15,7 @@ const keep = new Set([
 function cleanStaleInstallers() {
   if (!fs.existsSync(dist)) return;
   for (const name of fs.readdirSync(dist)) {
-    if (!/^Cashflow-(Pro|Pessoal)-Setup-/i.test(name)) continue;
+    if (!/^Cashflow-(Pro|Pessoal)-Setup-.*\.exe(\.blockmap)?$/i.test(name)) continue;
     if (keep.has(name)) continue;
     fs.unlinkSync(path.join(dist, name));
     console.log("Removido instalador antigo:", name);

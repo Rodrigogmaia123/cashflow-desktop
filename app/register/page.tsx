@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { RegisterForm } from "@/components/auth/register-form";
 import { postAuthAppPath } from "@/lib/ops";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 export default async function RegisterPage() {
   const user = await getCurrentUser();
@@ -15,6 +16,9 @@ export default async function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-sm space-y-6 rounded-md border bg-card p-6 shadow-sm">
         <div className="space-y-1 text-center">
+          <div className="flex justify-center pb-2">
+            <BrandMark size={48} />
+          </div>
           <h1 className="text-lg font-semibold tracking-tight">
             Criar conta no Cashflow Pro
           </h1>

@@ -5,6 +5,7 @@ import { CredentialsLoginForm } from "@/components/auth/credentials-login-form";
 import { EmailLoginForm } from "@/components/auth/email-login-form";
 import { GithubLoginButton } from "@/components/auth/github-login-button";
 import { postAuthAppPath } from "@/lib/ops";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -35,6 +36,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-sm space-y-6 rounded-md border bg-card p-6 shadow-sm">
         <div className="space-y-1 text-center">
+          <div className="flex justify-center pb-2">
+            <BrandMark size={48} />
+          </div>
           <h1 className="text-lg font-semibold tracking-tight">
             Entrar na operação
           </h1>

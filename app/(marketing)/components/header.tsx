@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 /**
  * Header da landing page pública
@@ -16,7 +17,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent" />
+            <BrandMark size={32} />
             <span className="text-lg font-semibold tracking-tight">
               Cashflow Pro
             </span>

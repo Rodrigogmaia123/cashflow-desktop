@@ -165,7 +165,7 @@ export function LandingContent() {
       <header>
         <div className="nav">
           <a href="/" className="brand">
-            <span className="brand-mark" />
+            <img src="/brand/cashflow-icon.png" alt="" className="brand-mark" />
             Cashflow
           </a>
           <nav className="nav-links">

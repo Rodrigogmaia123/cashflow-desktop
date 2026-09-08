@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 export interface LicenseSerialEmailProps {
   editionLabel: string;
@@ -32,6 +33,7 @@ export function LicenseSerialEmail({
       <Preview>Sua chave do {editionLabel} e o instalador</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Pagamento confirmado</Heading>
 
           <Text style={text}>

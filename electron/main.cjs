@@ -45,6 +45,30 @@ function productName() {
   return desktopEdition() === "pessoal" ? "Cashflow Pessoal" : "Cashflow Pro";
 }
 
+function desktopAppId() {
+  return desktopEdition() === "pessoal"
+    ? "pro.cashflow.desktop.pessoal"
+    : "pro.cashflow.desktop";
+}
+
+function appIconPath() {
+  const local = path.join(__dirname, "icon.png");
+  if (fs.existsSync(local)) return local;
+  const fromResources = path.join(process.resourcesPath, "icon.png");
+  if (fs.existsSync(fromResources)) return fromResources;
+  return undefined;
+}
+
+function appIconDataUrl() {
+  const icon = appIconPath();
+  if (!icon) return "";
+  try {
+    return "data:image/png;base64," + fs.readFileSync(icon).toString("base64");
+  } catch {
+    return "";
+  }
+}
+
 function findFreePort(preferred) {
   return new Promise((resolve) => {
     const server = net.createServer();
@@ -110,6 +134,10 @@ function isProtectedInstallDir(dir) {
   ]
     .filter(Boolean)
     .map((p) => path.normalize(p).toLowerCase());
+  if (process.platform === "darwin") {
+    prefixes.push(path.normalize("/Applications").toLowerCase());
+    prefixes.push(path.normalize("/System/Applications").toLowerCase());
+  }
   return prefixes.some((p) => n === p || n.startsWith(p + path.sep));
 }
 
@@ -563,15 +591,30 @@ function startNextServer() {
 
     ensureServerNodeModules(found.cwd);
 
-    const engine = path.join(
+    const prismaClientDir = path.join(
       found.cwd,
       "node_modules",
       ".prisma",
-      "client",
-      "query_engine-windows.dll.node"
+      "client"
     );
-    if (fs.existsSync(engine)) {
-      env.PRISMA_QUERY_ENGINE_LIBRARY = engine;
+    const engineNames =
+      process.platform === "win32"
+        ? ["query_engine-windows.dll.node"]
+        : process.platform === "darwin"
+          ? [
+              process.arch === "arm64"
+                ? "libquery_engine-darwin-arm64.dylib.node"
+                : "libquery_engine-darwin.dylib.node",
+              "libquery_engine-darwin-arm64.dylib.node",
+              "libquery_engine-darwin.dylib.node",
+            ]
+          : [];
+    for (const name of engineNames) {
+      const engine = path.join(prismaClientDir, name);
+      if (fs.existsSync(engine)) {
+        env.PRISMA_QUERY_ENGINE_LIBRARY = engine;
+        break;
+      }
     }
 
     const logFile = path.join(dataDir(), "server.log");
@@ -631,20 +674,26 @@ function stopNextServer() {
 }
 
 function createSplash() {
+  const iconSrc = appIconDataUrl();
+  const iconHtml = iconSrc
+    ? `<img src="${iconSrc}" width="64" height="64" alt="" style="border-radius:16px;margin:0 auto 14px;display:block;" />`
+    : "";
   const splash = new BrowserWindow({
     width: 420,
-    height: 220,
+    height: 260,
     resizable: false,
     frame: false,
     alwaysOnTop: true,
     backgroundColor: "#0b0f14",
     show: true,
+    icon: appIconPath(),
   });
   splash.loadURL(
     "data:text/html;charset=utf-8," +
       encodeURIComponent(`<!doctype html>
 <html><body style="margin:0;background:#0b0f14;color:#e8eaed;font-family:Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
   <div style="text-align:center">
+    ${iconHtml}
     <div style="font-size:18px;font-weight:600;margin-bottom:8px;">${productName()}</div>
     <div style="font-size:13px;opacity:.7;">Preparando o servidor local…</div>
     <div style="font-size:12px;opacity:.45;margin-top:10px;">Na primeira abertura pode levar até 1 minuto.</div>
@@ -661,6 +710,7 @@ async function createWindow() {
     minWidth: 1100,
     minHeight: 700,
     title: productName(),
+    icon: appIconPath(),
     autoHideMenuBar: true,
     backgroundColor: "#0b0f14",
     webPreferences: {
@@ -703,6 +753,9 @@ if (!gotLock) {
   });
 
   app.whenReady().then(async () => {
+    if (process.platform === "win32") {
+      app.setAppUserModelId(desktopAppId());
+    }
     let splash = null;
     try {
       splash = createSplash();

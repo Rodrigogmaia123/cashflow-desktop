@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface SubscriptionCanceledEmailProps {
   plan: string;
@@ -26,6 +27,7 @@ export function SubscriptionCanceledEmail({
       <Preview>Assinatura cancelada - Cashflow Pro</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Assinatura cancelada</Heading>
 
           <Text style={text}>

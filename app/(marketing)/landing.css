@@ -227,9 +227,10 @@
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--lp-lime), var(--lp-violet));
-  box-shadow: var(--lp-glow-lime);
+  object-fit: cover;
   flex-shrink: 0;
+  display: block;
+  box-shadow: var(--lp-glow-lime);
 }
 
 .lp .nav-links {

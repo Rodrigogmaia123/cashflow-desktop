@@ -9,6 +9,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface PasswordChangedEmailProps {
   name: string;
@@ -28,6 +29,7 @@ export function PasswordChangedEmail({
       <Preview>Senha alterada com sucesso - Cashflow Pro</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Senha alterada com sucesso</Heading>
 
           <Text style={text}>Olá, {name}!</Text>
