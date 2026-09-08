@@ -46,7 +46,7 @@ export default function PixCheckoutPage() {
       <header>
         <div className="nav">
           <a href="/" className="brand">
-            <span className="brand-mark" />
+            <img src="/brand/cashflow-icon.png" alt="" className="brand-mark" />
             Cashflow
           </a>
           <a href="/#planos" className="btn btn-ghost">

@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface WorkspaceInviteEmailProps {
   workspaceName: string;
@@ -43,6 +44,7 @@ export function WorkspaceInviteEmail({
       </Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Convite para Workspace 🎯</Heading>
 
           <Text style={text}>

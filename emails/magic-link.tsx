@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface MagicLinkEmailProps {
   loginUrl: string;
@@ -26,6 +27,7 @@ export function MagicLinkEmail({
       <Preview>Seu link de acesso - Cashflow Pro</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Acesso rápido ao Cashflow Pro</Heading>
 
           <Text style={text}>

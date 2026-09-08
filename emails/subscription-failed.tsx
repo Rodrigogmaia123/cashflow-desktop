@@ -10,6 +10,7 @@ import {
   Text,
 } from "@react-email/components";
 import * as React from "react";
+import { EmailBrandHeader } from "./email-brand-header";
 
 interface SubscriptionFailedEmailProps {
   plan: string;
@@ -28,6 +29,7 @@ export function SubscriptionFailedEmail({
       <Preview>Falha no pagamento - Cashflow Pro</Preview>
       <Body style={main}>
         <Container style={container}>
+          <EmailBrandHeader />
           <Heading style={h1}>Falha no pagamento ⚠️</Heading>
 
           <Text style={text}>

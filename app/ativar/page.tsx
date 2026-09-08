@@ -11,6 +11,7 @@ import {
 import { lockCopyForActivatePage } from "@/lib/license/lease";
 import { ActivateLicenseClient } from "./activate-client";
 import { CustomerSupportDesk } from "@/components/support/customer-support-desk";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,9 @@ export default function ActivateLicensePage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="rounded-2xl border border-white/10 bg-card-secondary/80 p-8 shadow-2xl">
+          <div className="mb-4">
+            <BrandMark size={48} />
+          </div>
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground mb-3">
             {productName}
           </p>

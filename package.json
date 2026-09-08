@@ -13,6 +13,9 @@
     "desktop:build": "node scripts/build-desktop.cjs",
     "desktop:build:pro": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --win nsis && node scripts/clean-stale-installers.cjs && node scripts/publish-installers.cjs",
     "desktop:build:pessoal": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --config electron-builder.pessoal.json --win nsis && node scripts/clean-stale-installers.cjs && node scripts/publish-installers.cjs",
+    "desktop:build:pro:mac": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --mac dmg && node scripts/publish-installers-mac.cjs",
+    "desktop:build:pessoal:mac": "node scripts/ensure-empty-db.cjs && next build && node scripts/prepare-desktop-build.cjs && electron-builder --config electron-builder.pessoal.json --mac dmg && node scripts/publish-installers-mac.cjs",
+    "desktop:build:mac": "node scripts/build-desktop-mac.cjs",
     "desktop:portable": "node scripts/make-portable-with-my-data.cjs",
     "desktop:import": "tsx scripts/import-from-production.ts",
     "desktop:import:list": "tsx scripts/import-from-production.ts --list-users",
@@ -92,6 +95,7 @@
     "files": [
       "electron/main.cjs",
       "electron/preload.cjs",
+      "electron/icon.png",
       "package.json"
     ],
     "extraResources": [
@@ -105,8 +109,10 @@
       }
     ],
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
+    "icon": "build/icon.png",
     "win": {
       "target": [
         {
@@ -116,7 +122,27 @@
           ]
         }
       ],
+      "icon": "build/icon.ico",
       "artifactName": "Cashflow-Pro-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.finance",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "artifactName": "Cashflow-Pro-Setup-${version}.${ext}"
+    },
+    "dmg": {
+      "title": "${productName} ${version}"
     },
     "nsis": {
       "oneClick": false,
@@ -124,6 +150,9 @@
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
       "include": "electron/installer.nsh",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Cashflow Pro",
