@@ -17,6 +17,7 @@ export interface LicenseSerialEmailProps {
   durationLabel: string;
   serial: string;
   installerUrl: string | null;
+  installerMacUrl?: string | null;
   successUrl: string;
 }
 
@@ -25,6 +26,7 @@ export function LicenseSerialEmail({
   durationLabel,
   serial,
   installerUrl,
+  installerMacUrl,
   successUrl,
 }: LicenseSerialEmailProps) {
   return (
@@ -56,7 +58,15 @@ export function LicenseSerialEmail({
           {installerUrl ? (
             <Section style={buttonContainer}>
               <Button style={button} href={installerUrl}>
-                Baixar o instalador
+                Baixar para Windows
+              </Button>
+            </Section>
+          ) : null}
+
+          {installerMacUrl ? (
+            <Section style={buttonContainer}>
+              <Button style={secondaryButton} href={installerMacUrl}>
+                Baixar para Mac
               </Button>
             </Section>
           ) : null}

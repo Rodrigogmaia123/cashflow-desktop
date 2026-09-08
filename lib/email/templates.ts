@@ -79,6 +79,7 @@ export async function renderEmailTemplate(
             durationLabel: string;
             serial: string;
             installerUrl: string | null;
+            installerMacUrl: string | null;
             successUrl: string;
           }
         );

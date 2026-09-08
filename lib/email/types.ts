@@ -72,6 +72,7 @@ export interface LicenseSerialEmailProps {
   durationLabel: string;
   serial: string;
   installerUrl: string | null;
+  installerMacUrl: string | null;
   successUrl: string;
 }
 

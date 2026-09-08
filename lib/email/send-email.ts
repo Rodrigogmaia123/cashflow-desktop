@@ -228,6 +228,7 @@ export async function sendLicenseSerialEmail(input: {
   editionLabel: string;
   durationLabel: string;
   installerUrl: string | null;
+  installerMacUrl?: string | null;
   successUrl: string;
 }): Promise<boolean> {
   return sendEmail({
@@ -239,6 +240,7 @@ export async function sendLicenseSerialEmail(input: {
       durationLabel: input.durationLabel,
       serial: input.serial,
       installerUrl: input.installerUrl,
+      installerMacUrl: input.installerMacUrl ?? null,
       successUrl: input.successUrl,
     },
   });

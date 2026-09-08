@@ -244,7 +244,8 @@ export function PlansSection() {
               {method === "pix" ? (
                 <p className="pay-note">
                   O PIX é processado pela Pushin Pay. Depois do pagamento, a
-                  chave e o instalador saem no e-mail e nesta tela.
+                  chave e o instalador (Windows e Mac) saem no e-mail e nesta
+                  tela.
                 </p>
               ) : (
                 <p className="pay-note">

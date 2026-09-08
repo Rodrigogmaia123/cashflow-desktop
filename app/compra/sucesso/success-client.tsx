@@ -156,7 +156,16 @@ export function PurchaseSuccessClient() {
               }
               className="btn btn-primary"
             >
-              Baixar o instalador
+              Baixar para Windows
+            </a>
+            <a
+              href={
+                ready.installerMacUrl ||
+                `/download/${ready.edition === "pessoal" ? "pessoal" : "pro"}/mac`
+              }
+              className="btn btn-ghost"
+            >
+              Baixar para Mac
             </a>
             <a href="/" className="btn btn-ghost">
               Voltar ao início
