@@ -9,59 +9,51 @@ import {
   Legend,
   type TooltipProps,
 } from "recharts";
-import type { PlansDistributionDataPoint } from "@/app/app/admin/actions";
+import type { EditionsDistributionDataPoint } from "@/app/app/admin/actions";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type Props = {
-  data: PlansDistributionDataPoint[];
+  data: EditionsDistributionDataPoint[];
 };
 
-// Cores para cada plano (consistente com design system)
-const PLAN_COLORS: Record<string, string> = {
-  FREE: "#6B7280", // gray
-  PRO: "#C7F000", // primary/yellow
-  BUSINESS: "#A855F7", // purple
+const EDITION_COLORS: Record<string, string> = {
+  pro: "#C7F000",
+  pessoal: "#A855F7",
 };
 
-/**
- * Tooltip customizado para o gráfico de distribuição de planos
- */
-function PlansTooltip(props: TooltipProps<any, any>) {
+function EditionsTooltip(props: TooltipProps<any, any>) {
   const { active, payload } = props;
-  
+
   if (!active || !payload || payload.length === 0) return null;
 
-  const data = payload[0]?.payload as PlansDistributionDataPoint;
-  
-  if (!data) return null;
+  const point = payload[0]?.payload as EditionsDistributionDataPoint;
+  if (!point) return null;
 
   return (
     <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
       <div className="text-[11px] font-medium text-muted-foreground">
-        Plano {data.plan}
+        {point.label}
       </div>
       <div className="mt-1 flex items-center justify-between gap-6">
-        <span className="text-muted-foreground">Usuários</span>
-        <span className="font-medium">{data.count}</span>
+        <span className="text-muted-foreground">Chaves</span>
+        <span className="font-medium">{point.count}</span>
       </div>
       <div className="mt-1 flex items-center justify-between gap-6">
         <span className="text-muted-foreground">Percentual</span>
-        <span className="font-medium">{data.percentage}%</span>
+        <span className="font-medium">{point.percentage}%</span>
       </div>
     </div>
   );
 }
 
-/**
- * Gráfico de distribuição de planos (donut chart)
- * Snapshot atual
- */
-export function PlansDistributionChart({ data }: Props) {
-  if (!data || data.length === 0) {
+export function EditionsDistributionChart({ data }: Props) {
+  const hasData = data.some((item) => item.count > 0);
+
+  if (!data || data.length === 0 || !hasData) {
     return (
       <Card>
         <CardHeader className="text-sm font-medium text-muted-foreground">
-          Distribuição de Planos
+          Distribuição por edição
         </CardHeader>
         <CardContent>
           <div className="h-64 flex items-center justify-center text-muted-foreground text-sm">
@@ -72,26 +64,25 @@ export function PlansDistributionChart({ data }: Props) {
     );
   }
 
-  // Dados formatados para o Recharts
   const chartData = data.map((item) => ({
     ...item,
-    fill: PLAN_COLORS[item.plan] || "#6B7280",
+    fill: EDITION_COLORS[item.edition] || "#6B7280",
   }));
 
   return (
     <Card>
       <CardHeader className="text-sm font-medium text-muted-foreground">
-        Distribuição de Planos (Atual)
+        Distribuição por edição (atual)
       </CardHeader>
       <CardContent>
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Tooltip content={(props) => <PlansTooltip {...props} />} />
+              <Tooltip content={(props) => <EditionsTooltip {...props} />} />
               <Pie
                 data={chartData}
                 dataKey="count"
-                nameKey="plan"
+                nameKey="label"
                 innerRadius={60}
                 outerRadius={90}
                 paddingAngle={2}
@@ -99,7 +90,7 @@ export function PlansDistributionChart({ data }: Props) {
               >
                 {chartData.map((entry) => (
                   <Cell
-                    key={entry.plan}
+                    key={entry.edition}
                     fill={entry.fill}
                     fillOpacity={0.85}
                   />
@@ -107,7 +98,7 @@ export function PlansDistributionChart({ data }: Props) {
               </Pie>
               <Legend
                 formatter={(value) => {
-                  const item = data.find((d) => d.plan === value);
+                  const item = data.find((d) => d.label === value);
                   return `${value} (${item?.percentage || 0}%)`;
                 }}
                 iconType="circle"
@@ -116,16 +107,15 @@ export function PlansDistributionChart({ data }: Props) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        {/* Legenda adicional com contagens */}
         <div className="mt-4 flex flex-wrap gap-4 justify-center text-xs">
           {data.map((item) => (
-            <div key={item.plan} className="flex items-center gap-2">
+            <div key={item.edition} className="flex items-center gap-2">
               <div
                 className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: PLAN_COLORS[item.plan] }}
+                style={{ backgroundColor: EDITION_COLORS[item.edition] }}
               />
               <span className="text-muted-foreground">
-                {item.plan}: {item.count} usuários
+                {item.label}: {item.count} chaves
               </span>
             </div>
           ))}
@@ -134,4 +124,3 @@ export function PlansDistributionChart({ data }: Props) {
     </Card>
   );
 }
-

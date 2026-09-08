@@ -4,9 +4,13 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import type { Plan } from "@/lib/billing/plans";
-import { PLANS } from "@/lib/billing/config";
 import { stripe } from "@/lib/billing/stripe";
 import { revalidatePath } from "next/cache";
+import {
+  editionLabel,
+  licenseDurationLabel,
+} from "@/lib/license/catalog";
+import type { LicenseDuration, LicenseEdition } from "@/lib/prisma-enums";
 
 /**
  * Verifica se o usuário é admin
@@ -31,93 +35,95 @@ type ActionResult<T = void> = {
   data?: T;
 };
 
+export type AdminMetricsData = {
+  totalLicenses: number;
+  paidLicenses: number;
+  activeLicenses: number;
+  revokedLicenses: number;
+  licensesByEdition: { pro: number; pessoal: number };
+  licensesByDuration: Array<{
+    duration: LicenseDuration;
+    label: string;
+    count: number;
+  }>;
+  paidOrders: number;
+  revenueCents: number;
+};
+
 /**
- * Obtém métricas gerais do sistema
+ * Métricas da operação desktop: chaves, edições, prazos e receita da loja.
  */
-export async function getAdminMetrics(): Promise<ActionResult<{
-  totalUsers: number;
-  activeUsers: number;
-  usersByPlan: Record<string, number>;
-  lifetimeUsers: number;
-  totalSubscriptions: number;
-  activeSubscriptions: number;
-  mrr: number;
-}>> {
+export async function getAdminMetrics(): Promise<ActionResult<AdminMetricsData>> {
   const admin = await requireAdmin();
   if (!admin) {
     return { success: false, reason: "Acesso negado: apenas administradores" };
   }
 
   try {
-    const [
-      totalUsers,
-      usersByPlan,
-      lifetimeUsers,
-      totalSubscriptions,
-      activeSubscriptions,
-    ] = await Promise.all([
-      // Total de usuários
-      prisma.user.count(),
-
-      // Distribuição por plano
-      prisma.user.groupBy({
-        by: ["plan"],
-        _count: true,
+    const [licenses, paidOrdersCount, paidOrdersSum] = await Promise.all([
+      prisma.license.findMany({
+        select: {
+          edition: true,
+          duration: true,
+          status: true,
+        },
       }),
-
-      // Usuários lifetime
-      prisma.user.count({
-        where: { isLifetime: true },
+      prisma.licenseOrder.count({
+        where: { status: "paid" },
       }),
-
-      // Total de subscriptions
-      prisma.subscription.count(),
-
-      // Subscriptions ativas
-      prisma.subscription.count({
-        where: { status: "active" },
+      prisma.licenseOrder.aggregate({
+        where: { status: "paid" },
+        _sum: { amountCents: true },
       }),
     ]);
 
-    // Usuários ativos = usuários com plano pago (PRO/BUSINESS) ou lifetime
-    const activeUsers = await prisma.user.count({
-      where: {
-        OR: [
-          { plan: { in: ["PRO", "BUSINESS"] } },
-          { isLifetime: true },
-        ],
-      },
-    });
+    const licensesByEdition = { pro: 0, pessoal: 0 };
+    const durationCounts: Record<string, number> = {};
+    let paidLicenses = 0;
+    let activeLicenses = 0;
+    let revokedLicenses = 0;
 
-    // Calcula MRR (Monthly Recurring Revenue) usando valores do config
-    const activeSubs = await prisma.subscription.findMany({
-      where: { status: "active" },
-      select: { plan: true },
-    });
+    for (const license of licenses) {
+      if (license.edition === "pessoal") licensesByEdition.pessoal += 1;
+      else licensesByEdition.pro += 1;
 
-    const mrr = activeSubs.reduce((acc: number, sub: { plan: string }) => {
-      // Converte de centavos para reais
-      if (sub.plan === "PRO") return acc + PLANS.PRO.amount / 100;
-      if (sub.plan === "BUSINESS") return acc + PLANS.BUSINESS.amount / 100;
-      return acc;
-    }, 0);
+      durationCounts[license.duration] =
+        (durationCounts[license.duration] ?? 0) + 1;
+
+      if (license.status === "paid") paidLicenses += 1;
+      if (license.status === "active") activeLicenses += 1;
+      if (license.status === "revoked") revokedLicenses += 1;
+    }
+
+    const durationOrder: LicenseDuration[] = [
+      "3m",
+      "5m",
+      "annual",
+      "lifetime",
+      "1d",
+    ];
+    const licensesByDuration = durationOrder
+      .filter(
+        (duration) =>
+          duration !== "1d" || (durationCounts[duration] ?? 0) > 0
+      )
+      .map((duration) => ({
+        duration,
+        label: licenseDurationLabel(duration),
+        count: durationCounts[duration] ?? 0,
+      }));
 
     return {
       success: true,
       data: {
-        totalUsers,
-        activeUsers,
-        usersByPlan: usersByPlan.reduce(
-          (acc: Record<string, number>, item: { plan: string; _count: number }) => {
-            acc[item.plan] = item._count;
-            return acc;
-          },
-          {} as Record<string, number>
-        ),
-        lifetimeUsers,
-        totalSubscriptions,
-        activeSubscriptions,
-        mrr: Math.round(mrr * 100) / 100,
+        totalLicenses: licenses.length,
+        paidLicenses,
+        activeLicenses,
+        revokedLicenses,
+        licensesByEdition,
+        licensesByDuration,
+        paidOrders: paidOrdersCount,
+        revenueCents: paidOrdersSum._sum.amountCents ?? 0,
       },
     };
   } catch (error) {
@@ -567,41 +573,52 @@ export async function getStripeCustomerLink(
   }
 }
 
-/**
- * Tipos de dados para gráficos
- */
-export type UsersEvolutionDataPoint = {
-  date: string; // YYYY-MM-DD
-  total: number; // Total acumulado
-  newUsers: number; // Novos usuários no dia
+function monthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function lastSixMonthKeys(from: Date) {
+  const keys: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const monthDate = new Date(from);
+    monthDate.setMonth(monthDate.getMonth() + i);
+    keys.push(monthKey(monthDate));
+  }
+  return keys;
+}
+
+export type LicensesEvolutionDataPoint = {
+  date: string;
+  total: number;
+  newLicenses: number;
 };
 
-export type MRREvolutionDataPoint = {
-  month: string; // YYYY-MM
-  mrr: number; // Receita mensal recorrente
+export type RevenueEvolutionDataPoint = {
+  month: string;
+  revenue: number;
 };
 
-export type CancellationsDataPoint = {
-  month: string; // YYYY-MM
-  count: number; // Quantidade de cancelamentos
-};
-
-export type PlansDistributionDataPoint = {
-  plan: "FREE" | "PRO" | "BUSINESS";
+export type RevocationsDataPoint = {
+  month: string;
   count: number;
-  percentage: number; // 0-100
+};
+
+export type EditionsDistributionDataPoint = {
+  edition: LicenseEdition;
+  label: string;
+  count: number;
+  percentage: number;
 };
 
 export type AdminChartsData = {
-  usersEvolution: UsersEvolutionDataPoint[];
-  mrrEvolution: MRREvolutionDataPoint[];
-  cancellations: CancellationsDataPoint[];
-  plansDistribution: PlansDistributionDataPoint[];
+  licensesEvolution: LicensesEvolutionDataPoint[];
+  revenueEvolution: RevenueEvolutionDataPoint[];
+  revocations: RevocationsDataPoint[];
+  editionsDistribution: EditionsDistributionDataPoint[];
 };
 
 /**
- * Obtém dados agregados para gráficos do painel admin
- * Todos os cálculos são feitos no servidor usando Prisma
+ * Gráficos da operação desktop: chaves, receita da loja, revogações e edições.
  */
 export async function getAdminCharts(): Promise<ActionResult<AdminChartsData>> {
   const admin = await requireAdmin();
@@ -613,191 +630,111 @@ export async function getAdminCharts(): Promise<ActionResult<AdminChartsData>> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const sixMonthsAgo = new Date(now);
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    // Primeiro dia do mês há 6 meses
     sixMonthsAgo.setDate(1);
     sixMonthsAgo.setHours(0, 0, 0, 0);
 
-    // 1. Evolução de usuários (últimos 30 dias, acumulado)
-    const allUsers = await prisma.user.findMany({
-      where: {
-        createdAt: {
-          lte: now,
+    const [licenses, paidOrders] = await Promise.all([
+      prisma.license.findMany({
+        select: {
+          createdAt: true,
+          edition: true,
+          revokedAt: true,
         },
-      },
-      select: {
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.licenseOrder.findMany({
+        where: { status: "paid" },
+        select: {
+          amountCents: true,
+          paidAt: true,
+          createdAt: true,
+        },
+      }),
+    ]);
 
-    // Calcula total acumulado por dia
-    const usersEvolution: UsersEvolutionDataPoint[] = [];
-    let runningTotal = 0;
-    
-    // Primeiro, conta usuários criados antes do período de 30 dias
-    const usersBeforePeriod = allUsers.filter(
-      (u: typeof allUsers[0]) => u.createdAt < thirtyDaysAgo
+    const licensesEvolution: LicensesEvolutionDataPoint[] = [];
+    let runningTotal = licenses.filter(
+      (license) => license.createdAt < thirtyDaysAgo
     ).length;
-    runningTotal = usersBeforePeriod;
 
-    // Agora itera pelos dias e acumula
     for (let i = 0; i <= 30; i++) {
       const date = new Date(thirtyDaysAgo);
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split("T")[0];
-      
-      // Conta novos usuários neste dia
-      const newUsersOnDay = allUsers.filter((u: typeof allUsers[0]) => {
-        const userDateStr = u.createdAt.toISOString().split("T")[0];
-        return userDateStr === dateStr;
+      const newLicenses = licenses.filter((license) => {
+        return license.createdAt.toISOString().split("T")[0] === dateStr;
       }).length;
-
-      runningTotal += newUsersOnDay;
-
-      usersEvolution.push({
+      runningTotal += newLicenses;
+      licensesEvolution.push({
         date: dateStr,
         total: runningTotal,
-        newUsers: newUsersOnDay,
+        newLicenses,
       });
     }
 
-    // 2. Evolução de MRR (últimos 6 meses)
-    // Busca todas as subscriptions (ativas ou canceladas) criadas há mais de 6 meses
-    const allRelevantSubscriptions = await prisma.subscription.findMany({
-      select: {
-        createdAt: true,
-        plan: true,
-        canceledAt: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
-
-    // Gera meses dos últimos 6 meses
-    const mrrByMonth = new Map<string, number>();
-    for (let i = 0; i < 6; i++) {
-      const monthDate = new Date(sixMonthsAgo);
-      monthDate.setMonth(monthDate.getMonth() + i);
-      const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
-      mrrByMonth.set(monthStr, 0);
-    }
-
-    // Para cada mês, calcula o MRR baseado nas subscriptions ativas naquele mês
-    for (let i = 0; i < 6; i++) {
-      const checkMonthStart = new Date(sixMonthsAgo);
-      checkMonthStart.setMonth(checkMonthStart.getMonth() + i);
-      checkMonthStart.setDate(1);
-      checkMonthStart.setHours(0, 0, 0, 0);
-      
-      const checkMonthEnd = new Date(checkMonthStart);
-      checkMonthEnd.setMonth(checkMonthEnd.getMonth() + 1);
-      checkMonthEnd.setDate(0); // Último dia do mês
-      checkMonthEnd.setHours(23, 59, 59, 999);
-
-      const monthStr = `${checkMonthStart.getFullYear()}-${String(checkMonthStart.getMonth() + 1).padStart(2, "0")}`;
-      
-      let monthMRR = 0;
-      
-      // Para cada subscription, verifica se estava ativa neste mês
-      allRelevantSubscriptions.forEach((sub: typeof allRelevantSubscriptions[0]) => {
-        // Subscription deve ter sido criada antes ou durante este mês
-        if (sub.createdAt <= checkMonthEnd) {
-          // Se não foi cancelada ou foi cancelada após este mês, estava ativa
-          if (!sub.canceledAt || sub.canceledAt > checkMonthEnd) {
-            const planPrice =
-              sub.plan === "PRO"
-                ? PLANS.PRO.amount / 100
-                : PLANS.BUSINESS.amount / 100;
-            monthMRR += planPrice;
-          }
-        }
-      });
-      
-      mrrByMonth.set(monthStr, Math.round(monthMRR * 100) / 100);
-    }
-
-    const mrrEvolution: MRREvolutionDataPoint[] = Array.from(mrrByMonth.entries())
-      .map(([month, mrr]) => ({
-        month,
-        mrr,
-      }))
-      .sort((a: MRREvolutionDataPoint, b: MRREvolutionDataPoint) => a.month.localeCompare(b.month));
-
-    // 3. Cancelamentos (últimos 6 meses)
-    const canceledSubscriptions = await prisma.subscription.findMany({
-      where: {
-        canceledAt: {
-          gte: sixMonthsAgo,
-          not: null,
-        },
-      },
-      select: {
-        canceledAt: true,
-      },
-    });
-
-    const cancellationsByMonth = new Map<string, number>();
-    for (let i = 0; i < 6; i++) {
-      const monthDate = new Date(sixMonthsAgo);
-      monthDate.setMonth(monthDate.getMonth() + i);
-      const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, "0")}`;
-      cancellationsByMonth.set(monthStr, 0);
-    }
-
-    canceledSubscriptions.forEach((sub: typeof canceledSubscriptions[0]) => {
-      if (sub.canceledAt) {
-        const cancelMonth = new Date(sub.canceledAt);
-        const monthStr = `${cancelMonth.getFullYear()}-${String(cancelMonth.getMonth() + 1).padStart(2, "0")}`;
-        cancellationsByMonth.set(monthStr, (cancellationsByMonth.get(monthStr) || 0) + 1);
+    const monthKeys = lastSixMonthKeys(sixMonthsAgo);
+    const revenueByMonth = new Map(monthKeys.map((key) => [key, 0]));
+    for (const order of paidOrders) {
+      const when = order.paidAt ?? order.createdAt;
+      const key = monthKey(when);
+      if (revenueByMonth.has(key)) {
+        revenueByMonth.set(
+          key,
+          (revenueByMonth.get(key) ?? 0) + order.amountCents / 100
+        );
       }
-    });
-
-    const cancellations: CancellationsDataPoint[] = Array.from(cancellationsByMonth.entries())
-      .map(([month, count]) => ({
+    }
+    const revenueEvolution: RevenueEvolutionDataPoint[] = monthKeys.map(
+      (month) => ({
         month,
-        count,
-      }))
-      .sort((a: CancellationsDataPoint, b: CancellationsDataPoint) => a.month.localeCompare(b.month));
-
-    // 4. Distribuição de planos (snapshot atual)
-    const usersByPlan = await prisma.user.groupBy({
-      by: ["plan"],
-      _count: true,
-    });
-
-    const totalUsersForDistribution = usersByPlan.reduce(
-      (acc: number, item: { plan: string; _count: number }) => acc + item._count,
-      0
+        revenue: Math.round((revenueByMonth.get(month) ?? 0) * 100) / 100,
+      })
     );
 
-    const plansDistribution: PlansDistributionDataPoint[] = usersByPlan
-      .map((item: { plan: string; _count: number }) => ({
-        plan: item.plan as "FREE" | "PRO" | "BUSINESS",
-        count: item._count,
-        percentage:
-          totalUsersForDistribution > 0
-            ? Math.round((item._count / totalUsersForDistribution) * 100)
-            : 0,
-      }))
-      .sort((a: PlansDistributionDataPoint, b: PlansDistributionDataPoint) => {
-        // Ordena: FREE, PRO, BUSINESS
-        const order = { FREE: 0, PRO: 1, BUSINESS: 2 };
-        return order[a.plan] - order[b.plan];
-      });
+    const revocationsByMonth = new Map(monthKeys.map((key) => [key, 0]));
+    for (const license of licenses) {
+      if (!license.revokedAt || license.revokedAt < sixMonthsAgo) continue;
+      const key = monthKey(license.revokedAt);
+      if (revocationsByMonth.has(key)) {
+        revocationsByMonth.set(key, (revocationsByMonth.get(key) ?? 0) + 1);
+      }
+    }
+    const revocations: RevocationsDataPoint[] = monthKeys.map((month) => ({
+      month,
+      count: revocationsByMonth.get(month) ?? 0,
+    }));
+
+    const editionCounts: Record<LicenseEdition, number> = {
+      pro: 0,
+      pessoal: 0,
+    };
+    for (const license of licenses) {
+      if (license.edition === "pessoal") editionCounts.pessoal += 1;
+      else editionCounts.pro += 1;
+    }
+    const totalForDistribution = editionCounts.pro + editionCounts.pessoal;
+    const editionsDistribution: EditionsDistributionDataPoint[] = (
+      ["pro", "pessoal"] as const
+    ).map((edition) => ({
+      edition,
+      label: editionLabel(edition),
+      count: editionCounts[edition],
+      percentage:
+        totalForDistribution > 0
+          ? Math.round((editionCounts[edition] / totalForDistribution) * 100)
+          : 0,
+    }));
 
     return {
       success: true,
       data: {
-        usersEvolution,
-        mrrEvolution,
-        cancellations,
-        plansDistribution,
+        licensesEvolution,
+        revenueEvolution,
+        revocations,
+        editionsDistribution,
       },
     };
   } catch (error) {

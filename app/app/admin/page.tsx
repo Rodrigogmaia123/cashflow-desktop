@@ -84,7 +84,7 @@ export default async function AdminPage() {
         <div>
           <h2 className="text-lg font-semibold mb-1">Métricas Gerais</h2>
           <p className="text-xs text-muted-foreground">
-            Visão geral do negócio e performance
+            Chaves desktop, edições, prazos e receita dos pedidos pagos
           </p>
         </div>
         <AdminMetrics metrics={metricsResult.data} />
@@ -96,7 +96,7 @@ export default async function AdminPage() {
           <div>
             <h2 className="text-lg font-semibold mb-1">Análises e Tendências</h2>
             <p className="text-xs text-muted-foreground">
-              Evolução de crescimento e receita ao longo do tempo
+              Evolução de chaves, receita da loja, revogações e mix de edições
             </p>
           </div>
           <AdminCharts chartsData={chartsResult.data} />
