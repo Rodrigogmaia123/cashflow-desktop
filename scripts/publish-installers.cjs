@@ -17,9 +17,11 @@ let copied = 0;
 for (const name of files) {
   const from = path.join(dist, name);
   if (!fs.existsSync(from)) continue;
+  const unversioned = name.replace(`-${version}`, "");
   fs.copyFileSync(from, path.join(dest, name));
-  fs.copyFileSync(from, path.join(dest, name.replace(`-${version}`, "")));
-  console.log("Publicado para download:", name);
+  fs.copyFileSync(from, path.join(dest, unversioned));
+  fs.copyFileSync(from, path.join(dist, unversioned));
+  console.log("Publicado para download:", name, "e", unversioned);
   copied += 1;
 }
 

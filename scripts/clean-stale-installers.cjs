@@ -10,12 +10,19 @@ const keep = new Set([
   `Cashflow-Pro-Setup-${version}.exe.blockmap`,
   `Cashflow-Pessoal-Setup-${version}.exe`,
   `Cashflow-Pessoal-Setup-${version}.exe.blockmap`,
+  "Cashflow-Pro-Setup.exe",
+  "Cashflow-Pessoal-Setup.exe",
 ]);
 
 function cleanStaleInstallers() {
   if (!fs.existsSync(dist)) return;
   for (const name of fs.readdirSync(dist)) {
-    if (!/^Cashflow-(Pro|Pessoal)-Setup-.*\.exe(\.blockmap)?$/i.test(name)) continue;
+    if (
+      !/^Cashflow-(Pro|Pessoal)-Setup-.*\.exe(\.blockmap)?$/i.test(name) &&
+      !/^Cashflow-(Pro|Pessoal)-Setup\.exe(\.blockmap)?$/i.test(name)
+    ) {
+      continue;
+    }
     if (keep.has(name)) continue;
     fs.unlinkSync(path.join(dist, name));
     console.log("Removido instalador antigo:", name);
