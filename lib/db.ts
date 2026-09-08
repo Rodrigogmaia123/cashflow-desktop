@@ -11,6 +11,22 @@ function isDesktopRuntime() {
   );
 }
 
+function productionSqliteUrl() {
+  const fromEnv = process.env.DATABASE_URL?.trim() ?? "";
+  if (fromEnv.startsWith("file:") && !fromEnv.includes("..")) {
+    return fromEnv;
+  }
+  const dataDir = process.env.CASHFLOW_DATA_DIR?.trim();
+  if (dataDir) {
+    const file = `${dataDir.replace(/\/$/, "")}/cashflow-desktop.db`.replace(
+      /\\/g,
+      "/"
+    );
+    return `file:${file}`;
+  }
+  return DEFAULT_SQLITE_URL;
+}
+
 function assertLocalSqliteOnly() {
   let url = process.env.DATABASE_URL ?? "";
   const lower = url.toLowerCase();
@@ -22,7 +38,7 @@ function assertLocalSqliteOnly() {
 
   if (!isDesktopRuntime()) {
     if (!url.startsWith("file:") || looksRemote) {
-      process.env.DATABASE_URL = DEFAULT_SQLITE_URL;
+      process.env.DATABASE_URL = productionSqliteUrl();
     }
     return;
   }

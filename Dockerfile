@@ -20,13 +20,11 @@ RUN npx prisma generate
 
 ENV DESKTOP_MODE=false
 ENV NEXT_PUBLIC_DESKTOP_MODE=false
-ENV DATABASE_URL=file:../data/cashflow-desktop.db
 
-# Persist /app/data no host (volume). Sem isso, cada deploy nasce com banco vazio
-# e some licença/pedido. O start.cjs não recria SQLite que já tem arquivo.
-RUN mkdir -p /app/data
-VOLUME ["/app/data"]
-RUN npx prisma db push --skip-generate
+# Banco FORA do código do deploy. Sem volume nisto, o start recusa banco vazio.
+# No painel: persistência em /data/cashflow
+RUN mkdir -p /data/cashflow
+VOLUME ["/data/cashflow"]
 RUN npm run build
 
 ENV PORT=3000
