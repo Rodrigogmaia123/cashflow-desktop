@@ -48,7 +48,7 @@ export default function ActivateLicensePage() {
           </h1>
           <p className="text-sm text-muted-foreground mb-8">
             {lockHint ??
-              "Sem uma chave válida este programa não abre o caixa. A chave que chegou no e-mail depois do pagamento vale para uma cópia."}
+              "Sem uma chave válida este programa não abre o caixa. A chave do e-mail vale de novo se você reinstalar — cole a mesma serial."}
           </p>
           <ActivateLicenseClient productName={productName} />
         </div>

@@ -12,14 +12,41 @@ import { utcDateFromKey, utcKey } from "@/lib/utils/date-utc";
 
 const expenseTypeValues = ["FIXED", "VARIABLE"] as const;
 
-const upsertSchema = z.object({
-  description: z.string().min(2).max(140),
-  amount: z.coerce.number().positive(),
-  type: z.enum(expenseTypeValues),
-  dayOfMonth: z.coerce.number().int().min(1).max(31),
-  categoryId: z.union([z.string().cuid(), z.literal(""), z.undefined()]).optional(),
-  endDate: z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal(""), z.undefined()]).optional()
-});
+const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+const upsertSchema = z
+  .object({
+    description: z.string().min(2).max(140),
+    amount: z.coerce.number().positive(),
+    type: z.enum(expenseTypeValues),
+    dayOfMonth: z.coerce.number().int().min(1).max(31),
+    categoryId: z.union([z.string().cuid(), z.literal(""), z.undefined()]).optional(),
+    startDate: z.union([dateKey, z.literal(""), z.undefined()]).optional(),
+    endDate: z.union([dateKey, z.literal(""), z.undefined()]).optional()
+  })
+  .superRefine((data, ctx) => {
+    const start = data.startDate && data.startDate !== "" ? data.startDate : null;
+    const end = data.endDate && data.endDate !== "" ? data.endDate : null;
+    if (start && end && end < start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A data de término precisa ser igual ou posterior à de início.",
+        path: ["endDate"]
+      });
+    }
+  });
+
+function parseOptionalDate(value?: string) {
+  if (!value || value === "") return null;
+  return utcDateFromKey(value);
+}
+
+function parseStartDate(value?: string) {
+  if (value && value !== "") {
+    return utcDateFromKey(value);
+  }
+  return utcDateFromKey(utcKey(new Date()));
+}
 
 async function requireAdminWorkspace() {
   const workspaceId = await requireActiveWorkspaceId();
@@ -90,6 +117,7 @@ export async function createRecurringExpense(formData: FormData) {
     type: formData.get("type") || "FIXED",
     dayOfMonth: formData.get("dayOfMonth"),
     categoryId: formData.get("categoryId") || "",
+    startDate: formData.get("startDate") || "",
     endDate: formData.get("endDate") || ""
   });
 
@@ -102,11 +130,8 @@ export async function createRecurringExpense(formData: FormData) {
     parsed.data.categoryId && parsed.data.categoryId !== "" ? parsed.data.categoryId : undefined
   );
 
-  const start = utcDateFromKey(`${utcKey(new Date()).slice(0, 7)}-01`);
-  const endDate =
-    parsed.data.endDate && parsed.data.endDate !== ""
-      ? utcDateFromKey(parsed.data.endDate)
-      : null;
+  const start = parseStartDate(parsed.data.startDate);
+  const endDate = parseOptionalDate(parsed.data.endDate);
 
   await prisma.recurringExpense.create({
     data: {
@@ -136,6 +161,7 @@ export async function updateRecurringExpense(formData: FormData) {
     type: formData.get("type") || "FIXED",
     dayOfMonth: formData.get("dayOfMonth"),
     categoryId: formData.get("categoryId") || "",
+    startDate: formData.get("startDate") || "",
     endDate: formData.get("endDate") || ""
   });
 
@@ -154,10 +180,8 @@ export async function updateRecurringExpense(formData: FormData) {
     workspaceId,
     parsed.data.categoryId && parsed.data.categoryId !== "" ? parsed.data.categoryId : undefined
   );
-  const endDate =
-    parsed.data.endDate && parsed.data.endDate !== ""
-      ? utcDateFromKey(parsed.data.endDate)
-      : null;
+  const startDate = parseStartDate(parsed.data.startDate);
+  const endDate = parseOptionalDate(parsed.data.endDate);
 
   await prisma.recurringExpense.update({
     where: { id: existing.id },
@@ -167,6 +191,7 @@ export async function updateRecurringExpense(formData: FormData) {
       type: parsed.data.type,
       dayOfMonth: parsed.data.dayOfMonth,
       categoryId,
+      startDate,
       endDate
     }
   });

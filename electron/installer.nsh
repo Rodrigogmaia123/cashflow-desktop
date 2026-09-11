@@ -33,6 +33,9 @@
     CopyFiles /SILENT "$R9" "$LOCALAPPDATA\CashflowInstallBackup\cashflow-desktop.last.db"
     CopyFiles /SILENT "$R8\cashflow-desktop.db*" "$LOCALAPPDATA\CashflowInstallBackup"
   ${EndIf}
+  ${If} ${FileExists} "$R8\license-copy.json"
+    CopyFiles /SILENT "$R8\license-copy.json" "$LOCALAPPDATA\CashflowInstallBackup\license-copy.json"
+  ${EndIf}
 !macroend
 
 !macro customInit
@@ -74,6 +77,10 @@
     CreateDirectory "$R8"
     CopyFiles /SILENT "$R5\cashflow-desktop.db*" "$R8"
     CopyFiles /SILENT "$R5\cashflow-desktop.db*" "$LOCALAPPDATA\CashflowInstallBackup"
+    ${If} ${FileExists} "$R5\license-copy.json"
+      CopyFiles /SILENT "$R5\license-copy.json" "$R8\license-copy.json"
+      CopyFiles /SILENT "$R5\license-copy.json" "$LOCALAPPDATA\CashflowInstallBackup\license-copy.json"
+    ${EndIf}
   ${EndIf}
 !macroend
 
@@ -103,6 +110,14 @@
       CopyFiles /SILENT "$LOCALAPPDATA\CashflowInstallBackup\cashflow-desktop.db" "$R8\cashflow-desktop.db"
     ${EndIf}
   ${EndIf}
+  ${If} ${FileExists} "$LOCALAPPDATA\CashflowInstallBackup\license-copy.json"
+    StrCpy $R8 "$APPDATA\${PRODUCT_NAME}"
+    CreateDirectory "$R8"
+    ${If} ${FileExists} "$R8\license-copy.json"
+    ${Else}
+      CopyFiles /SILENT "$LOCALAPPDATA\CashflowInstallBackup\license-copy.json" "$R8\license-copy.json"
+    ${EndIf}
+  ${EndIf}
 !macroend
 
 !macro customRemoveFiles
@@ -119,6 +134,13 @@
     ${EndIf}
     ${If} $R3 > $R4
       CopyFiles /SILENT "$INSTDIR\data\cashflow-desktop.db*" "$R8"
+    ${EndIf}
+    ${If} ${FileExists} "$INSTDIR\data\license-copy.json"
+      CopyFiles /SILENT "$INSTDIR\data\license-copy.json" "$LOCALAPPDATA\CashflowInstallBackup\license-copy.json"
+      ${If} ${FileExists} "$R8\license-copy.json"
+      ${Else}
+        CopyFiles /SILENT "$INSTDIR\data\license-copy.json" "$R8\license-copy.json"
+      ${EndIf}
     ${EndIf}
   ${EndIf}
   ${If} ${FileExists} "$INSTDIR\cashflow-desktop.db"
