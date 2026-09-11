@@ -7,7 +7,6 @@ async function main() {
   const { prisma } = await import("../lib/db");
   const license = await import("../lib/license");
   const { activateLicenseCopy } = await import("../lib/license/activate");
-  const { LicenseError } = await import("../lib/license/types");
 
   await ensureSqliteSchemaOnce();
 
@@ -56,17 +55,19 @@ async function main() {
     throw new Error("mesma cópia (pendrive) não pode recomeçar o prazo");
   }
 
-  try {
-    await activateLicenseCopy({
-      serial,
-      machineId: "pasta-clonada-outra-copia",
-      edition: "pro",
-    });
-    throw new Error("outra pasta deveria recusar");
-  } catch (error) {
-    if (!(error instanceof LicenseError) || error.code !== "bound_other_copy") {
-      throw error;
-    }
+  const reinstalled = await activateLicenseCopy({
+    serial,
+    machineId: "pasta-depois-do-install",
+    edition: "pro",
+  });
+  if (reinstalled.activatedAt !== first.activatedAt) {
+    throw new Error("reativar após reinstalar não pode recomeçar o prazo");
+  }
+  const afterTransfer = await prisma.license.findUnique({
+    where: { id: created.license.id },
+  });
+  if (afterTransfer?.machineId !== "pasta-depois-do-install") {
+    throw new Error("serial deveria passar para a cópia nova");
   }
 
   try {
@@ -106,7 +107,7 @@ async function main() {
   });
 
   console.log(
-    "Sprint 4 ok: ativa e amarra 1 cópia; outra pasta recusa; vitalício sem expiresAt."
+    "Sprint 4 ok: ativa e amarra 1 cópia; reinstalar reamarra sem resetar prazo; vitalício sem expiresAt."
   );
 }
 

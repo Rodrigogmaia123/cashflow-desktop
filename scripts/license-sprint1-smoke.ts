@@ -80,23 +80,25 @@ async function main() {
     throw new Error("machineId não gravou");
   }
 
-  try {
-    await license.markLicenseActivated({
+  const transferred = await license.markLicenseActivated({
     serial,
-      machineId: "outra-copia-clonada",
-    });
-    throw new Error("clonar para outra cópia deveria recusar");
-  } catch (error) {
-    if (!(error instanceof license.LicenseError) || error.code !== "bound_other_copy") {
-      throw error;
-    }
+    machineId: "instalador-novo-apos-reinstall",
+  });
+  if (transferred.machineId !== "instalador-novo-apos-reinstall") {
+    throw new Error("reinstalar deve reamarrar a mesma serial na cópia nova");
+  }
+  if (
+    transferred.activatedAt?.getTime() !== activated.activatedAt?.getTime() ||
+    transferred.expiresAt?.getTime() !== activated.expiresAt?.getTime()
+  ) {
+    throw new Error("reativar depois do install não pode recomeçar o prazo");
   }
 
   const sameCopy = await license.markLicenseActivated({
     serial,
-    machineId: "copy-pendrive-1",
+    machineId: "instalador-novo-apos-reinstall",
   });
-  if (sameCopy.machineId !== "copy-pendrive-1") {
+  if (sameCopy.machineId !== "instalador-novo-apos-reinstall") {
     throw new Error("mesma cópia (pendrive) deveria reativar");
   }
 

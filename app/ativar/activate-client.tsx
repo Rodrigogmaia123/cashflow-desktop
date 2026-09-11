@@ -66,8 +66,8 @@ export function ActivateLicenseClient({
 
       <p className="text-xs text-muted-foreground leading-relaxed">
         Esta cópia confirma a chave de tempos em tempos. Sem internet, segue
-        por alguns dias no último sim. Pendrive da mesma pasta continua
-        válido; instalador novo sem essa cópia não abre.
+        por alguns dias no último sim. Se você reinstalar o programa, cole a
+        mesma chave do e-mail — o prazo não recomeça.
       </p>
     </form>
   );

@@ -389,10 +389,14 @@ export async function markLicenseActivated(input: {
     if (license.machineId === machineId) {
       return license;
     }
-    throw new LicenseError(
-      "bound_other_copy",
-      "Este serial já está ativo em outra cópia."
-    );
+    // Reinstalação gera outro machineId. A serial continua válida: a cópia
+    // nova assume o vínculo e o prazo não recomeça. A cópia antiga deixa de
+    // passar no heartbeat.
+    const rebound = await prisma.license.update({
+      where: { id: license.id },
+      data: { machineId },
+    });
+    return toRecord(rebound);
   }
 
   if (license.status !== "paid") {
@@ -417,10 +421,11 @@ export async function markLicenseActivated(input: {
       return raced;
     }
     if (raced?.status === "active") {
-      throw new LicenseError(
-        "bound_other_copy",
-        "Este serial já está ativo em outra cópia."
-      );
+      const rebound = await prisma.license.update({
+        where: { id: raced.id },
+        data: { machineId },
+      });
+      return toRecord(rebound);
     }
     throw new LicenseError("invalid_status", "Esta chave não pode ser ativada.");
   }

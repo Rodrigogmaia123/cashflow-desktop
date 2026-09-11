@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,6 +39,20 @@ const typeOptions = [
   { value: "FIXED", label: "Fixa" },
   { value: "VARIABLE", label: "Variável" }
 ];
+
+function todayInputValue() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function formatDateKey(key: string) {
+  const [y, m, d] = key.split("-");
+  if (!y || !m || !d) return key;
+  return `${d}/${m}/${y}`;
+}
 
 function RecurringFormFields({
   categories,
@@ -100,21 +115,31 @@ function RecurringFormFields({
           </select>
         </div>
       </div>
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-muted-foreground">Categoria</label>
+        <select
+          name="categoryId"
+          defaultValue={defaults?.categoryId ?? ""}
+          className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        >
+          <option value="">Sem categoria</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-muted-foreground">Categoria</label>
-          <select
-            name="categoryId"
-            defaultValue={defaults?.categoryId ?? ""}
+          <label className="text-[11px] font-medium text-muted-foreground">Começa em</label>
+          <input
+            type="date"
+            name="startDate"
+            required
+            defaultValue={defaults?.startDate ?? todayInputValue()}
             className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Sem categoria</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="space-y-1">
           <label className="text-[11px] font-medium text-muted-foreground">Encerra em (opcional)</label>
@@ -126,6 +151,10 @@ function RecurringFormFields({
           />
         </div>
       </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Só gera lançamentos a partir da data de início. Para parcelas já pagas no passado, deixe o
+        início no primeiro vencimento que ainda falta e o término na última parcela.
+      </p>
     </>
   );
 }
@@ -141,6 +170,7 @@ export function RecurringExpensePanel({
   items: RecurringExpenseRow[];
   currency: CurrencyCode;
 }) {
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const activeCount = useMemo(() => items.filter((i) => i.isActive).length, [items]);
 
@@ -150,8 +180,8 @@ export function RecurringExpensePanel({
         <div>
           <h3 className="text-sm font-semibold text-foreground">Despesas recorrentes</h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-xl">
-            Cadastre uma vez. No dia combinado o sistema lança a despesa no caixa, igual a uma
-            despesa manual. Você continua podendo criar despesas avulsas normalmente.
+            Cadastre uma vez. O sistema lança a despesa no caixa a partir da data de início,
+            inclusive se o dia ainda não chegou — útil para previsão e parcelas restantes.
           </p>
         </div>
         {isAdmin ? (
@@ -165,14 +195,16 @@ export function RecurringExpensePanel({
               <DialogHeader>
                 <DialogTitle>Nova despesa recorrente</DialogTitle>
                 <DialogDescription>
-                  Se o dia do mês já passou, o lançamento deste mês aparece agora. Os próximos
-                  meses entram sozinhos.
+                  A regra só gera a partir da data de início. Sem término, antecipa até 12 meses.
+                  Com início e fim, cobre só aquele intervalo — por exemplo, as parcelas que ainda
+                  faltam.
                 </DialogDescription>
               </DialogHeader>
               <form
                 action={async (fd) => {
                   await createRecurringExpense(fd);
                   setCreateOpen(false);
+                  router.refresh();
                 }}
                 className="space-y-3"
               >
@@ -227,6 +259,7 @@ function RecurringRow({
   categories: CategoryOption[];
   currency: CurrencyCode;
 }) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
 
   return (
@@ -243,6 +276,9 @@ function RecurringRow({
         <p className="text-xs text-muted-foreground">
           Todo dia {item.dayOfMonth} · {formatMoney(item.amount, currency)}
           {item.categoryName ? ` · ${item.categoryName}` : ""}
+          {" · "}
+          de {formatDateKey(item.startDate)}
+          {item.endDate ? ` até ${formatDateKey(item.endDate)}` : " · sem data de término"}
         </p>
       </div>
       {isAdmin && (
@@ -263,13 +299,15 @@ function RecurringRow({
               <DialogHeader>
                 <DialogTitle>Editar recorrente</DialogTitle>
                 <DialogDescription>
-                  Muda os próximos meses. Lançamentos já gerados no caixa não são alterados.
+                  Altera o intervalo da regra. Lançamentos já gerados no caixa não são alterados
+                  nem apagados.
                 </DialogDescription>
               </DialogHeader>
               <form
                 action={async (fd) => {
                   await updateRecurringExpense(fd);
                   setEditOpen(false);
+                  router.refresh();
                 }}
                 className="space-y-3"
               >

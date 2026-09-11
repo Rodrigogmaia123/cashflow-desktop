@@ -109,6 +109,49 @@ function copyDbFiles(fromDb, toDb) {
   }
 }
 
+function licenseCopyPath(dbFile) {
+  return path.join(path.dirname(dbFile), "license-copy.json");
+}
+
+function readLicenseEntitlement(file) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
+    return parsed && parsed.entitlement ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function copyLicenseSidecar(fromDb, toDb) {
+  const from = licenseCopyPath(fromDb);
+  const to = licenseCopyPath(toDb);
+  if (!fs.existsSync(from)) return false;
+  if (path.normalize(from).toLowerCase() === path.normalize(to).toLowerCase()) {
+    return false;
+  }
+  const incoming = readLicenseEntitlement(from);
+  if (!incoming) return false;
+  if (fs.existsSync(to) && readLicenseEntitlement(to)) return false;
+  try {
+    fs.mkdirSync(path.dirname(to), { recursive: true });
+    fs.copyFileSync(from, to);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function ensureLicenseCopy(destDb) {
+  const dest = licenseCopyPath(destDb);
+  if (fs.existsSync(dest) && readLicenseEntitlement(dest)) return;
+  for (const db of candidateDbPaths(destDb)) {
+    if (copyLicenseSidecar(db, destDb)) {
+      logMigrate(path.dirname(destDb), `copied license-copy.json from ${path.dirname(db)}`);
+      return;
+    }
+  }
+}
+
 function persistentDataDir() {
   return path.join(app.getPath("appData"), productName());
 }
@@ -342,7 +385,9 @@ function ensurePackagedDatabase(dest) {
   if (!fs.existsSync(dest)) {
     if (bestUseful) {
       copyDbFiles(best, dest);
+      copyLicenseSidecar(best, dest);
       logMigrate(dir, `copied ${best} -> ${dest} (${bestSize} bytes)`);
+      ensureLicenseCopy(dest);
       return;
     }
     const template = emptyTemplatePath();
@@ -350,6 +395,7 @@ function ensurePackagedDatabase(dest) {
       fs.copyFileSync(template, dest);
       logMigrate(dir, `seeded empty template -> ${dest}`);
     }
+    ensureLicenseCopy(dest);
     return;
   }
 
@@ -358,11 +404,13 @@ function ensurePackagedDatabase(dest) {
     snapshotDb(dest, "pre-replace");
     copyDbFiles(dest, `${dest}.empty-bak`);
     copyDbFiles(best, dest);
+    copyLicenseSidecar(best, dest);
     logMigrate(
       dir,
       `replaced empty ${dest} (${destSize}) with ${best} (${bestSize})`
     );
   }
+  ensureLicenseCopy(dest);
 }
 
 function sqliteUrl() {
