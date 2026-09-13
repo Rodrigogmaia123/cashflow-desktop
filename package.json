@@ -5,7 +5,7 @@
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "next dev -p 3456 -H 127.0.0.1",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "node scripts/start.cjs",
     "start:web": "node scripts/start.cjs",
     "desktop": "electron ./electron/main.cjs",
