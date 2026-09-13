@@ -5,6 +5,7 @@ import { MobileHeader } from "./mobile-header";
 import { MobileSidebar } from "./mobile-sidebar";
 import { Sidebar } from "./sidebar";
 import type { SidebarProps } from "./sidebar";
+import { DesktopUpdateBanner } from "@/components/desktop/desktop-update-banner";
 import { QuickCaptureProvider } from "@/components/quick-capture/quick-capture-provider";
 
 type AppLayoutClientProps = SidebarProps & {
@@ -45,6 +46,7 @@ export function AppLayoutClient({
           {/* Mobile: adicionar padding-top para o header fixo */}
           <div className="lg:pt-0 pt-14">
             <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+              {sidebarProps.desktopMode ? <DesktopUpdateBanner /> : null}
               {children}
             </div>
           </div>

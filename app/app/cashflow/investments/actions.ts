@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { requireActiveWorkspaceId } from "@/lib/workspace";
 import { measure } from "@/lib/observability/measure";
 import { checkTransactionLimit } from "@/lib/plans/authorization";
+import { filledFormRows } from "@/lib/forms/form-data-rows";
 
 const createInvestmentSchema = z.object({
   date: z.coerce.date(),
@@ -60,26 +61,44 @@ export async function createInvestment(formData: FormData) {
 
         const { workspaceId } = await requireAdminWorkspace();
 
-        const parsed = createInvestmentSchema.safeParse({
-          date: formData.get("date"),
-          description: formData.get("description"),
-          amount: formData.get("amount")
-        });
-
-        if (!parsed.success) {
-          throw new Error("Dados inválidos. Verifique data, descrição e valor.");
+        const rows = filledFormRows(formData, ["date", "description", "amount"]);
+        if (rows.length === 0) {
+          throw new Error("Adicione pelo menos um lançamento.");
         }
 
-        await prisma.investment.create({
-          data: {
-            workspaceId,
-            date: parsed.data.date,
-            description: parsed.data.description,
-            amount: new Decimal(parsed.data.amount)
-          }
-        });
+        if (
+          transactionCheck.currentLimit != null &&
+          transactionCheck.currentValue != null &&
+          transactionCheck.currentValue + rows.length > transactionCheck.currentLimit
+        ) {
+          throw new Error(
+            `Esse lote passa do limite de ${transactionCheck.currentLimit} lançamentos/mês no plano FREE.`
+          );
+        }
 
-        revalidatePath("/app/cashflow");
+        for (const [index, row] of rows.entries()) {
+          const parsed = createInvestmentSchema.safeParse({
+            date: row.date,
+            description: row.description,
+            amount: row.amount
+          });
+
+          if (!parsed.success) {
+            throw new Error(`Dados inválidos no lançamento ${index + 1}.`);
+          }
+
+          await prisma.investment.create({
+            data: {
+              workspaceId,
+              date: parsed.data.date,
+              description: parsed.data.description,
+              amount: new Decimal(parsed.data.amount)
+            }
+          });
+        }
+
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao criar investimento:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao registrar investimento.");
@@ -124,7 +143,8 @@ export async function updateInvestment(formData: FormData) {
           }
         });
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao atualizar investimento:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao atualizar investimento.");
@@ -161,7 +181,8 @@ export async function deleteInvestment(formData: FormData) {
           where: { id: existing.id }
         });
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao excluir investimento:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao excluir investimento.");

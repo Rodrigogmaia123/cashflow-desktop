@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { OfferSparkline } from "@/components/offers/offer-sparkline";
@@ -13,22 +13,34 @@ import { Button } from "@/components/ui/button";
 import { calculateROIForPeriod } from "@/lib/domain/offer-metrics-client";
 import { getOfferCountryOption } from "@/lib/domain/offer-country";
 import { formatMoney } from "@/lib/domain/currency";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 type Props = {
   offers: OfferWithMetrics[];
   canEdit: boolean;
   canDelete: boolean;
+  workspaceId: string;
 };
 
 type PeriodFilter = "7d" | "30d" | "all";
 type StatusFilter = "all" | "ACTIVE" | "PAUSED" | "DEAD";
 type SortBy = "worst-roi" | "best-roi" | "name";
 
-export function OffersList({ offers, canEdit, canDelete }: Props) {
-  const [scanMode, setScanMode] = useState(false);
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("30d");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("worst-roi");
+type OffersListPrefs = {
+  scanMode: boolean;
+  periodFilter: PeriodFilter;
+  statusFilter: StatusFilter;
+  sortBy: SortBy;
+};
+
+export function OffersList({ offers, canEdit, canDelete, workspaceId }: Props) {
+  const [prefs, setPrefs] = useLocalPref<OffersListPrefs>(prefKey("offers-list", workspaceId), {
+    scanMode: false,
+    periodFilter: "30d",
+    statusFilter: "all",
+    sortBy: "worst-roi"
+  });
+  const { scanMode, periodFilter, statusFilter, sortBy } = prefs;
 
   // Filtrar e ordenar ofertas
   const filteredAndSorted = useMemo(() => {
@@ -75,7 +87,7 @@ export function OffersList({ offers, canEdit, canDelete }: Props) {
             <Button
               variant={scanMode ? "default" : "outline"}
               size="sm"
-              onClick={() => setScanMode(!scanMode)}
+              onClick={() => setPrefs((prev) => ({ ...prev, scanMode: !prev.scanMode }))}
               className="text-xs"
             >
               <Scan className="h-3 w-3 mr-1.5" />
@@ -88,7 +100,9 @@ export function OffersList({ offers, canEdit, canDelete }: Props) {
             <Filter className="h-3 w-3 text-muted-foreground" />
             <select
               value={periodFilter}
-              onChange={(e) => setPeriodFilter(e.target.value as PeriodFilter)}
+              onChange={(e) =>
+                setPrefs((prev) => ({ ...prev, periodFilter: e.target.value as PeriodFilter }))
+              }
               className="text-xs rounded-md border px-2 py-1 bg-background"
             >
               <option value="7d">7 dias</option>
@@ -101,7 +115,9 @@ export function OffersList({ offers, canEdit, canDelete }: Props) {
           <div className="flex items-center gap-2">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              onChange={(e) =>
+                setPrefs((prev) => ({ ...prev, statusFilter: e.target.value as StatusFilter }))
+              }
               className="text-xs rounded-md border px-2 py-1 bg-background"
             >
               <option value="all">Todos os estados</option>
@@ -116,7 +132,7 @@ export function OffersList({ offers, canEdit, canDelete }: Props) {
             <span className="text-xs text-muted-foreground">Ordenar por:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortBy)}
+              onChange={(e) => setPrefs((prev) => ({ ...prev, sortBy: e.target.value as SortBy }))}
               className="text-xs rounded-md border px-2 py-1 bg-background"
             >
               <option value="worst-roi">Pior ROI</option>

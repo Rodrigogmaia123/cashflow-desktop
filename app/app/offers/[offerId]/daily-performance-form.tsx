@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { replaceAndRefresh } from "@/lib/navigation/replace-and-refresh";
 import { createDailyPerformance } from "./actions";
 
 interface DailyPerformanceFormProps {
@@ -14,14 +16,18 @@ export function DailyPerformanceForm({
   currency = "BRL"
 }: DailyPerformanceFormProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (formData: FormData) => {
     await createDailyPerformance(formData);
-    router.refresh();
+    formRef.current?.reset();
+    replaceAndRefresh(router, pathname || `/app/offers/${offerId}`);
   };
 
   return (
     <form
+      ref={formRef}
       action={handleSubmit}
       className="mt-3 grid gap-3 text-xs sm:text-sm md:grid-cols-2"
       data-tour="daily-performance-form"

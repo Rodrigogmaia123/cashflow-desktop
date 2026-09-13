@@ -13,6 +13,7 @@ import { SimpleAlert } from "@/components/ui/simple-alert";
 import type { BudgetWithUsage } from "@/types/budget";
 import { Plus, Filter, Target, TrendingUp, DollarSign, AlertTriangle } from "lucide-react";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 interface CategoryOption {
   id: string;
@@ -29,8 +30,14 @@ export function BudgetsClientPage({ categories, currency }: BudgetsClientPagePro
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [selectedBudget, setSelectedBudget] = useState<BudgetWithUsage | null>(null);
-  const [filterPeriodType, setFilterPeriodType] = useState<"ALL" | "MONTHLY" | "CUSTOM">("ALL");
-  const [filterActive, setFilterActive] = useState<"ALL" | "ACTIVE">("ALL");
+  const [filterPeriodType, setFilterPeriodType] = useLocalPref<"ALL" | "MONTHLY" | "CUSTOM">(
+    prefKey("budgets", "period-type"),
+    "ALL"
+  );
+  const [filterActive, setFilterActive] = useLocalPref<"ALL" | "ACTIVE">(
+    prefKey("budgets", "active"),
+    "ALL"
+  );
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 

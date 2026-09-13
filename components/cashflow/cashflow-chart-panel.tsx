@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CashflowChart, type CashflowChartPoint } from "@/components/charts/cashflow-chart";
 import type { CurrencyCode } from "@/lib/domain/currency";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 type Visible = {
   inflow: boolean;
@@ -23,26 +24,7 @@ const defaultVisible: Visible = {
 };
 
 export function CashflowChartPanel({ data, currency }: Props) {
-  const [visible, setVisible] = useState<Visible>(defaultVisible);
-  // Mantém os dados anteriores para animação suave durante transições
-  const previousDataRef = useRef<CashflowChartPoint[]>(data);
-  const [displayData, setDisplayData] = useState<CashflowChartPoint[]>(data);
-
-  // Atualiza os dados com um pequeno delay para manter a animação do gráfico anterior
-  useEffect(() => {
-    if (data.length > 0) {
-      // Se os dados mudaram, atualiza após um pequeno delay para manter a animação
-      const dataChanged = JSON.stringify(data) !== JSON.stringify(previousDataRef.current);
-      if (dataChanged) {
-        previousDataRef.current = displayData;
-        // Delay mínimo para permitir que a animação do gráfico anterior continue
-        const timer = setTimeout(() => {
-          setDisplayData(data);
-        }, 150);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [data, displayData]);
+  const [visible, setVisible] = useLocalPref<Visible>(prefKey("cashflow", "chart-visible"), defaultVisible);
 
   const safeVisible = useMemo(() => {
     const any = Object.values(visible).some(Boolean);
@@ -85,10 +67,8 @@ export function CashflowChartPanel({ data, currency }: Props) {
       </div>
 
       <div className="transition-opacity duration-300 ease-in-out">
-        <CashflowChart data={displayData} visible={safeVisible} currency={currency} />
+        <CashflowChart data={data} visible={safeVisible} currency={currency} />
       </div>
     </div>
   );
 }
-
-

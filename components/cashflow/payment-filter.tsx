@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { replaceAndRefresh } from "@/lib/navigation/replace-and-refresh";
 import {
   Popover,
   PopoverContent,
@@ -58,13 +59,13 @@ function UrlMultiFilter({
       params.set(paramKey, next.join(","));
     }
 
-    router.replace(`?${params.toString()}`, { scroll: false });
+    replaceAndRefresh(router, `?${params.toString()}`);
   };
 
   const clearFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(paramKey);
-    router.replace(`?${params.toString()}`, { scroll: false });
+    replaceAndRefresh(router, `?${params.toString()}`);
     setIsOpen(false);
   };
 

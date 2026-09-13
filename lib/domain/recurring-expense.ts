@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { listBudgetsWithUsage } from "@/lib/domain/budget";
 import { autoGenerateNotifications } from "@/lib/domain/budget-alerts";
 import { utcDateFromKey, utcKey } from "@/lib/utils/date-utc";
+import { addMonthsUTC } from "@/lib/analytics/date-range-utils";
 
 const materializedDays = new Set<string>();
 
@@ -32,8 +33,10 @@ function monthsBetween(start: Date, end: Date): Array<{ year: number; monthIndex
 }
 
 /**
- * Gera Expense reais a partir das regras ativas.
- * Não altera despesas manuais. Se o lançamento do mês já existe para a regra, ignora.
+ * Gera Expense reais a partir das regras ativas, inclusive em datas futuras
+ * (previsão de caixa, parcelas e vencimentos do mês que ainda não chegaram).
+ * Sem data de término, antecipa até 12 meses. Não altera despesas manuais.
+ * Se o lançamento do mês já existe para a regra, ignora.
  */
 export async function materializeRecurringExpenses(
   workspaceId: string,
@@ -41,12 +44,15 @@ export async function materializeRecurringExpenses(
   options?: { force?: boolean }
 ): Promise<{ created: number }> {
   const todayKey = utcKey(new Date());
-  const stamp = `${workspaceId}:${todayKey}`;
+  const stamp = `${workspaceId}:${todayKey}:forecast-v1`;
   if (!options?.force && materializedDays.has(stamp)) {
     return { created: 0 };
   }
 
   const today = utcDateFromKey(todayKey);
+  const forecastHorizon = addMonthsUTC(today, 12);
+  forecastHorizon.setUTCHours(23, 59, 59, 999);
+
   const rules = await prisma.recurringExpense.findMany({
     where: {
       workspaceId,
@@ -64,15 +70,15 @@ export async function materializeRecurringExpenses(
   for (const rule of rules) {
     const start = new Date(rule.startDate);
     start.setUTCHours(0, 0, 0, 0);
-    const endCap = rule.endDate
-      ? new Date(Math.min(new Date(rule.endDate).getTime(), today.getTime()))
-      : today;
+    const ruleEnd = rule.endDate ? new Date(rule.endDate) : forecastHorizon;
+    ruleEnd.setUTCHours(23, 59, 59, 999);
+    const endCap = ruleEnd.getTime() < forecastHorizon.getTime() ? ruleEnd : forecastHorizon;
 
     if (endCap < start) continue;
 
     for (const { year, monthIndex } of monthsBetween(start, endCap)) {
       const due = dueDateForMonth(year, monthIndex, rule.dayOfMonth);
-      if (due < start || due > endCap || due > today) continue;
+      if (due < start || due > endCap) continue;
 
       const existing = await prisma.expense.findFirst({
         where: {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, Trash2 } from "lucide-react";
 import type { ExpenseType } from "@/app/app/cashflow/actions";
 import { PaymentFields } from "@/components/cashflow/payment-fields";
 import { Button } from "@/components/ui/button";
@@ -46,7 +48,17 @@ const typeOptions: Array<{ value: ExpenseType; label: string }> = [
 ];
 
 function todayKey() {
-  return new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+const fieldClass =
+  "h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring";
+
+function nextLineKey() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function CreateExpenseDialog({
@@ -59,6 +71,13 @@ export function CreateExpenseDialog({
   categories: CategoryOption[];
 }) {
   const [open, setOpen] = useState(false);
+  const [lineKeys, setLineKeys] = useState<string[]>(() => [nextLineKey()]);
+  const router = useRouter();
+
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (next) setLineKeys([nextLineKey()]);
+  }
 
   if (!isAdmin) {
     return (
@@ -69,95 +88,115 @@ export function CreateExpenseDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button type="button" size="sm">
           Nova despesa
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Nova despesa</DialogTitle>
+          <DialogTitle>Novas despesas</DialogTitle>
           <DialogDescription>
-            Despesas entram no cashflow como saída. Valores são sempre positivos.
+            Preencha um ou vários lançamentos e salve tudo de uma vez. Cada linha pode ter data, categoria, valor e descrição diferentes.
           </DialogDescription>
         </DialogHeader>
 
         <form
           action={async (fd) => {
             await actions.createExpense(fd);
+            router.refresh();
             setOpen(false);
           }}
-          className="space-y-3"
+          className="space-y-4"
         >
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-[11px] font-medium text-muted-foreground">Data</label>
-              <input
-                type="date"
-                name="date"
-                defaultValue={todayKey()}
-                required
-                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-medium text-muted-foreground">Valor</label>
-              <input
-                type="number"
-                name="amount"
-                step="0.01"
-                min="0.01"
-                required
-                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              />
-            </div>
+          <div className="space-y-3">
+            {lineKeys.map((key, index) => (
+              <div key={key} className="space-y-3 rounded-md border border-white/10 p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-medium text-muted-foreground">
+                    Lançamento {index + 1}
+                  </p>
+                  {lineKeys.length > 1 ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setLineKeys((prev) => prev.filter((item) => item !== key))}
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Remover
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-muted-foreground">Data</label>
+                    <input type="date" name="date" defaultValue={todayKey()} required className={fieldClass} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-muted-foreground">Valor</label>
+                    <input
+                      type="number"
+                      name="amount"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-muted-foreground">Descrição</label>
+                  <input
+                    type="text"
+                    name="description"
+                    required
+                    placeholder="Ex: Assinatura do tracker, servidor, contador..."
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-muted-foreground">Tipo</label>
+                    <select name="type" defaultValue="VARIABLE" className={fieldClass}>
+                      {typeOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-medium text-muted-foreground">Categoria</label>
+                    <select name="categoryId" defaultValue="" className={fieldClass}>
+                      <option value="">Sem categoria</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <PaymentFields remember={index === 0} />
+              </div>
+            ))}
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground">Descrição</label>
-            <input
-              type="text"
-              name="description"
-              required
-              placeholder="Ex: Assinatura do tracker, servidor, contador..."
-              className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-[11px] font-medium text-muted-foreground">Tipo</label>
-              <select
-                name="type"
-                defaultValue="VARIABLE"
-                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {typeOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-medium text-muted-foreground">Categoria</label>
-              <select
-                name="categoryId"
-                defaultValue=""
-                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <option value="">Sem categoria</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <PaymentFields />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setLineKeys((prev) => [...prev, nextLineKey()])}
+          >
+            <Plus className="mr-1 h-3 w-3" />
+            Adicionar outro lançamento
+          </Button>
 
           <DialogFooter>
             <DialogClose asChild>
@@ -165,7 +204,9 @@ export function CreateExpenseDialog({
                 Cancelar
               </Button>
             </DialogClose>
-            <Button type="submit">Salvar</Button>
+            <Button type="submit">
+              Salvar {lineKeys.length > 1 ? `${lineKeys.length} lançamentos` : "lançamento"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -185,6 +226,7 @@ export function EditExpenseDialog({
   categories: CategoryOption[];
 }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const defaults = useMemo(() => {
     const type = (expense.type === "FIXED" || expense.type === "VARIABLE" ? expense.type : "VARIABLE") as ExpenseType;
@@ -207,6 +249,7 @@ export function EditExpenseDialog({
         <form
           action={async (fd) => {
             await actions.updateExpense(fd);
+            router.refresh();
             setOpen(false);
           }}
           className="space-y-3"
@@ -313,6 +356,7 @@ export function DeleteExpenseDialog({
   isAdmin: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -332,6 +376,7 @@ export function DeleteExpenseDialog({
         <form
           action={async (fd) => {
             await actions.deleteExpense(fd);
+            router.refresh();
             setOpen(false);
           }}
         >

@@ -107,10 +107,12 @@ export async function createDailyPerformance(formData: FormData) {
           ifExists: "update"
         });
 
-        revalidatePath(`/app/offers/${offerId}`);
-        revalidatePath(`/app/offers/${offerId}/dashboard`);
-        revalidatePath("/app/dashboard");
-        revalidatePath("/app/cashflow");
+        revalidatePath(`/app/offers/${offerId}`, "page");
+        revalidatePath(`/app/offers/${offerId}/dashboard`, "page");
+        revalidatePath("/app/offers/[offerId]", "page");
+        revalidatePath("/app/dashboard", "page");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao criar performance diária:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao criar lançamento diário.");
@@ -189,10 +191,12 @@ export async function updateDailyPerformance(formData: FormData) {
       void metrics;
     }
 
-        revalidatePath(`/app/offers/${offerId}`);
-        revalidatePath(`/app/offers/${offerId}/dashboard`);
-        revalidatePath("/app/dashboard");
-        revalidatePath("/app/cashflow");
+        revalidatePath(`/app/offers/${offerId}`, "page");
+        revalidatePath(`/app/offers/${offerId}/dashboard`, "page");
+        revalidatePath("/app/offers/[offerId]", "page");
+        revalidatePath("/app/dashboard", "page");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao atualizar performance diária:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao atualizar lançamento diário.");
@@ -241,10 +245,12 @@ export async function deleteDailyPerformance(formData: FormData) {
       where: { id: daily.id }
     });
 
-        revalidatePath(`/app/offers/${offerId}`);
-        revalidatePath(`/app/offers/${offerId}/dashboard`);
-        revalidatePath("/app/dashboard");
-        revalidatePath("/app/cashflow");
+        revalidatePath(`/app/offers/${offerId}`, "page");
+        revalidatePath(`/app/offers/${offerId}/dashboard`, "page");
+        revalidatePath("/app/offers/[offerId]", "page");
+        revalidatePath("/app/dashboard", "page");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao excluir performance diária:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao excluir lançamento diário.");
@@ -625,10 +631,12 @@ export async function closeOfferWeek(formData: FormData) {
           ifExists: "fail"
         });
 
-        revalidatePath(`/app/offers/${parsed.data.offerId}`);
-        revalidatePath(`/app/offers/${parsed.data.offerId}/dashboard`);
-        revalidatePath("/app/dashboard");
-        revalidatePath("/app/cashflow");
+        revalidatePath(`/app/offers/${parsed.data.offerId}`, "page");
+        revalidatePath(`/app/offers/${parsed.data.offerId}/dashboard`, "page");
+        revalidatePath("/app/offers/[offerId]", "page");
+        revalidatePath("/app/dashboard", "page");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao fechar semana:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao registrar o período.");

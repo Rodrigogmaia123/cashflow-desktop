@@ -65,10 +65,10 @@ export async function exportDashboardCSV(formData: FormData) {
       const endDate = new Date(`${endRaw}T00:00:00.000Z`);
       range = { type: "absolute", startDate, endDate };
     } else {
-      const allowed = ["today", "7d", "30d", "3m", "6m", "12m"] as const;
+      const allowed = ["today", "7d", "30d", "month", "3m", "6m", "12m"] as const;
       const value = (allowed as readonly string[]).includes(rangeRaw as string)
         ? (rangeRaw as typeof allowed[number])
-        : "30d";
+        : "month";
       range = { type: "relative", value };
     }
 

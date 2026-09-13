@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog } = require("electron");
+const { app, BrowserWindow, shell, dialog, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -8,6 +8,20 @@ const net = require("net");
 
 const HOST = "127.0.0.1";
 const ROOT = path.join(__dirname, "..");
+
+function openHttpUrl(url) {
+  if (typeof url !== "string") return false;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    shell.openExternal(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+ipcMain.handle("desktop-open-external", (_event, url) => openHttpUrl(url));
 
 try {
   require("dotenv").config({ path: path.join(ROOT, ".env") });
@@ -439,6 +453,7 @@ function desktopEnv() {
     NEXT_PUBLIC_DESKTOP_MODE: "true",
     DESKTOP_EDITION: desktopEdition(),
     CASHFLOW_PACKAGED: isPackaged() ? "true" : "false",
+    DESKTOP_APP_VERSION: app.getVersion(),
     LICENSE_API_BASE_URL: licenseApi,
     NEXT_PUBLIC_LICENSE_API_BASE_URL: licenseApi,
     LICENSE_GRACE_DAYS: process.env.LICENSE_GRACE_DAYS || "7",
@@ -769,8 +784,14 @@ async function createWindow() {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    openHttpUrl(url);
     return { action: "deny" };
+  });
+
+  mainWindow.webContents.on("will-navigate", (event, navUrl) => {
+    if (navUrl.startsWith(`http://${HOST}:`)) return;
+    event.preventDefault();
+    openHttpUrl(navUrl);
   });
 
   const url = `http://${HOST}:${PORT}/app/overview`;

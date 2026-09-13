@@ -1,6 +1,8 @@
 export type DashboardRange =
-  | { type: "relative"; value: "today" | "7d" | "30d" | "3m" | "6m" | "12m" }
+  | { type: "relative"; value: "today" | "7d" | "30d" | "month" | "3m" | "6m" | "12m" }
   | { type: "absolute"; startDate: Date; endDate: Date };
+
+export const DEFAULT_DASHBOARD_RANGE = "month" as const;
 
 export type DashboardRelativeRangeValue = DashboardRange extends {
   type: "relative";
@@ -9,7 +11,7 @@ export type DashboardRelativeRangeValue = DashboardRange extends {
   ? V
   : never;
 
-import { startOfDay, endOfDay, addDaysUTC, addMonthsUTC } from "./date-range-utils";
+import { startOfDay, endOfDay, addDaysUTC, addMonthsUTC, currentMonthToDateRange } from "./date-range-utils";
 
 export function resolveDateRange(range: DashboardRange): {
   startDate: Date;
@@ -39,6 +41,9 @@ export function resolveDateRange(range: DashboardRange): {
   }
   if (range.value === "30d") {
     return { startDate: addDaysUTC(todayStart, -29), endDate: todayEnd };
+  }
+  if (range.value === "month") {
+    return currentMonthToDateRange();
   }
   if (range.value === "3m") {
     return { startDate: addMonthsUTC(todayStart, -3), endDate: todayEnd };

@@ -50,7 +50,12 @@ export default async function OffersPage() {
         )}
 
         {/* Lista de ofertas */}
-        <OffersList offers={offers} canEdit={canEdit} canDelete={canDelete} />
+        <OffersList
+          offers={offers}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          workspaceId={workspaceId}
+        />
         
         {/* Portal do menu de ações */}
         <OfferActionsMenuPortal />

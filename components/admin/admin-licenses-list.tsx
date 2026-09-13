@@ -19,6 +19,7 @@ import {
   type AdminLicenseRow,
 } from "@/app/app/admin/licenses-actions";
 import type { LicenseDuration, LicenseEdition } from "@/lib/prisma-enums";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 function formatWhen(iso: string | null) {
   if (!iso) return "—";
@@ -67,7 +68,7 @@ export function AdminLicensesList({
   initialLicenses: AdminLicenseRow[];
 }) {
   const [licenses, setLicenses] = useState(initialLicenses);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useLocalPref(prefKey("admin", "licenses-query"), "");
   const [message, setMessage] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<AdminLicenseRow | null>(null);
