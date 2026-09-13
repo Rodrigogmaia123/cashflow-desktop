@@ -12,6 +12,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 COPY package.json package-lock.json ./
 RUN npm ci
+# O lockfile vem do Windows e não traz o SWC Linux; sem isso o Next 16 cai no WASM e o build quebra.
+RUN npm install --no-save @next/swc-linux-x64-gnu@16.0.10
 
 COPY prisma ./prisma
 COPY . .
