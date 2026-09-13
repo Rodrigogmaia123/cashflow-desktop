@@ -48,6 +48,9 @@ const authMiddleware = withAuth(
         if (req.nextUrl.pathname.startsWith("/api/license")) {
           return true;
         }
+        if (req.nextUrl.pathname.startsWith("/api/desktop")) {
+          return true;
+        }
         if (req.nextUrl.pathname.startsWith("/api/support")) {
           return true;
         }
@@ -89,6 +92,7 @@ export default function middleware(req: NextRequest, event: unknown) {
     pathname.startsWith("/download") ||
     pathname.startsWith("/api/compra") ||
     pathname.startsWith("/api/license") ||
+    pathname.startsWith("/api/desktop") ||
     pathname.startsWith("/api/support") ||
     pathname === "/pricing";
 
