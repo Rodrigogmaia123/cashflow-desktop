@@ -115,6 +115,7 @@ function canWriteDir(dir) {
 }
 
 function copyDbFiles(fromDb, toDb) {
+  checkpointSqlite(fromDb);
   fs.mkdirSync(path.dirname(toDb), { recursive: true });
   fs.copyFileSync(fromDb, toDb);
   for (const suffix of ["-wal", "-shm", "-journal"]) {
@@ -198,10 +199,50 @@ function isProtectedInstallDir(dir) {
   return prefixes.some((p) => n === p || n.startsWith(p + path.sep));
 }
 
+function localDbPath() {
+  return path.join(localDataDir(), "cashflow-desktop.db");
+}
+
+function localDbExists() {
+  const file = localDbPath();
+  return dbSize(file) > 0 || dbSize(file + "-wal") > 0;
+}
+
+function parkedInstallDataDir() {
+  return exeDir() + "-data-keep";
+}
+
+function isRemovableDrive(dir) {
+  if (process.platform !== "win32") return false;
+  const root = path.parse(path.resolve(dir)).root;
+  const letter = root.replace(/\\/g, "");
+  if (!/^[A-Za-z]:$/.test(letter)) return false;
+  try {
+    const { execFileSync } = require("child_process");
+    const out = execFileSync("fsutil", ["fsinfo", "drivetype", letter], {
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 2500,
+    });
+    return /remov/i.test(out);
+  } catch {
+    return false;
+  }
+}
+
+function markPortable() {
+  try {
+    fs.writeFileSync(path.join(exeDir(), ".portable"), "1\n");
+  } catch {
+    // pendrive com proteção contra gravação
+  }
+}
+
 function shouldKeepDataNextToExe() {
   if (process.env.PORTABLE_EXECUTABLE_DIR) return true;
   if (fs.existsSync(path.join(exeDir(), ".portable"))) return true;
-  if (isProtectedInstallDir(exeDir())) return false;
+  if (localDbExists()) return true;
+  if (isRemovableDrive(exeDir())) return true;
   return canWriteDir(localDataDir());
 }
 
@@ -255,24 +296,54 @@ function sqliteCount(file, table) {
   }
 }
 
+function checkpointSqlite(file) {
+  if (!fs.existsSync(file)) return;
+  try {
+    const { DatabaseSync } = require("node:sqlite");
+    const db = new DatabaseSync(file);
+    try {
+      db.exec("PRAGMA wal_checkpoint(TRUNCATE);");
+    } finally {
+      db.close();
+    }
+  } catch {
+    // sem node:sqlite / arquivo em uso
+  }
+}
+
+function liveRowCount(file) {
+  const tables = [
+    "Expense",
+    "ManualIncome",
+    "Investment",
+    "Offer",
+    "DailyPerformance",
+    "SpendPlan",
+    "RecurringExpense",
+    "User",
+    "Workspace",
+  ];
+  let counted = 0;
+  let queried = false;
+  for (const table of tables) {
+    const n = sqliteCount(file, table);
+    if (n == null) continue;
+    queried = true;
+    counted += n;
+  }
+  return { counted, queried };
+}
+
 function looksLikeEmptyTemplate(file) {
   const size = dbSize(file);
   if (size <= 0) return true;
+  if (dbSize(file + "-wal") > 0) return false;
 
-  const live = ["SpendPlan", "Expense", "Offer", "DailyPerformance", "ManualIncome"].reduce(
-    (sum, table) => {
-      const n = sqliteCount(file, table);
-      return n == null ? sum : sum + n;
-    },
-    0
-  );
-  if (live > 0) return false;
-
-  const template = emptyTemplatePath();
-  const emptySize = fs.existsSync(template) ? dbSize(template) : 491520;
-  // Uma página SQLite (~4 KB) acima do template ainda pode ser banco virgem.
-  // Acima disso não substitui: o template futuro pode crescer, o dado do usuário não.
-  return size <= emptySize + 4096;
+  const { counted, queried } = liveRowCount(file);
+  if (counted > 0) return false;
+  // Se não deu para ler as tabelas, assume que HÁ dados. Nunca tratar como vazio.
+  if (!queried) return false;
+  return true;
 }
 
 function snapshotDb(file, reason) {
@@ -316,7 +387,7 @@ function uniqueExistingFiles(files, exclude) {
 }
 
 function candidateDbPaths(dest) {
-  const exeDir = path.dirname(app.getPath("exe"));
+  const installedDir = path.dirname(app.getPath("exe"));
   const roaming = app.getPath("appData");
   const home = app.getPath("home");
   const localAppData =
@@ -329,30 +400,52 @@ function candidateDbPaths(dest) {
     "cashflow-pessoal",
   ];
   const files = [
-    path.join(exeDir, "data", "cashflow-desktop.db"),
-    path.join(exeDir, "cashflow-desktop.db"),
-    path.join(path.dirname(exeDir), "data", "cashflow-desktop.db"),
-    path.join(localAppData, "Programs", "Cashflow Pro", "data", "cashflow-desktop.db"),
-    path.join(localAppData, "Programs", "Cashflow Pessoal", "data", "cashflow-desktop.db"),
-    path.join(localAppData, "CashflowInstallBackup", "cashflow-desktop.db"),
-    path.join(localAppData, "CashflowInstallBackup", "cashflow-desktop.last.db"),
-    path.join("D:", "cashflow", "Cashflow Pro", "data", "cashflow-desktop.db"),
-    path.join("D:", "cashflow", "Cashflow Pessoal", "data", "cashflow-desktop.db"),
-    path.join(home, "Desktop", "cashflow-desktop.db"),
-    path.join(home, "Documents", "cashflow-desktop.db"),
+    path.join(installedDir, "data", "cashflow-desktop.db"),
+    path.join(installedDir, "cashflow-desktop.db"),
+    path.join(path.dirname(installedDir), "data", "cashflow-desktop.db"),
+    path.join(parkedInstallDataDir(), "cashflow-desktop.db"),
+    path.join(dest + ".empty-bak"),
   ];
-  for (const name of names) {
-    files.push(path.join(roaming, name, "cashflow-desktop.db"));
-    files.push(path.join(localAppData, name, "cashflow-desktop.db"));
+
+  const stealFromThisPc =
+    !isRemovableDrive(exeDir()) && !localDbExists();
+  if (stealFromThisPc) {
     files.push(
-      path.join(localAppData, "Programs", name, "data", "cashflow-desktop.db")
+      path.join(localAppData, "Programs", "Cashflow Pro", "data", "cashflow-desktop.db"),
+      path.join(localAppData, "Programs", "Cashflow Pessoal", "data", "cashflow-desktop.db"),
+      path.join(localAppData, "CashflowInstallBackup", "cashflow-desktop.db"),
+      path.join(localAppData, "CashflowInstallBackup", "cashflow-desktop.last.db"),
+      path.join("D:", "cashflow", "Cashflow Pro", "data", "cashflow-desktop.db"),
+      path.join("D:", "cashflow", "Cashflow Pessoal", "data", "cashflow-desktop.db"),
+      path.join(home, "Desktop", "cashflow-desktop.db"),
+      path.join(home, "Documents", "cashflow-desktop.db")
     );
-    const backupDir = path.join(roaming, name, "backups");
-    if (fs.existsSync(backupDir)) {
+    for (const name of names) {
+      files.push(path.join(roaming, name, "cashflow-desktop.db"));
+      files.push(path.join(localAppData, name, "cashflow-desktop.db"));
+      files.push(
+        path.join(localAppData, "Programs", name, "data", "cashflow-desktop.db")
+      );
+      const backupDir = path.join(roaming, name, "backups");
+      if (fs.existsSync(backupDir)) {
+        try {
+          for (const entry of fs.readdirSync(backupDir)) {
+            if (entry.endsWith(".db") && entry.startsWith("cashflow-desktop.")) {
+              files.push(path.join(backupDir, entry));
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+  } else {
+    const localBackup = path.join(localDataDir(), "backups");
+    if (fs.existsSync(localBackup)) {
       try {
-        for (const entry of fs.readdirSync(backupDir)) {
+        for (const entry of fs.readdirSync(localBackup)) {
           if (entry.endsWith(".db") && entry.startsWith("cashflow-desktop.")) {
-            files.push(path.join(backupDir, entry));
+            files.push(path.join(localBackup, entry));
           }
         }
       } catch {
@@ -391,13 +484,13 @@ function ensurePackagedDatabase(dest) {
   snapshotDb(dest, "startup");
 
   const best = bestCandidateDb(dest);
-  const bestSize = best ? dbSize(best) : 0;
+  const bestSize = best ? dbSize(best) + dbSize(best + "-wal") : 0;
   const destSize = dbSize(dest);
   const destEmpty = looksLikeEmptyTemplate(dest);
   const bestUseful = Boolean(best && bestSize > 0 && !looksLikeEmptyTemplate(best));
 
-  if (!fs.existsSync(dest)) {
-    if (bestUseful) {
+  if (!fs.existsSync(dest) || destSize <= 0) {
+    if (best && bestSize > 0) {
       copyDbFiles(best, dest);
       copyLicenseSidecar(best, dest);
       logMigrate(dir, `copied ${best} -> ${dest} (${bestSize} bytes)`);
@@ -413,8 +506,9 @@ function ensurePackagedDatabase(dest) {
     return;
   }
 
-  // Nunca substitui banco com lançamento/projeto. Só preenche template vazio.
-  if (bestUseful && destEmpty && bestSize > destSize) {
+  // Só troca o arquivo atual se ele estiver comprovadamente vazio
+  // e existir outro banco com lançamentos.
+  if (bestUseful && destEmpty) {
     snapshotDb(dest, "pre-replace");
     copyDbFiles(dest, `${dest}.empty-bak`);
     copyDbFiles(best, dest);
@@ -434,6 +528,7 @@ function sqliteUrl() {
 
   if (isPackaged()) {
     ensurePackagedDatabase(dest);
+    if (dir === localDataDir()) markPortable();
   }
 
   return "file:" + dest.replace(/\\/g, "/");
@@ -449,6 +544,7 @@ function desktopEnv() {
   const env = {
     ...process.env,
     DATABASE_URL: sqliteUrl(),
+    CASHFLOW_DATA_DIR: dataDir(),
     DESKTOP_MODE: "true",
     NEXT_PUBLIC_DESKTOP_MODE: "true",
     DESKTOP_EDITION: desktopEdition(),
