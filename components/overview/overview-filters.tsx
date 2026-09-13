@@ -10,26 +10,33 @@ import { trackFeatureLocked } from "@/lib/analytics/conversion";
 import { FEATURE_MESSAGES } from "@/lib/plans/features";
 import { DateRangePicker, type DateRange } from "@/components/ui/date-range-picker";
 import { parseLocalDate, formatLocalDate } from "@/lib/utils/date-local";
+import { PersistedUrlPrefs } from "@/components/ui/persisted-url-prefs";
+import { prefKey } from "@/lib/ui/local-prefs";
 
 type Props = {
   active: { kind: "relative"; value: string } | { kind: "absolute"; start: string; end: string };
   userPlan: Plan;
+  workspaceId: string;
 };
 
+const OVERVIEW_URL_KEYS = ["range", "start", "end"] as const;
+
 const ALL_QUICK_RANGES = [
+  { value: "month", label: "Mês" },
   { value: "7d", label: "7d" },
   { value: "30d", label: "30d" },
   { value: "90d", label: "90d" },
   { value: "custom", label: "Custom" }
 ] as const;
 
-// FREE: apenas até 30 dias
+// FREE: mês atual e até 30 dias
 const FREE_QUICK_RANGES = [
+  { value: "month", label: "Mês" },
   { value: "7d", label: "7d" },
   { value: "30d", label: "30d" }
 ] as const;
 
-export function OverviewFilters({ active, userPlan }: Props) {
+export function OverviewFilters({ active, userPlan, workspaceId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -51,13 +58,6 @@ export function OverviewFilters({ active, userPlan }: Props) {
   }, [active]);
 
   const [dateRange, setDateRange] = useState<DateRange>(initialRange);
-
-  // Limita máximo de data para FREE
-  const maxDate = useMemo(() => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    return today;
-  }, []);
 
   const minDate = useMemo(() => {
     if (!hasHistoricalAnalysis) {
@@ -127,13 +127,18 @@ export function OverviewFilters({ active, userPlan }: Props) {
 
   return (
     <>
+      <PersistedUrlPrefs
+        storageKey={prefKey("url", "overview", workspaceId)}
+        keys={OVERVIEW_URL_KEYS}
+        pathname="/app/overview"
+      />
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3 w-full md:w-auto">
         {/* Mobile: scroll horizontal para pills */}
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           <div className="flex gap-2 min-w-max md:min-w-0">
             <SegmentedControl
               options={quickRanges}
-              value={active.kind === "relative" ? (quickRanges.some(r => r.value === active.value) ? active.value : "30d") : (hasHistoricalAnalysis ? "custom" : "30d")}
+              value={active.kind === "relative" ? (quickRanges.some(r => r.value === active.value) ? active.value : "month") : (hasHistoricalAnalysis ? "custom" : "month")}
               onChange={handleRangeChange}
             />
           </div>
@@ -147,7 +152,6 @@ export function OverviewFilters({ active, userPlan }: Props) {
               onChange={setDateRange}
               onApply={handleDateRangeApply}
               minDate={minDate}
-              maxDate={maxDate}
               maxDays={hasHistoricalAnalysis ? undefined : 30}
               placeholder="Selecionar período"
               disabled={isPending}

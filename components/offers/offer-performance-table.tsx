@@ -7,6 +7,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 type DailyPerformance = {
   id: string;
@@ -28,6 +29,7 @@ type DailyPerformance = {
 type OfferPerformanceTableProps = {
   performances: DailyPerformance[];
   currency: CurrencyCode;
+  offerId: string;
   canEdit?: boolean;
   canDelete?: boolean;
   editFormComponent?: React.ComponentType<{ perf: DailyPerformance }>;
@@ -384,18 +386,29 @@ type PeriodFilter = "7d" | "15d" | "30d" | "all";
 type ResultFilter = "all" | "profit" | "loss";
 type SortBy = "date-desc" | "profit-desc" | "roi-desc";
 
+type TablePrefs = {
+  isCollapsed: boolean;
+  periodFilter: PeriodFilter;
+  resultFilter: ResultFilter;
+  sortBy: SortBy;
+};
+
 export function OfferPerformanceTable({
   performances,
   currency,
+  offerId,
   canEdit,
   canDelete,
   editFormComponent: EditFormComponent,
   deleteButtonComponent: DeleteButtonComponent
 }: OfferPerformanceTableProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("30d");
-  const [resultFilter, setResultFilter] = useState<ResultFilter>("all");
-  const [sortBy, setSortBy] = useState<SortBy>("date-desc");
+  const [prefs, setPrefs] = useLocalPref<TablePrefs>(prefKey("offer-history", offerId), {
+    isCollapsed: false,
+    periodFilter: "30d",
+    resultFilter: "all",
+    sortBy: "date-desc"
+  });
+  const { isCollapsed, periodFilter, resultFilter, sortBy } = prefs;
 
   // Filtrar e ordenar performances
   const filteredPerformances = useMemo(() => {
@@ -465,7 +478,7 @@ export function OfferPerformanceTable({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => setPrefs((prev) => ({ ...prev, isCollapsed: !prev.isCollapsed }))}
           aria-label={isCollapsed ? "Expandir tabela" : "Colapsar tabela"}
         >
           {isCollapsed ? (
@@ -482,7 +495,9 @@ export function OfferPerformanceTable({
           {/* Filtro de Período */}
           <select
             value={periodFilter}
-            onChange={(e) => setPeriodFilter(e.target.value as PeriodFilter)}
+            onChange={(e) =>
+              setPrefs((prev) => ({ ...prev, periodFilter: e.target.value as PeriodFilter }))
+            }
             className="h-8 rounded-md border border-white/10 bg-card px-3 text-xs text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="7d">Últimos 7 dias</option>
@@ -494,7 +509,9 @@ export function OfferPerformanceTable({
           {/* Filtro de Resultado */}
           <select
             value={resultFilter}
-            onChange={(e) => setResultFilter(e.target.value as ResultFilter)}
+            onChange={(e) =>
+              setPrefs((prev) => ({ ...prev, resultFilter: e.target.value as ResultFilter }))
+            }
             className="h-8 rounded-md border border-white/10 bg-card px-3 text-xs text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="all">Todos</option>
@@ -505,7 +522,7 @@ export function OfferPerformanceTable({
           {/* Ordenação */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortBy)}
+            onChange={(e) => setPrefs((prev) => ({ ...prev, sortBy: e.target.value as SortBy }))}
             className="h-8 rounded-md border border-white/10 bg-card px-3 text-xs text-foreground outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="date-desc">Data ↓</option>

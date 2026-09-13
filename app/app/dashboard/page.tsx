@@ -85,9 +85,9 @@ async function buildRangeFromSearchParams(
     }
   }
 
-  const allowed = ["today", "7d", "30d", "3m", "6m", "12m"] as const;
+  const allowed = ["today", "7d", "30d", "month", "3m", "6m", "12m"] as const;
   const raw = params?.range;
-  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "30d";
+  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "month";
   return {
     range: { type: "relative", value },
     activeUi: { kind: "relative", value }
@@ -173,7 +173,7 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
           <CurrencyViewSelector current={currencyView} baseCurrency={baseCurrency} />
-          <DashboardFilters active={built.activeUi} userPlan={user.plan} />
+          <DashboardFilters active={built.activeUi} userPlan={user.plan} workspaceId={workspaceId} />
           <ViewToggle />
           <div className="hidden md:block">
             <ExportButton

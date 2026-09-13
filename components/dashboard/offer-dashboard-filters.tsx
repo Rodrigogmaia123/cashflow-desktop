@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PersistedUrlPrefs } from "@/components/ui/persisted-url-prefs";
+import { prefKey } from "@/lib/ui/local-prefs";
 
 type Props = {
   offerId: string;
@@ -17,6 +19,8 @@ const quickRanges = [
   { value: "6m", label: "6m" },
   { value: "12m", label: "12m" }
 ] as const;
+
+const OFFER_DASHBOARD_URL_KEYS = ["range", "start", "end", "compareType"] as const;
 
 function isActiveQuick(active: Props["active"], value: string) {
   return active.kind === "relative" && active.value === value;
@@ -50,6 +54,11 @@ export function OfferDashboardFilters({ offerId, active }: Props) {
 
   return (
     <div className="space-y-3 rounded-md border bg-card p-3">
+      <PersistedUrlPrefs
+        storageKey={prefKey("url", "offer-dashboard", offerId)}
+        keys={OFFER_DASHBOARD_URL_KEYS}
+        pathname={`/app/offers/${offerId}/dashboard`}
+      />
       <div className="flex flex-wrap gap-2">
         {quickRanges.map((r) => (
           <Button

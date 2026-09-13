@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { replaceAndRefresh } from "@/lib/navigation/replace-and-refresh";
 import {
   Popover,
   PopoverContent,
@@ -46,15 +47,13 @@ export function CategoryFilter({ categories, filterType, label }: CategoryFilter
       params.set(paramKey, filters.join(","));
     }
 
-    // Usar replace com scroll: false para não dar refresh e não voltar ao topo
-    router.replace(`?${params.toString()}`, { scroll: false });
+    replaceAndRefresh(router, `?${params.toString()}`);
   };
 
   const clearFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(paramKey);
-    // Usar replace com scroll: false para não dar refresh e não voltar ao topo
-    router.replace(`?${params.toString()}`, { scroll: false });
+    replaceAndRefresh(router, `?${params.toString()}`);
     setIsOpen(false);
   };
 

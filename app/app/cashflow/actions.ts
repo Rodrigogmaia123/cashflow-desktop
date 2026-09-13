@@ -12,6 +12,7 @@ import { checkTransactionLimit } from "@/lib/plans/authorization";
 import { listBudgetsWithUsage } from "@/lib/domain/budget";
 import { autoGenerateNotifications } from "@/lib/domain/budget-alerts";
 import { parsePaymentFields } from "@/lib/domain/payment";
+import { filledFormRows } from "@/lib/forms/form-data-rows";
 
 const expenseTypeValues = ["FIXED", "VARIABLE"] as const;
 
@@ -86,7 +87,6 @@ export async function createExpense(formData: FormData) {
     "action.createExpense",
     async () => {
       try {
-    // Verifica limite de transações mensais
     const transactionCheck = await checkTransactionLimit();
     if (!transactionCheck.allowed) {
       throw new Error(transactionCheck.reason || "Limite de lançamentos mensais atingido. Faça upgrade para continuar.");
@@ -95,71 +95,93 @@ export async function createExpense(formData: FormData) {
     const { workspaceId } = await requireAdminWorkspace();
     const user = await getCurrentUser();
 
-    const parsed = createExpenseSchema.safeParse({
-      date: formData.get("date"),
-      description: formData.get("description"),
-      amount: formData.get("amount"),
-      type: formData.get("type"),
-      categoryId: formData.get("categoryId")
-    });
+    const rows = filledFormRows(formData, [
+      "date",
+      "description",
+      "amount",
+      "type",
+      "categoryId",
+      "paymentMethod",
+      "paymentBrand"
+    ]);
 
-    if (!parsed.success) {
-      throw new Error("Dados inválidos para criação de despesa.");
+    if (rows.length === 0) {
+      throw new Error("Adicione pelo menos um lançamento.");
     }
 
-    const payment = parsePaymentFields({
-      paymentMethod: formData.get("paymentMethod"),
-      paymentBrand: formData.get("paymentBrand")
-    });
+    if (
+      transactionCheck.currentLimit != null &&
+      transactionCheck.currentValue != null &&
+      transactionCheck.currentValue + rows.length > transactionCheck.currentLimit
+    ) {
+      throw new Error(
+        `Esse lote passa do limite de ${transactionCheck.currentLimit} lançamentos/mês no plano FREE.`
+      );
+    }
 
-    let categoryId: string | null = null;
-    if (parsed.data.categoryId && parsed.data.categoryId !== "") {
-      const cat = await prisma.category.findFirst({
-        where: {
-          id: parsed.data.categoryId,
+    for (const [index, row] of rows.entries()) {
+      const parsed = createExpenseSchema.safeParse({
+        date: row.date,
+        description: row.description,
+        amount: row.amount,
+        type: row.type || "VARIABLE",
+        categoryId: row.categoryId
+      });
+
+      if (!parsed.success) {
+        throw new Error(`Dados inválidos no lançamento ${index + 1}.`);
+      }
+
+      const payment = parsePaymentFields({
+        paymentMethod: row.paymentMethod,
+        paymentBrand: row.paymentBrand
+      });
+
+      let categoryId: string | null = null;
+      if (parsed.data.categoryId && parsed.data.categoryId !== "") {
+        const cat = await prisma.category.findFirst({
+          where: {
+            id: parsed.data.categoryId,
+            workspaceId,
+            type: { in: ["EXPENSE", "BOTH"] }
+          }
+        });
+        if (!cat) {
+          throw new Error(`Categoria inválida no lançamento ${index + 1} (precisa ser Saída ou Ambos).`);
+        }
+        categoryId = cat.id;
+      }
+
+      const created = await prisma.expense.create({
+        data: {
           workspaceId,
-          type: { in: ["EXPENSE", "BOTH"] }
+          date: parsed.data.date,
+          description: parsed.data.description,
+          amount: new Decimal(parsed.data.amount),
+          type: parsed.data.type,
+          categoryId
         }
       });
-      if (!cat) {
-        throw new Error("Categoria inválida para despesa (precisa ser Saída ou Ambos).");
-      }
-      categoryId = cat.id;
-    }
+      await persistExpensePayment(created.id, payment);
 
-    const created = await prisma.expense.create({
-      data: {
-        workspaceId,
-        date: parsed.data.date,
-        description: parsed.data.description,
-        amount: new Decimal(parsed.data.amount),
-        type: parsed.data.type,
-        categoryId
-      }
-    });
-    await persistExpensePayment(created.id, payment);
-
-    // 🔔 VERIFICAR ORÇAMENTOS E GERAR NOTIFICAÇÕES AUTOMÁTICAS
-    if (categoryId && user) {
-      try {
-        // Buscar orçamentos ativos da categoria
-        const budgets = await listBudgetsWithUsage({
-          workspaceId,
-          categoryId,
-          activeOnly: true,
-        });
-
-        // Gerar notificações automáticas para orçamentos que atingiram limites
-        for (const budget of budgets) {
-          await autoGenerateNotifications(workspaceId, user.id, budget);
+      if (categoryId && user) {
+        try {
+          const budgets = await listBudgetsWithUsage({
+            workspaceId,
+            categoryId,
+            activeOnly: true,
+          });
+          for (const budget of budgets) {
+            await autoGenerateNotifications(workspaceId, user.id, budget);
+          }
+        } catch (notifError) {
+          console.error("Erro ao gerar notificações de orçamento:", notifError);
         }
-      } catch (notifError) {
-        console.error("Erro ao gerar notificações de orçamento:", notifError);
-        // Não falhar a criação da despesa se notificações falharem
       }
     }
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao criar despesa:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao criar despesa.");
@@ -229,7 +251,8 @@ export async function updateExpense(formData: FormData) {
   });
   await persistExpensePayment(existing.id, payment);
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao atualizar despesa:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao atualizar despesa.");
@@ -266,7 +289,8 @@ export async function deleteExpense(formData: FormData) {
     where: { id: existing.id }
   });
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao excluir despesa:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao excluir despesa.");

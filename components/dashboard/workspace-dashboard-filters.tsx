@@ -10,6 +10,7 @@ type Props = {
 
 const quickRanges = [
   { value: "today", label: "Hoje" },
+  { value: "month", label: "Mês" },
   { value: "7d", label: "7d" },
   { value: "30d", label: "30d" },
   { value: "3m", label: "3m" },

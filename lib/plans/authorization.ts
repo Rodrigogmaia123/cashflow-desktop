@@ -319,7 +319,7 @@ export async function requireHistoricalAnalysis(params: {
   const msPerDay = 24 * 60 * 60 * 1000;
   const daysDiff = Math.floor((endUTC.getTime() - startUTC.getTime()) / msPerDay) + 1;
 
-  if (daysDiff <= 30) {
+  if (daysDiff <= 31) {
     return { allowed: true };
   }
 

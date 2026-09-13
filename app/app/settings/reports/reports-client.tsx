@@ -66,6 +66,7 @@ function getPeriodFromFilters(filters: string): string {
     }
     if (parsed.range) {
       const rangeLabels: Record<string, string> = {
+        "month": "Mês atual",
         "7d": "Últimos 7 dias",
         "30d": "Últimos 30 dias",
         "3m": "Últimos 3 meses",

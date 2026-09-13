@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { CheckCheck, Filter, Bell, CheckCircle, Eye, XCircle } from "lucide-react";
 import { useNotifications } from "./use-notifications";
 import { NotificationList } from "./notification-list";
@@ -9,6 +9,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { SimpleAlert } from "@/components/ui/simple-alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 interface NotificationPanelProps {
   initialFilter?: "UNREAD" | "ALL";
@@ -17,7 +18,8 @@ interface NotificationPanelProps {
 export function NotificationPanel({
   initialFilter = "ALL",
 }: NotificationPanelProps) {
-  const [filter, setFilter] = useState<"ALL" | "UNREAD" | "READ" | "DISMISSED">(
+  const [filter, setFilter] = useLocalPref<"ALL" | "UNREAD" | "READ" | "DISMISSED">(
+    prefKey("notifications", "filter"),
     initialFilter
   );
   const {
@@ -32,13 +34,16 @@ export function NotificationPanel({
     deleteNotification,
   } = useNotifications();
 
-  const handleFilterChange = (newFilter: typeof filter) => {
-    setFilter(newFilter);
-    if (newFilter === "ALL") {
+  useEffect(() => {
+    if (filter === "ALL") {
       fetchNotifications();
     } else {
-      fetchNotifications({ status: newFilter });
+      fetchNotifications({ status: filter });
     }
+  }, [filter, fetchNotifications]);
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    setFilter(newFilter);
   };
 
   const filteredNotifications =

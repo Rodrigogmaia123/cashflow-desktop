@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { requireActiveWorkspaceId } from "@/lib/workspace";
 import { measure } from "@/lib/observability/measure";
 import { checkTransactionLimit } from "@/lib/plans/authorization";
+import { filledFormRows } from "@/lib/forms/form-data-rows";
 
 const createManualIncomeSchema = z.object({
   date: z.coerce.date(),
@@ -56,7 +57,6 @@ export async function createManualIncome(formData: FormData) {
     "action.createManualIncome",
     async () => {
       try {
-    // Verifica limite de transações mensais
     const transactionCheck = await checkTransactionLimit();
     if (!transactionCheck.allowed) {
       throw new Error(transactionCheck.reason || "Limite de lançamentos mensais atingido. Faça upgrade para continuar.");
@@ -64,43 +64,61 @@ export async function createManualIncome(formData: FormData) {
 
     const { workspaceId } = await requireAdminWorkspace();
 
-  const parsed = createManualIncomeSchema.safeParse({
-    date: formData.get("date"),
-    description: formData.get("description"),
-    amount: formData.get("amount"),
-    categoryId: formData.get("categoryId")
-  });
+    const rows = filledFormRows(formData, ["date", "description", "amount", "categoryId"]);
+    if (rows.length === 0) {
+      throw new Error("Adicione pelo menos um lançamento.");
+    }
 
-  if (!parsed.success) {
-    throw new Error("Dados inválidos para criação de entrada.");
-  }
+    if (
+      transactionCheck.currentLimit != null &&
+      transactionCheck.currentValue != null &&
+      transactionCheck.currentValue + rows.length > transactionCheck.currentLimit
+    ) {
+      throw new Error(
+        `Esse lote passa do limite de ${transactionCheck.currentLimit} lançamentos/mês no plano FREE.`
+      );
+    }
 
-  let categoryId: string | null = null;
-  if (parsed.data.categoryId) {
-    const cat = await prisma.category.findFirst({
-      where: {
-        id: parsed.data.categoryId,
-        workspaceId,
-        type: { in: ["INCOME", "BOTH"] }
+    for (const [index, row] of rows.entries()) {
+      const parsed = createManualIncomeSchema.safeParse({
+        date: row.date,
+        description: row.description,
+        amount: row.amount,
+        categoryId: row.categoryId
+      });
+
+      if (!parsed.success) {
+        throw new Error(`Dados inválidos no lançamento ${index + 1}.`);
       }
-    });
-    if (!cat) {
-      throw new Error("Categoria inválida para entrada (precisa ser Entrada ou Ambos).");
-    }
-    categoryId = cat.id;
-  }
 
-  await prisma.manualIncome.create({
-    data: {
-      workspaceId,
-      date: parsed.data.date,
-      description: parsed.data.description,
-      amount: new Decimal(parsed.data.amount),
-      categoryId
-    }
-  });
+      let categoryId: string | null = null;
+      if (parsed.data.categoryId) {
+        const cat = await prisma.category.findFirst({
+          where: {
+            id: parsed.data.categoryId,
+            workspaceId,
+            type: { in: ["INCOME", "BOTH"] }
+          }
+        });
+        if (!cat) {
+          throw new Error(`Categoria inválida no lançamento ${index + 1} (precisa ser Entrada ou Ambos).`);
+        }
+        categoryId = cat.id;
+      }
 
-        revalidatePath("/app/cashflow");
+      await prisma.manualIncome.create({
+        data: {
+          workspaceId,
+          date: parsed.data.date,
+          description: parsed.data.description,
+          amount: new Decimal(parsed.data.amount),
+          categoryId
+        }
+      });
+    }
+
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao criar entrada manual:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao criar entrada manual.");
@@ -162,7 +180,8 @@ export async function updateManualIncome(formData: FormData) {
     }
   });
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao atualizar entrada manual:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao atualizar entrada manual.");
@@ -199,7 +218,8 @@ export async function deleteManualIncome(formData: FormData) {
     where: { id: existing.id }
   });
 
-        revalidatePath("/app/cashflow");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
       } catch (error) {
         console.error("Erro ao excluir entrada manual:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao excluir entrada manual.");

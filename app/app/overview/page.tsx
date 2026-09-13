@@ -13,10 +13,10 @@ import { PeriodSummary } from "@/components/overview/period-summary";
 import { BusinessHealthScore } from "@/components/overview/business-health-score";
 import { WeeklySnapshot } from "@/components/overview/weekly-snapshot";
 import { getPeriodComparison } from "@/lib/analytics/period-comparison";
-import { getComparisonDateRanges } from "@/lib/analytics/period-comparison-ranges";
 import { getBusinessHealthScore } from "@/lib/analytics/business-health-score";
 import { getWeeklySnapshot } from "@/lib/analytics/weekly-snapshot";
-import { startOfDay, addDaysUTC, endOfDay } from "@/lib/analytics/date-range-utils";
+import { startOfDay, addDaysUTC, endOfDay, currentMonthToDateRange } from "@/lib/analytics/date-range-utils";
+import { resolvePreviousDateRange } from "@/lib/analytics/date-range";
 import { hasFeature } from "@/lib/plans/features";
 import { requireHistoricalAnalysis } from "@/lib/plans/authorization";
 import { OverviewFilters } from "@/components/overview/overview-filters";
@@ -59,9 +59,9 @@ async function buildDateRangeFromSearchParams(
   }
 
   // Range relativo
-  const allowed = ["7d", "30d", "90d"] as const;
+  const allowed = ["7d", "30d", "month", "90d"] as const;
   const raw = params?.range;
-  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "30d";
+  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "month";
   
   const now = new Date();
   const endDate = endOfDay(now);
@@ -71,9 +71,15 @@ async function buildDateRangeFromSearchParams(
     startDate = startOfDay(addDaysUTC(now, -6));
   } else if (value === "90d") {
     startDate = startOfDay(addDaysUTC(now, -89));
-  } else {
-    // 30d (padrão)
+  } else if (value === "30d") {
     startDate = startOfDay(addDaysUTC(now, -29));
+  } else {
+    const month = currentMonthToDateRange();
+    return {
+      startDate: month.startDate,
+      endDate: month.endDate,
+      activeUi: { kind: "relative", value }
+    };
   }
 
   return {
@@ -118,7 +124,7 @@ export default async function OverviewPage({ searchParams }: Props) {
   const [dashboardData, cashflowData, alerts, offers, expenses, manualIncomes, feeConfig, periodComparison, healthScore, weeklySnapshot] = await Promise.all([
     getWorkspaceDashboard({
       workspaceId,
-      range: { type: "relative", value: "30d" }, // Dashboard mantém 30d por enquanto
+      range: { type: "absolute", startDate: finalStartDate, endDate: finalEndDate },
       currencyView
     }),
     getWorkspaceCashflow({
@@ -152,8 +158,11 @@ export default async function OverviewPage({ searchParams }: Props) {
     }),
     getPeriodComparison({
       workspaceId,
-      current: getComparisonDateRanges("30d").current,
-      previous: getComparisonDateRanges("30d").previous
+      current: { startDate: finalStartDate, endDate: finalEndDate },
+      previous: resolvePreviousDateRange({
+        startDate: finalStartDate,
+        endDate: finalEndDate
+      })
     }),
     getBusinessHealthScore({
       workspaceId,
@@ -246,7 +255,7 @@ export default async function OverviewPage({ searchParams }: Props) {
               current={currencyView}
               baseCurrency={cashflowData.baseCurrency}
             />
-            <OverviewFilters active={activeUi} userPlan={user.plan} />
+            <OverviewFilters active={activeUi} userPlan={user.plan} workspaceId={workspaceId} />
           </div>
         </div>
         {wasAdjusted && (

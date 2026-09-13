@@ -114,9 +114,9 @@ async function buildRangeFromSearchParams(searchParams: Props["searchParams"]): 
     }
   }
 
-  const allowed = ["7d", "30d", "3m", "6m", "12m", "today"] as const;
+  const allowed = ["7d", "30d", "month", "3m", "6m", "12m", "today"] as const;
   const raw = params?.range;
-  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "30d";
+  const value = (allowed as readonly string[]).includes(raw ?? "") ? (raw as typeof allowed[number]) : "month";
   return { type: "relative", value };
 }
 
@@ -329,9 +329,9 @@ export default async function CashflowPage({ searchParams }: Props) {
       : {
           kind: "relative" as const,
           value:
-            (params?.range && ["7d", "30d", "3m", "6m", "12m"].includes(params.range))
+            (params?.range && ["7d", "30d", "month", "3m", "6m", "12m", "today"].includes(params.range))
               ? params.range
-              : "30d"
+              : "month"
         };
 
   const personal = isPersonalEdition();
@@ -527,7 +527,7 @@ export default async function CashflowPage({ searchParams }: Props) {
       {/* SEÇÃO 4: FILTROS E TOGGLE DE VISUALIZAÇÃO */}
       <DashboardSection>
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <CashflowFilters active={activeUi} userPlan={user.plan} />
+          <CashflowFilters active={activeUi} userPlan={user.plan} workspaceId={workspaceId} />
           <ViewToggle />
         </div>
       </DashboardSection>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import { AdminUsersPagination } from "./admin-users-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Shield, Sparkles, CreditCard, Calendar, Users } from "lucide-react";
 import type { Plan } from "@/lib/billing/plans";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
 
 interface User {
   id: string;
@@ -61,7 +62,10 @@ export function AdminUsersList({
   const [total, setTotal] = useState(initialUsers.total);
   const [page, setPage] = useState(initialUsers.page);
   const [totalPages, setTotalPages] = useState(initialUsers.totalPages);
-  const [filters, setFilters] = useState<UserFilters>(initialFilters);
+  const [filters, setFilters] = useLocalPref<UserFilters>(
+    prefKey("admin", "users-filters"),
+    initialFilters
+  );
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,19 +93,19 @@ export function AdminUsersList({
     }
   };
 
+  useEffect(() => {
+    startTransition(() => {
+      void fetchUsers(filters);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch when persisted filters change
+  }, [filters]);
+
   const handleFiltersChange = (newFilters: UserFilters) => {
     setFilters(newFilters);
-    startTransition(() => {
-      fetchUsers(newFilters);
-    });
   };
 
   const handlePageChange = (newPage: number) => {
-    const newFilters = { ...filters, page: newPage };
-    setFilters(newFilters);
-    startTransition(() => {
-      fetchUsers(newFilters);
-    });
+    setFilters({ ...filters, page: newPage });
   };
 
   // Estados para dialogs de confirmação

@@ -8,13 +8,31 @@ import type { Plan } from "@/lib/billing/plans";
 import { hasFeature } from "@/lib/plans/features";
 import { DateRangePicker, type DateRange } from "@/components/ui/date-range-picker";
 import { parseLocalDate, formatLocalDate } from "@/lib/utils/date-local";
+import { replaceAndRefresh } from "@/lib/navigation/replace-and-refresh";
+import { PersistedUrlPrefs } from "@/components/ui/persisted-url-prefs";
+import { prefKey } from "@/lib/ui/local-prefs";
 
 type Props = {
   active: { kind: "relative"; value: string } | { kind: "absolute"; start: string; end: string };
   userPlan: Plan;
+  workspaceId: string;
 };
 
+const CASHFLOW_URL_KEYS = [
+  "range",
+  "start",
+  "end",
+  "expenseCategories",
+  "incomeCategories",
+  "paymentMethods",
+  "paymentBrands",
+  "viewMode",
+  "groupBy",
+  "spreadsheetOffer"
+] as const;
+
 const ALL_QUICK_RANGES = [
+  { value: "month", label: "Mês" },
   { value: "7d", label: "7d" },
   { value: "30d", label: "30d" },
   { value: "3m", label: "3m" },
@@ -22,8 +40,9 @@ const ALL_QUICK_RANGES = [
   { value: "12m", label: "12m" }
 ] as const;
 
-// FREE: apenas até 30 dias
+// FREE: mês atual e até 30 dias
 const FREE_QUICK_RANGES = [
+  { value: "month", label: "Mês" },
   { value: "7d", label: "7d" },
   { value: "30d", label: "30d" }
 ] as const;
@@ -32,7 +51,7 @@ function isActiveQuick(active: Props["active"], value: string) {
   return active.kind === "relative" && active.value === value;
 }
 
-export function CashflowFilters({ active, userPlan }: Props) {
+export function CashflowFilters({ active, userPlan, workspaceId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -59,13 +78,6 @@ export function CashflowFilters({ active, userPlan }: Props) {
     setDateRange(initialRange);
   }, [initialRange]);
 
-  // Limita máximo de data para FREE
-  const maxDate = useMemo(() => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    return today;
-  }, []);
-
   const minDate = useMemo(() => {
     if (!hasHistoricalAnalysis) {
       const min = new Date();
@@ -82,9 +94,7 @@ export function CashflowFilters({ active, userPlan }: Props) {
       sp.delete("start");
       sp.delete("end");
       sp.set("range", value);
-      // Usa replace ao invés de push para evitar adicionar ao histórico
-      // scroll: false evita scroll automático que pode quebrar a imersão
-      router.replace(`/app/cashflow?${sp.toString()}`, { scroll: false });
+      replaceAndRefresh(router, `/app/cashflow?${sp.toString()}`);
     });
   }
 
@@ -106,14 +116,17 @@ export function CashflowFilters({ active, userPlan }: Props) {
       sp.delete("range");
       sp.set("start", formatLocalDate(range.from!));
       sp.set("end", formatLocalDate(range.to || range.from!));
-      // Usa replace ao invés de push para evitar adicionar ao histórico
-      // scroll: false evita scroll automático que pode quebrar a imersão
-      router.replace(`/app/cashflow?${sp.toString()}`, { scroll: false });
+      replaceAndRefresh(router, `/app/cashflow?${sp.toString()}`);
     });
   }
 
   return (
     <div className="space-y-3 rounded-md border bg-card p-3">
+      <PersistedUrlPrefs
+        storageKey={prefKey("url", "cashflow", workspaceId)}
+        keys={CASHFLOW_URL_KEYS}
+        pathname="/app/cashflow"
+      />
       <div className="flex flex-wrap items-center gap-2">
         {quickRanges.map((r) => (
           <Button
@@ -131,7 +144,6 @@ export function CashflowFilters({ active, userPlan }: Props) {
           onChange={setDateRange}
           onApply={handleDateRangeApply}
           minDate={minDate}
-          maxDate={maxDate}
           maxDays={hasHistoricalAnalysis ? undefined : 30}
           placeholder="Selecionar período"
           disabled={isPending}

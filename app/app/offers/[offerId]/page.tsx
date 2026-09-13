@@ -251,7 +251,9 @@ export default async function OfferDetailPage({ params }: OfferPageProps) {
 
       {/* 6️⃣ HISTÓRICO / TABELA OPERACIONAL */}
       <OfferPerformanceTable
+        key={serializedPerformances.map((p) => `${p.id}:${p.investment}:${p.revenue}:${p.sales}`).join("|")}
         performances={serializedPerformances}
+        offerId={offer.id}
         currency={offer.currency as CurrencyCode}
         canEdit={canEdit}
         canDelete={canDelete}

@@ -8,15 +8,21 @@ import { DashboardSection } from "@/components/dashboard/dashboard-section";
 import { SimpleAlert } from "@/components/ui/simple-alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatLocalDate, parseLocalDate } from "@/lib/utils/date-local";
+import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
+
+function currentMonthRange() {
+  const today = new Date();
+  return {
+    start: formatLocalDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+    end: formatLocalDate(new Date(today.getFullYear(), today.getMonth() + 1, 0))
+  };
+}
 
 export function PeriodReportPage() {
-  // Calcular mês atual por padrão (mais útil para orçamentos recém-criados)
-  const today = new Date();
-  const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-  const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-  const [startDate, setStartDate] = useState(currentMonthStart);
-  const [endDate, setEndDate] = useState(currentMonthEnd);
+  const [range, setRange] = useLocalPref(prefKey("reports", "range"), currentMonthRange());
+  const startDate = parseLocalDate(range.start);
+  const endDate = parseLocalDate(range.end);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -49,9 +55,11 @@ export function PeriodReportPage() {
       const nextMonthEnd = new Date(nextMonthStart);
       nextMonthEnd.setMonth(nextMonthEnd.getMonth() + 1);
       nextMonthEnd.setDate(0);
-      
-      setStartDate(nextMonthStart);
-      setEndDate(nextMonthEnd);
+
+      setRange({
+        start: formatLocalDate(nextMonthStart),
+        end: formatLocalDate(nextMonthEnd)
+      });
     } catch (err) {
       console.error("Erro ao renovar orçamentos:", err);
     }
@@ -77,8 +85,10 @@ export function PeriodReportPage() {
         break;
     }
 
-    setStartDate(start);
-    setEndDate(end);
+    setRange({
+      start: formatLocalDate(start),
+      end: formatLocalDate(end)
+    });
   };
 
   return (
@@ -111,8 +121,8 @@ export function PeriodReportPage() {
                   </label>
                   <input
                     type="date"
-                    value={startDate.toISOString().split("T")[0]}
-                    onChange={(e) => setStartDate(new Date(e.target.value))}
+                    value={range.start}
+                    onChange={(e) => setRange((prev) => ({ ...prev, start: e.target.value }))}
                     className="w-full px-3 py-2 border border-white/10 rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/50"
                   />
                 </div>
@@ -122,8 +132,8 @@ export function PeriodReportPage() {
                   </label>
                   <input
                     type="date"
-                    value={endDate.toISOString().split("T")[0]}
-                    onChange={(e) => setEndDate(new Date(e.target.value))}
+                    value={range.end}
+                    onChange={(e) => setRange((prev) => ({ ...prev, end: e.target.value }))}
                     className="w-full px-3 py-2 border border-white/10 rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/50"
                   />
                 </div>

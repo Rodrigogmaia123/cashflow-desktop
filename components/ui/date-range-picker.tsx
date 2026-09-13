@@ -127,8 +127,6 @@ export function DateRangePicker({
   const isDateDisabled = (date: Date): boolean => {
     if (maxDate && date > maxDate) return true;
     if (minDate && date < minDate) return true;
-    // Desabilitar datas futuras por padrão
-    if (!maxDate && date > today) return true;
     return false;
   };
 
