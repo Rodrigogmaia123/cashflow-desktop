@@ -1,8 +1,7 @@
 !include "LogicLib.nsh"
 
-; Sem Function: macros expandem no instalador e no desinstalador (NSIS exige prefixo un. em Function).
-; Banco, licença e perfil ficam em $INSTDIR\data. Não grava o .db no AppData.
-; Na att, a pasta data é estacionada em $INSTDIR-data-keep (mesmo disco) e volta depois.
+; Banco só em $INSTDIR\data. O app não procura em AppData nem em outro disco.
+; Na att: tira a pasta data para o lado (mesmo disco) e devolve depois — o mesmo .db.
 
 !macro CashflowParkInstallData
   ${If} ${FileExists} "$INSTDIR\data"
@@ -36,10 +35,7 @@
       CopyFiles /SILENT "$INSTDIR-data-keep\.portable" "$INSTDIR\.portable"
     ${EndIf}
     ${If} ${FileExists} "$INSTDIR-data-keep\license-copy.json"
-      ${If} ${FileExists} "$INSTDIR\data\license-copy.json"
-      ${Else}
-        CopyFiles /SILENT "$INSTDIR-data-keep\license-copy.json" "$INSTDIR\data\license-copy.json"
-      ${EndIf}
+      CopyFiles /SILENT "$INSTDIR-data-keep\license-copy.json" "$INSTDIR\data\license-copy.json"
     ${EndIf}
   ${EndIf}
 !macroend
