@@ -1,7 +1,6 @@
-import { withAuth } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { NextRequestWithAuth } from "next-auth/middleware";
 import { isPersonalBlockedPath, isPersonalEdition } from "@/lib/desktop-edition";
 import { isOpsShellPath } from "@/lib/ops";
 
@@ -20,8 +19,31 @@ function nextWithPathname(req: NextRequest) {
   });
 }
 
-function isPublicApi(pathname: string) {
+function isPublicPath(pathname: string) {
+  if (!pathname || pathname === "/") return true;
+  if (pathname.startsWith("/_next")) return true;
+  if (pathname.startsWith("/brand")) return true;
+
+  const publicExact = new Set([
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+    "/pricing",
+    "/ativar",
+    "/favicon.ico",
+    "/apple-icon.png",
+  ]);
+  if (publicExact.has(pathname)) return true;
+
   return (
+    pathname.startsWith("/login/") ||
+    pathname.startsWith("/register/") ||
+    pathname.startsWith("/forgot-password/") ||
+    pathname.startsWith("/reset-password/") ||
+    pathname.startsWith("/compra") ||
+    pathname.startsWith("/download") ||
+    pathname.startsWith("/ativar/") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/compra") ||
@@ -31,38 +53,7 @@ function isPublicApi(pathname: string) {
   );
 }
 
-const authMiddleware = withAuth(
-  function middleware(req: NextRequestWithAuth) {
-    const { pathname } = req.nextUrl;
-    const token = req.nextauth.token;
-
-    if (
-      !isDesktopMode() &&
-      token?.isAdmin &&
-      pathname.startsWith("/app") &&
-      !isOpsShellPath(pathname)
-    ) {
-      return NextResponse.redirect(new URL("/app/admin", req.url));
-    }
-
-    return nextWithPathname(req);
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        if (isPublicApi(req.nextUrl.pathname)) {
-          return true;
-        }
-        return !!token;
-      }
-    },
-    pages: {
-      signIn: "/login"
-    }
-  }
-);
-
-export default function middleware(req: NextRequest, event: unknown) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (isDesktopMode()) {
@@ -81,16 +72,22 @@ export default function middleware(req: NextRequest, event: unknown) {
     return NextResponse.next();
   }
 
-  if (isPublicApi(pathname)) {
-    return nextWithPathname(req);
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
   }
 
-  return authMiddleware(req as never, event as never);
-}
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
-export const config = {
-  // Só o app autenticado e a API. A LP, login, CSS e imagens não passam
-  // daqui — o matcher "/" do Next 16 pega tudo (incluindo /_next/static)
-  // e o withAuth manda o anônimo para /login em loop.
-  matcher: ["/app/:path*", "/api/:path*"],
-};
+  if (
+    token.isAdmin &&
+    pathname.startsWith("/app") &&
+    !isOpsShellPath(pathname)
+  ) {
+    return NextResponse.redirect(new URL("/app/admin", req.url));
+  }
+
+  return nextWithPathname(req);
+}
