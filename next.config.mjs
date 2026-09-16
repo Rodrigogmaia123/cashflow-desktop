@@ -4,7 +4,7 @@ const nextConfig = {
   experimental: {
     staleTimes: {
       dynamic: 0,
-      static: 0
+      static: 30
     }
   },
   output: process.env.DESKTOP_MODE === "true" ? "standalone" : undefined,
