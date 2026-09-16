@@ -7,6 +7,8 @@ import { GithubLoginButton } from "@/components/auth/github-login-button";
 import { postAuthAppPath } from "@/lib/ops";
 import { BrandMark } from "@/components/brand/brand-mark";
 
+export const dynamic = "force-dynamic";
+
 type LoginPageProps = {
   searchParams?: Promise<{
     type?: string;

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { isDesktopMode } from "@/lib/desktop";
 import { LandingContent } from "./(marketing)/landing/landing-content";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Cashflow — Clareza de caixa no seu computador",
   description:
