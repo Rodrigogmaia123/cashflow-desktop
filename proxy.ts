@@ -1,8 +1,7 @@
 import type { NextRequest } from "next/server";
 import { requestGate } from "@/lib/request-gate";
 
-/** Next 16 prefere proxy.ts; 16.0 ainda pode carregar este arquivo. */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   return requestGate(req);
 }
 
