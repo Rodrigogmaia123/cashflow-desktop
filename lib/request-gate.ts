@@ -1,15 +1,9 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isDesktopMode } from "@/lib/desktop";
 import { isPersonalBlockedPath, isPersonalEdition } from "@/lib/desktop-edition";
 import { isOpsShellPath } from "@/lib/ops";
-
-function isDesktopMode() {
-  return (
-    process.env.DESKTOP_MODE === "true" ||
-    process.env.NEXT_PUBLIC_DESKTOP_MODE === "true"
-  );
-}
 
 function nextWithPathname(req: NextRequest) {
   const requestHeaders = new Headers(req.headers);
@@ -39,8 +33,11 @@ function needsAuth(pathname: string) {
 
 export async function requestGate(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const host = req.headers.get("host") ?? "";
+  const packagedApp =
+    isDesktopMode() && !/getcashflow\.pro/i.test(host);
 
-  if (isDesktopMode()) {
+  if (packagedApp) {
     if (
       pathname === "/" ||
       pathname === "/login" ||
