@@ -20,6 +20,17 @@ function nextWithPathname(req: NextRequest) {
   });
 }
 
+function isPublicApi(pathname: string) {
+  return (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/webhooks") ||
+    pathname.startsWith("/api/compra") ||
+    pathname.startsWith("/api/license") ||
+    pathname.startsWith("/api/desktop") ||
+    pathname.startsWith("/api/support")
+  );
+}
+
 const authMiddleware = withAuth(
   function middleware(req: NextRequestWithAuth) {
     const { pathname } = req.nextUrl;
@@ -39,24 +50,8 @@ const authMiddleware = withAuth(
   {
     callbacks: {
       authorized: ({ token, req }) => {
-        if (req.nextUrl.pathname.startsWith("/api/webhooks")) {
+        if (isPublicApi(req.nextUrl.pathname)) {
           return true;
-        }
-        if (req.nextUrl.pathname.startsWith("/api/compra")) {
-          return true;
-        }
-        if (req.nextUrl.pathname.startsWith("/api/license")) {
-          return true;
-        }
-        if (req.nextUrl.pathname.startsWith("/api/desktop")) {
-          return true;
-        }
-        if (req.nextUrl.pathname.startsWith("/api/support")) {
-          return true;
-        }
-        if (process.env.NODE_ENV === "development") {
-          console.log("[middleware] Token:", token ? "exists" : "null");
-          console.log("[middleware] Path:", req.nextUrl.pathname);
         }
         return !!token;
       }
@@ -86,30 +81,16 @@ export default function middleware(req: NextRequest, event: unknown) {
     return NextResponse.next();
   }
 
-  const isPublic =
-    pathname === "/" ||
-    pathname.startsWith("/compra") ||
-    pathname.startsWith("/download") ||
-    pathname.startsWith("/api/compra") ||
-    pathname.startsWith("/api/license") ||
-    pathname.startsWith("/api/desktop") ||
-    pathname.startsWith("/api/support") ||
-    pathname === "/pricing";
-
-  if (isPublic) {
-    return NextResponse.next();
+  if (isPublicApi(pathname)) {
+    return nextWithPathname(req);
   }
 
   return authMiddleware(req as never, event as never);
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/login/:path*",
-    "/register/:path*",
-    "/app/:path*",
-    "/api/:path*",
-    "/download/:path*",
-  ]
+  // Só o app autenticado e a API. A LP, login, CSS e imagens não passam
+  // daqui — o matcher "/" do Next 16 pega tudo (incluindo /_next/static)
+  // e o withAuth manda o anônimo para /login em loop.
+  matcher: ["/app/:path*", "/api/:path*"],
 };
