@@ -5,10 +5,11 @@ FROM node:20-alpine
 # Instalar dependências necessárias para Prisma no Alpine
 RUN apk add --no-cache openssl libc6-compat
 
-WORKDIR /app
+# Mesmo motivo do Dockerfile principal: /app colide com a rota /app (app/app).
+WORKDIR /srv/cashflow
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY prisma ./prisma
 COPY . .
