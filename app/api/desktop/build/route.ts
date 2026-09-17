@@ -7,7 +7,7 @@ import { appInstallerVersion } from "@/lib/license/installers";
 export const dynamic = "force-dynamic";
 
 /** Diagnóstico de deploy: diz qual build atende o domínio e em que modo. */
-const BUILD_MARKER = "tailwind-devdeps-2";
+const BUILD_MARKER = "workdir-3";
 
 function nextAuthHost(): string | null {
   try {
@@ -31,6 +31,7 @@ export async function GET() {
       version: appInstallerVersion(),
       desktopMode: isDesktopMode(),
       tailwind: tailwindInstalled(),
+      cwd: process.cwd(),
       env: {
         NODE_ENV: process.env.NODE_ENV ?? null,
         DESKTOP_MODE: process.env.DESKTOP_MODE ?? null,

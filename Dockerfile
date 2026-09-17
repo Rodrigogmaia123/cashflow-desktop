@@ -4,7 +4,10 @@ RUN apt-get update && apt-get install -y \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# NÃO usar /app: a rota /app vive em app/app, e com a raiz do projeto em /app o
+# Next resolve app/app/layout.tsx como layout raiz de todas as rotas. Resultado:
+# toda página redireciona para /login e o site perde o globals.css.
+WORKDIR /srv/cashflow
 
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
 ENV PUPPETEER_SKIP_DOWNLOAD=true
