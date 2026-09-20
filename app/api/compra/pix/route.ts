@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trackLicenseFunnel } from "@/lib/ads/meta";
-import { getPricedLicenseOffer } from "@/lib/license/catalog";
-import { fulfillPixLicenseTransaction } from "@/lib/license/fulfill-checkout";
-import { deliverIssuedLicenseById } from "@/lib/license/deliver";
+import { fulfillAndDeliverPixTransaction } from "@/lib/license/confirm-pix";
 import {
   findLicenseOrderByCheckoutRef,
   isPixCheckoutRef,
@@ -84,31 +81,8 @@ export async function POST(req: NextRequest) {
     if (!tx || !isPushinPaid(tx.status)) {
       return NextResponse.json({ status: "pending" });
     }
-    const result = await fulfillPixLicenseTransaction(tx);
+    const result = await fulfillAndDeliverPixTransaction(tx, order);
     if (result.outcome === "created" || result.outcome === "exists") {
-      try {
-        await deliverIssuedLicenseById(result.licenseId);
-      } catch (error) {
-        console.error("[compra/pix] entrega:", error);
-      }
-      const offer = getPricedLicenseOffer(order.edition, order.duration);
-      if (offer) {
-        void trackLicenseFunnel({
-          stage: "purchase",
-          eventId: order.pixTransactionId,
-          ads: {
-            fbp: order.fbp,
-            fbc: order.fbc,
-            email: order.email,
-          },
-          content: {
-            contentName: offer.name,
-            contentIds: [`desktop-license:${offer.edition}:${offer.duration}`],
-            valueCents: order.amountCents,
-          },
-          email: order.email,
-        });
-      }
       return NextResponse.json({ status: "paid", sessionId });
     }
   } catch (error) {

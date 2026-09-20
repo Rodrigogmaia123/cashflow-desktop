@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { trackLicenseFunnel } from "@/lib/ads/meta";
-import { getPricedLicenseOffer } from "@/lib/license/catalog";
-import { deliverIssuedLicenseById } from "@/lib/license/deliver";
-import { fulfillPixLicenseTransaction } from "@/lib/license/fulfill-checkout";
+import { fulfillAndDeliverPixTransaction } from "@/lib/license/confirm-pix";
 import {
   findLicenseOrderByPixId,
   markLicenseOrderCanceled,
 } from "@/lib/license/orders";
-import { isPushinCanceled, isPushinPaid } from "@/lib/payments/pushinpay";
+import {
+  getPushinPayTransaction,
+  isPushinCanceled,
+  isPushinPaid,
+} from "@/lib/payments/pushinpay";
+import {
+  parsePushinWebhookText,
+  webhookBodyPreview,
+} from "@/lib/payments/pushinpay-webhook";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 function webhookAuthorized(req: NextRequest) {
   const expected = process.env.PUSHINPAY_WEBHOOK_SECRET?.trim();
@@ -25,42 +31,28 @@ function webhookAuthorized(req: NextRequest) {
   return got === expected;
 }
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : null;
+function isKnownPushinStatus(status: string) {
+  const normalized = status.toLowerCase();
+  return (
+    isPushinPaid(normalized) ||
+    isPushinCanceled(normalized) ||
+    normalized === "created" ||
+    normalized === "pending" ||
+    normalized === "expired"
+  );
 }
 
-function pickString(record: Record<string, unknown> | null, keys: string[]) {
-  if (!record) return "";
-  for (const key of keys) {
-    const value = record[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-    if (typeof value === "number") return String(value);
+async function resolvePixOrderId(candidates: string[]) {
+  for (const id of candidates) {
+    if (!id) continue;
+    const order = await findLicenseOrderByPixId(id);
+    if (order) return { id, order };
   }
-  return "";
-}
-
-function parsePushinWebhook(body: unknown): {
-  id: string;
-  value: number | null;
-  status: string;
-} {
-  const root = asRecord(body);
-  const nested = asRecord(root?.data) ?? asRecord(root?.transaction);
-  const id =
-    pickString(root, ["id", "transaction_id", "transactionId"]) ||
-    pickString(nested, ["id", "transaction_id", "transactionId"]);
-  const status =
-    pickString(root, ["status"]) || pickString(nested, ["status"]);
-  const rawValue = root?.value ?? nested?.value;
-  const value =
-    typeof rawValue === "number"
-      ? rawValue
-      : typeof rawValue === "string" && rawValue.trim()
-        ? Number(rawValue)
-        : null;
-  return { id, value: Number.isFinite(value) ? value : null, status };
+  const first = candidates.find(Boolean) ?? "";
+  return {
+    id: first,
+    order: first ? await findLicenseOrderByPixId(first) : null,
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -69,25 +61,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  let raw: unknown;
+  const contentType = req.headers.get("content-type") || "";
+  let rawText = "";
   try {
-    raw = await req.json();
-  } catch {
+    rawText = await req.text();
+  } catch (error) {
+    console.error("[webhook/pushinpay] falha ao ler o body", error);
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const body = parsePushinWebhook(raw);
-  const id = body.id;
+  const parsed = parsePushinWebhookText(rawText, contentType);
+  const resolved = await resolvePixOrderId(parsed.ids.length ? parsed.ids : [parsed.id]);
+  let id = resolved.id;
+  let status = parsed.status;
+  let value = parsed.value;
+
   if (!id) {
-    return NextResponse.json({ error: "id ausente" }, { status: 400 });
+    console.error("[webhook/pushinpay] body sem id", {
+      contentType,
+      bytes: rawText.length,
+      preview: webhookBodyPreview(rawText),
+    });
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const order = await findLicenseOrderByPixId(id);
+  if (!parsed.id || !isKnownPushinStatus(status)) {
+    console.error("[webhook/pushinpay] payload atípico, consultando API", {
+      id,
+      contentType,
+      bytes: rawText.length,
+      parsedStatus: status || "(vazio)",
+      preview: webhookBodyPreview(rawText),
+    });
+    try {
+      const tx = await getPushinPayTransaction(id);
+      if (tx) {
+        id = tx.id;
+        status = tx.status;
+        value = tx.value;
+      }
+    } catch (error) {
+      console.error("[webhook/pushinpay] consulta de recuperação", id, error);
+    }
+  }
+
+  const order = resolved.order ?? (await findLicenseOrderByPixId(id));
   if (!order) {
     return NextResponse.json({ ok: true, ignored: "unknown_transaction" });
   }
 
-  if (isPushinCanceled(body.status)) {
+  if (isPushinCanceled(status)) {
     try {
       await markLicenseOrderCanceled({
         stripeSessionId: order.stripeSessionId,
@@ -99,44 +122,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  if (!isPushinPaid(body.status)) {
+  if (!isPushinPaid(status)) {
     return NextResponse.json({ ok: true, ignored: "not_paid" });
   }
 
   try {
-    const result = await fulfillPixLicenseTransaction({
-      id,
-      status: "paid",
-      value: body.value ?? order.amountCents,
-    });
+    const result = await fulfillAndDeliverPixTransaction(
+      {
+        id,
+        status: "paid",
+        value: value ?? order.amountCents,
+      },
+      order
+    );
     console.log("[webhook/pushinpay]", id, result);
-
-    if (result.outcome === "created" || result.outcome === "exists") {
-      try {
-        await deliverIssuedLicenseById(result.licenseId);
-      } catch (error) {
-        console.error("[webhook/pushinpay] entrega:", id, error);
-      }
-
-      const offer = getPricedLicenseOffer(order.edition, order.duration);
-      if (offer) {
-        void trackLicenseFunnel({
-          stage: "purchase",
-          eventId: id,
-          ads: {
-            fbp: order.fbp,
-            fbc: order.fbc,
-            email: order.email,
-          },
-          content: {
-            contentName: offer.name,
-            contentIds: [`desktop-license:${offer.edition}:${offer.duration}`],
-            valueCents: order.amountCents,
-          },
-          email: order.email,
-        });
-      }
-    }
   } catch (error) {
     console.error("[webhook/pushinpay] fulfill", id, error);
     return NextResponse.json({ error: "Falha ao registrar a licença" }, { status: 500 });

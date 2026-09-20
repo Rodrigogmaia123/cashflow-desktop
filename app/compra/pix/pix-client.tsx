@@ -96,6 +96,7 @@ export function PixCheckoutClient() {
   }
 
   async function alreadyPaid() {
+    if (!sessionId || confirming) return;
     setConfirming(true);
     try {
       const res = await fetch("/api/compra/pix", {
@@ -115,6 +116,14 @@ export function PixCheckoutClient() {
       setConfirming(false);
     }
   }
+
+  useEffect(() => {
+    if (!sessionId || state?.status !== "pending") return;
+    const timer = window.setTimeout(() => {
+      void alreadyPaid();
+    }, 45_000);
+    return () => window.clearTimeout(timer);
+  }, [sessionId, state?.status]);
 
   return (
     <div className="cta-final glass success-panel">
