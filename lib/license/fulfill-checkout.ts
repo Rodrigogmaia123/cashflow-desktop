@@ -25,6 +25,16 @@ export type FulfillOutcome =
   | { outcome: "created"; licenseId: string }
   | { outcome: "exists"; licenseId: string };
 
+function pixValueMatches(
+  txValue: number,
+  offerCents: number,
+  orderCents: number
+) {
+  if (txValue === offerCents || txValue === orderCents) return true;
+  if (txValue * 100 === offerCents || txValue * 100 === orderCents) return true;
+  return false;
+}
+
 function sessionEmail(session: DesktopLicenseSession): string | null {
   const email =
     session.customer_details?.email?.trim() ||
@@ -124,7 +134,7 @@ export async function fulfillPixLicenseTransaction(
     return { outcome: "ignored", reason: "unpriced_or_invalid" };
   }
 
-  if (tx.value !== offer.amountCents && tx.value !== order.amountCents) {
+  if (!pixValueMatches(tx.value, offer.amountCents, order.amountCents)) {
     console.error(
       "[license/fulfill-pix] valor pago não bate com o pedido",
       tx.id,
