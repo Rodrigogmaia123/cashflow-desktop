@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   getAdminFinance,
+  reconcileFinancePixOrder,
   resendFinanceLicenseEmail,
   type AdminFinanceOrderRow,
   type AdminFinanceResult,
@@ -193,6 +194,20 @@ export function AdminFinanceDashboard({
         refresh();
       } else {
         setMessage(result.reason ?? "Não foi possível reenviar o serial.");
+      }
+    });
+  }
+
+  function reconcile(orderId: string) {
+    setPendingId(orderId);
+    startTransition(async () => {
+      const result = await reconcileFinancePixOrder(orderId);
+      setPendingId(null);
+      if (result.success) {
+        setMessage("Pedido marcado como pago e ligado à licença já emitida. Nenhum serial novo.");
+        refresh();
+      } else {
+        setMessage(result.reason ?? "Não foi possível conciliar o pedido.");
       }
     });
   }
@@ -400,9 +415,13 @@ export function AdminFinanceDashboard({
                     <OrderRow
                       key={order.id}
                       order={order}
-                      pending={pendingId === order.licenseId && isPending}
+                      pending={
+                        isPending &&
+                        (pendingId === order.licenseId || pendingId === order.id)
+                      }
                       onCopyEmail={copyEmail}
                       onResend={resend}
+                      onReconcile={reconcile}
                     />
                   ))}
                 </tbody>
@@ -451,11 +470,13 @@ function OrderRow({
   pending,
   onCopyEmail,
   onResend,
+  onReconcile,
 }: {
   order: AdminFinanceOrderRow;
   pending: boolean;
   onCopyEmail: (email: string) => void;
   onResend: (licenseId: string) => void;
+  onReconcile: (orderId: string) => void;
 }) {
   const when =
     order.status === "paid"
@@ -541,6 +562,19 @@ function OrderRow({
                 onClick={() => onResend(order.licenseId!)}
               >
                 Reenviar serial
+              </Button>
+            </div>
+          ) : order.provider === "pushinpay" && order.status === "generated" ? (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                disabled={pending}
+                onClick={() => onReconcile(order.id)}
+              >
+                Ligar licença já emitida
               </Button>
             </div>
           ) : null}

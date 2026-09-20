@@ -100,6 +100,76 @@ export async function findLicenseOrderByPixId(pixTransactionId: string) {
   });
 }
 
+export async function findLicenseOrderById(id: string) {
+  await ensureSqliteSchemaOnce();
+  return prisma.licenseOrder.findUnique({ where: { id } });
+}
+
+/** Licença já emitida (ex.: admin) que pode ser ligada ao pedido sem criar outra. */
+export async function findReusableLicenseForOrder(order: {
+  id: string;
+  email: string | null;
+  edition: string;
+  duration: string;
+  stripeSessionId: string;
+  licenseId: string | null;
+  createdAt: Date;
+}) {
+  await ensureSqliteSchemaOnce();
+
+  if (order.licenseId) {
+    const linked = await prisma.license.findUnique({
+      where: { id: order.licenseId },
+    });
+    if (linked) return linked;
+  }
+
+  const bySession = await prisma.license.findUnique({
+    where: { stripeSessionId: order.stripeSessionId },
+  });
+  if (bySession) return bySession;
+
+  const email = order.email?.trim().toLowerCase() ?? "";
+  if (!email.includes("@")) return null;
+
+  const licenses = await prisma.license.findMany({
+    where: {
+      email,
+      edition: order.edition,
+      duration: order.duration,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  if (licenses.length === 0) return null;
+
+  const linkedElsewhere = await prisma.licenseOrder.findMany({
+    where: {
+      licenseId: { in: licenses.map((row) => row.id) },
+      NOT: { id: order.id },
+    },
+    select: { licenseId: true },
+  });
+  const taken = new Set(
+    linkedElsewhere
+      .map((row) => row.licenseId)
+      .filter((id): id is string => Boolean(id))
+  );
+
+  const windowStart = new Date(order.createdAt.getTime() - 30 * 60 * 1000);
+  const windowEnd = new Date(order.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const candidates = licenses.filter((row) => {
+    if (taken.has(row.id)) return false;
+    if (row.serialHash.startsWith("pending:")) return false;
+    return row.createdAt >= windowStart && row.createdAt <= windowEnd;
+  });
+
+  return (
+    candidates.find((row) => row.stripeSessionId.startsWith("admin:")) ??
+    candidates[0] ??
+    null
+  );
+}
+
 export async function touchPixConsultedAt(sessionId: string) {
   await ensureSqliteSchemaOnce();
   await prisma.licenseOrder.update({

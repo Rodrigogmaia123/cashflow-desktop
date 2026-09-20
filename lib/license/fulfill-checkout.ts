@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { createPaidLicense } from "./store";
 import {
   findLicenseOrderByPixId,
+  findReusableLicenseForOrder,
   markLicenseOrderPaid,
   pixCheckoutRef,
 } from "./orders";
@@ -127,6 +128,27 @@ export async function fulfillPixLicenseTransaction(
   const order = await findLicenseOrderByPixId(tx.id);
   if (!order) {
     return { outcome: "ignored", reason: "order_not_found" };
+  }
+
+  if (order.status === "paid" && order.licenseId) {
+    return { outcome: "exists", licenseId: order.licenseId };
+  }
+
+  const reusable = await findReusableLicenseForOrder(order);
+  if (reusable) {
+    try {
+      await markLicenseOrderPaid({
+        stripeSessionId: order.stripeSessionId || pixCheckoutRef(tx.id),
+        email: reusable.email,
+        amountCents: order.amountCents,
+        licenseId: reusable.id,
+        edition: order.edition,
+        duration: order.duration,
+      });
+    } catch (error) {
+      console.error("[license/fulfill-pix] pedido financeiro:", tx.id, error);
+    }
+    return { outcome: "exists", licenseId: reusable.id };
   }
 
   const offer = getPricedLicenseOffer(order.edition, order.duration);
