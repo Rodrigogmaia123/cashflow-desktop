@@ -7,7 +7,12 @@ import {
   editionLabel,
   licenseDurationLabel,
 } from "@/lib/license/catalog";
-import { backfillOrdersFromLicenses } from "@/lib/license/orders";
+import {
+  backfillOrdersFromLicenses,
+  findLicenseOrderById,
+  findReusableLicenseForOrder,
+  markLicenseOrderPaid,
+} from "@/lib/license/orders";
 import { resendLicenseEmail } from "@/lib/license";
 import {
   isLicenseDuration,
@@ -262,5 +267,60 @@ export async function resendFinanceLicenseEmail(licenseId: string): Promise<{
   }
 
   revalidatePath("/app/admin/financeiro");
+  return { success: true };
+}
+
+export async function reconcileFinancePixOrder(orderId: string): Promise<{
+  success: boolean;
+  reason?: string;
+}> {
+  const admin = await requireDomainAdmin();
+  if (!admin) {
+    return {
+      success: false,
+      reason: "Acesso negado: apenas administradores do site",
+    };
+  }
+
+  const id = orderId.trim();
+  if (!id) {
+    return { success: false, reason: "Pedido inválido." };
+  }
+
+  const order = await findLicenseOrderById(id);
+  if (!order) {
+    return { success: false, reason: "Pedido não encontrado." };
+  }
+
+  const isPix =
+    order.provider === "pushinpay" || order.stripeSessionId.startsWith("pix:");
+  if (!isPix) {
+    return { success: false, reason: "Só dá para conciliar pedido PIX." };
+  }
+
+  if (order.status === "paid" && order.licenseId) {
+    return { success: true };
+  }
+
+  const license = await findReusableLicenseForOrder(order);
+  if (!license) {
+    return {
+      success: false,
+      reason:
+        "Não achei uma licença solta deste e-mail e desta oferta. A chave enviada na mão precisa ser a mesma edição/prazo, e ainda não pode estar ligada a outro pedido.",
+    };
+  }
+
+  await markLicenseOrderPaid({
+    stripeSessionId: order.stripeSessionId,
+    email: order.email ?? license.email,
+    amountCents: order.amountCents,
+    licenseId: license.id,
+    edition: order.edition,
+    duration: order.duration,
+  });
+
+  revalidatePath("/app/admin/financeiro");
+  revalidatePath("/app/admin/licencas");
   return { success: true };
 }
