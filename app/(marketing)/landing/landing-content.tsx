@@ -1,26 +1,8 @@
-import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import { LandingEffects } from "./landing-effects";
+import { display, mono, sans } from "./fonts";
 import { PlansSection } from "./plans-section";
 import { HeroShot, ProductShots } from "./product-shots";
 import "../landing.css";
-
-const display = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-lp-display",
-});
-
-const sans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-lp-sans",
-});
-
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-lp-mono",
-});
 
 const TICKER = [
   "DADOS 100% LOCAIS",
