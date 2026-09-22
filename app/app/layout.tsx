@@ -11,6 +11,7 @@ import { getDesktopEdition } from "@/lib/desktop-edition";
 import { materializeRecurringExpenses } from "@/lib/domain/recurring-expense";
 import { ensureSqliteSchemaOnce } from "@/lib/sqlite-schema-compat";
 import { isDesktopMode } from "@/lib/desktop";
+import { installedDesktopVersion } from "@/lib/desktop-update";
 import { isOpsShellPath, isOpsSite } from "@/lib/ops";
 import {
   evaluateStoredDesktopLicense,
@@ -84,6 +85,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         userPlan={user.plan}
         edition={edition}
         desktopMode={isDesktopMode()}
+        appVersion={installedDesktopVersion()}
+        announceUpdates={user.onboardingCompleted}
       >
         {children}
       </AppLayoutClient>
