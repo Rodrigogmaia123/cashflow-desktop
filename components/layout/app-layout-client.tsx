@@ -6,20 +6,26 @@ import { MobileSidebar } from "./mobile-sidebar";
 import { Sidebar } from "./sidebar";
 import type { SidebarProps } from "./sidebar";
 import { DesktopUpdateBanner } from "@/components/desktop/desktop-update-banner";
+import { ReleaseNotesDialog } from "@/components/release-notes/release-notes-dialog";
 import { QuickCaptureProvider } from "@/components/quick-capture/quick-capture-provider";
 
 type AppLayoutClientProps = SidebarProps & {
   children: React.ReactNode;
+  appVersion: string;
+  announceUpdates: boolean;
 };
 
 export function AppLayoutClient({
   children,
+  appVersion,
+  announceUpdates,
   ...sidebarProps
 }: AppLayoutClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <QuickCaptureProvider>
+      <ReleaseNotesDialog version={appVersion} enabled={announceUpdates} />
       {/* Mobile Header - Visível apenas em mobile (fixed) */}
       <MobileHeader
         userName={sidebarProps.userName}
