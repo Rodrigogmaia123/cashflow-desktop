@@ -2,15 +2,16 @@ import { LandingEffects } from "./landing-effects";
 import { display, mono, sans } from "./fonts";
 import { PlansSection } from "./plans-section";
 import { HeroShot, ProductShots } from "./product-shots";
+import { listSellableLicenseOffers } from "@/lib/license/catalog";
 import "../landing.css";
 
 const TICKER = [
-  "DADOS 100% LOCAIS",
-  "WINDOWS E MAC",
-  "ATIVAÇÃO POR SERIAL KEY",
+  "RECEITA − ADS − TAXAS − IMPOSTOS",
   "ROI POR OFERTA",
-  "ALERTA DE ORÇAMENTO",
-  "MULTI-BANCO",
+  "WINDOWS E MAC",
+  "DADOS NO SEU COMPUTADOR",
+  "PAGAMENTO ÚNICO",
+  "12 MESES · R$ 97",
   "SEM MENSALIDADE",
 ];
 
@@ -29,62 +30,72 @@ const BANKS = [
 ];
 
 const DOR = [
-  "Não saber o saldo real depois de ads, taxa e despesa.",
+  "Saber o faturamento e não saber o que sobrou.",
+  "Gerenciador de anúncio que mostra o gasto, mas não o caixa.",
+  "Taxa de checkout e imposto fora do ROI.",
   "Planilha que quebra, duplica e ninguém atualiza.",
+  "Lucro bonito no painel de ads e vermelho no banco.",
   "Misturar casa, empresa e dinheiro da oferta no mesmo extrato.",
-  "Ferramenta de anúncio que mostra o gasto, mas não o caixa.",
-  "Deixar a vida financeira inteira num site de terceiro.",
-  "Orçamento que só aparece quando já estourou.",
-  "Conta fixa — aluguel, ferramenta, assinatura — que esquece de lançar.",
-  "Precisar do mesmo controle em duas máquinas, sem abrir duas contas na nuvem.",
+  "Fechar o mês montando conta na mão.",
+  "Deixar o caixa da operação num site de terceiro.",
 ];
 
-const faqs = [
-  {
-    q: "Meus dados vão para a nuvem?",
-    a: "Não. O caixa, as ofertas e os lançamentos ficam no seu computador. O site só cuida de pagamento, serial e download.",
-  },
-  {
-    q: "E se eu usar em dois computadores?",
-    a: "A licença é de uma cópia do programa, no Windows ou no Mac. No pendrive, você leva essa cópia e usa nas suas máquinas. Instalar de forma separada em dois computadores ao mesmo tempo não faz parte do modelo.",
-  },
-  {
-    q: "Tem para Mac?",
-    a: "Tem. O mesmo programa sai em instalador Windows (.exe) e Mac (.dmg). A chave é a mesma: você baixa a versão do seu sistema, cola o serial e usa.",
-  },
-  {
-    q: "O prazo começa quando eu pago?",
-    a: "Não. Começa quando você ativa o serial dentro do app.",
-  },
-  {
-    q: "Precisa de internet?",
-    a: "Para pagar, baixar e ativar, sim. Para o dia a dia, o programa roda no seu Windows ou Mac — de tempos em tempos ele só confirma se a chave ainda vale.",
-  },
-  {
-    q: "Como funciona o PIX?",
-    a: "Você informa o e-mail, gera o QR na Pushin Pay e paga. Quando o PIX é confirmado, o serial nasce e vai para esse e-mail — a mesma entrega do cartão. O prazo só começa na ativação.",
-  },
-  {
-    q: "É mensalidade?",
-    a: "Não. Você paga um prazo uma vez, recebe a chave e usa a partir da ativação. 3 meses está à venda por R$ 30; os outros prazos entram quando o preço existir.",
-  },
-  {
-    q: "E quando acabar os 3 meses?",
-    a: "Compra de novo, recebe outro serial e ativa novamente.",
-  },
-  {
-    q: "Posso mandar o instalador para um sócio?",
-    a: "O instalador sem a chave dele não abre. Cada pessoa precisa da própria licença.",
-  },
-  {
-    q: "É para celular?",
-    a: "É um programa para computador, no Windows e no Mac. Não há versão para celular.",
-  },
-  {
-    q: "Substitui o banco ou o gerenciador de anúncios?",
-    a: "Não. O Cashflow organiza o que você lança: caixa, orçamento e, na edição Pro, o resultado da oferta depois da taxa.",
-  },
-];
+function buildFaqs(lifetimeOn: boolean) {
+  return [
+    {
+      q: "Meus dados vão para a nuvem?",
+      a: "Não. O caixa, as ofertas e os lançamentos ficam no seu computador. O site só cuida de pagamento, serial e download.",
+    },
+    {
+      q: "E se eu usar em dois computadores?",
+      a: "A licença é de uma cópia do programa, no Windows ou no Mac. No pendrive, você leva essa cópia e usa nas suas máquinas. Instalar de forma separada em dois computadores ao mesmo tempo não faz parte do modelo.",
+    },
+    {
+      q: "Tem para Mac?",
+      a: "Tem. O mesmo programa sai em instalador Windows (.exe) e Mac (.dmg). A chave é a mesma: você baixa a versão do seu sistema, cola o serial e usa.",
+    },
+    {
+      q: "O prazo começa quando eu pago?",
+      a: lifetimeOn
+        ? "Nos 12 meses, não. Os 365 dias começam quando você ativa o serial dentro do app. No vitalício não há data de validade — o acesso também começa na ativação."
+        : "Não. Os 365 dias começam quando você ativa o serial dentro do app, não no dia do pagamento.",
+    },
+    {
+      q: "Precisa de internet?",
+      a: "Para pagar, baixar e ativar, sim. Para o dia a dia, o programa roda no seu Windows ou Mac — de tempos em tempos ele só confirma se a chave ainda vale.",
+    },
+    {
+      q: "Como funciona o PIX?",
+      a: "Você informa o e-mail, gera o QR na Pushin Pay e paga. Quando o PIX é confirmado, o serial nasce e vai para esse e-mail — a mesma entrega do cartão. Nos 12 meses, o prazo só começa na ativação.",
+    },
+    {
+      q: "É mensalidade? É R$ 97 por mês?",
+      a: lifetimeOn
+        ? "Não. 12 meses é R$ 97 uma vez — uma licença de 12 meses, não uma assinatura. O vitalício é R$ 147 uma vez, sem data de validade. Nenhum dos dois cobra de novo todo mês."
+        : "Não. 12 meses é R$ 97 uma vez — uma licença de 12 meses, não uma assinatura. Não cobra de novo todo mês.",
+    },
+    {
+      q: "E quando acabar os 12 meses?",
+      a: "Compra de novo, recebe outro serial e ativa novamente. Quem já tem uma licença antiga continua nela até o prazo que comprou.",
+    },
+    {
+      q: "Posso mandar o instalador para um sócio?",
+      a: "O instalador sem a chave dele não abre. Cada pessoa precisa da própria licença.",
+    },
+    {
+      q: "É para celular?",
+      a: "É um programa para computador, no Windows e no Mac. Não há versão para celular.",
+    },
+    {
+      q: "Substitui o banco ou o gerenciador de anúncios?",
+      a: "Não. O Cashflow Pro organiza o que você lança: investimento, faturamento, taxas, impostos, despesas e o resultado da oferta.",
+    },
+    {
+      q: "O fechamento do mês é contábil?",
+      a: "Não. É a organização da sua operação: receita, despesa, investimento, taxas e resultado do período, com exportação em PDF ou Excel. Não substitui contador nem obrigação fiscal.",
+    },
+  ];
+}
 
 function IconEye() {
   return (
@@ -138,6 +149,9 @@ function IconLock() {
 export function LandingContent() {
   const ticker = [...TICKER, ...TICKER];
   const banks = [...BANKS, ...BANKS];
+  const offers = listSellableLicenseOffers();
+  const lifetimeOn = offers.some((item) => item.duration === "lifetime");
+  const faqs = buildFaqs(lifetimeOn);
 
   return (
     <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`}>
@@ -163,7 +177,7 @@ export function LandingContent() {
             <a href="#faq">DÚVIDAS</a>
           </nav>
           <a href="#planos" className="btn btn-primary">
-            Comprar 3 meses
+            Comprar 12 meses
           </a>
         </div>
         <div className="ticker">
@@ -183,17 +197,18 @@ export function LandingContent() {
             <div className="reveal">
               <div className="eyebrow-pill glass">
                 <span className="dot" />
-                CASHFLOW PRO + PESSOAL
+                CASHFLOW PRO
               </div>
               <h1>
-                Seu caixa não mora num site.
+                Você sabe quanto vendeu.
                 <br />
-                Mora no seu computador.
+                Mas sabe quanto realmente sobrou?
               </h1>
               <p className="lead">
-                Cashflow é um programa para Windows e Mac: você vê o que entra,
-                o que sai e o que sobra — na empresa e na vida pessoal. Os dados
-                ficam salvos no seu computador, não numa conta na nuvem.
+                Organize investimento em anúncios, faturamento, taxas, impostos
+                e despesas para acompanhar o resultado real das suas ofertas.
+                Cashflow Pro roda no Windows e no Mac e mantém seus dados no seu
+                computador.
               </p>
               <div className="os-row" aria-label="Sistemas disponíveis">
                 <span className="os-chip">Windows</span>
@@ -201,7 +216,7 @@ export function LandingContent() {
               </div>
               <div className="hero-cta">
                 <a href="#planos" className="btn btn-primary">
-                  Comprar 3 meses — R$ 30
+                  Comprar 12 meses — R$ 97
                 </a>
                 <a href="#download" className="btn btn-ghost">
                   Baixar Windows ou Mac
@@ -236,53 +251,64 @@ export function LandingContent() {
           </div>
         </section>
 
+        <section id="mecanismo">
+          <div className="wrap">
+            <div className="head reveal">
+              <div className="kicker">COMO A CONTA FECHA</div>
+              <h2>Receita − Ads − Taxas − Impostos − Despesas</h2>
+              <p>
+                O gerenciador mostra o gasto. O Cashflow Pro junta o que entrou,
+                o que foi para anúncio, a taxa, o imposto e a despesa — e mostra
+                o que sobrou em cada oferta.
+              </p>
+            </div>
+            <div className="formula reveal" aria-label="Receita menos ads, taxas, impostos e despesas">
+              <span className="os-chip">Receita</span>
+              <b>−</b>
+              <span className="os-chip">Ads</span>
+              <b>−</b>
+              <span className="os-chip">Taxas</span>
+              <b>−</b>
+              <span className="os-chip">Impostos</span>
+              <b>−</b>
+              <span className="os-chip">Despesas</span>
+            </div>
+          </div>
+        </section>
+
         <section>
           <div className="wrap">
             <div className="head reveal">
               <div className="kicker">PARA QUEM É</div>
-              <h2>Um programa, duas edições</h2>
+              <h2>Para quem vive de oferta</h2>
               <p>
-                Cashflow Pro e Cashflow Pessoal resolvem duas dores diferentes.
-                As duas saem por R$ 30 nos primeiros 3 meses.
+                Afiliados, gestores de tráfego, infoprodutores e quem vende
+                produto online. A pergunta não é quanto entrou. É quanto ficou.
               </p>
             </div>
-            <div className="audience-grid reveal">
+            <div className="audience-grid personas reveal">
               <div className="aud-card pro glass">
-                <div className="edition mono">CASHFLOW PRO</div>
-                <h3>Para quem vende e anuncia</h3>
-                <ul>
-                  <li>
-                    Infoprodutor, afiliado, gestor de tráfego, dono de oferta
-                  </li>
-                  <li>
-                    PJ ou MEI que mistura anúncio, taxa de gateway e despesa
-                    fixa
-                  </li>
-                  <li>
-                    Quem hoje vive de planilha e não confia no lucro que o
-                    gerenciador de ads mostra
-                  </li>
-                </ul>
+                <div className="edition mono">AFILIADO</div>
+                <h3>A campanha sobrou?</h3>
                 <p className="aud-quote">
-                  &ldquo;Tive venda, gastei em ads, paguei taxa — e não sei se
-                  sobrou.&rdquo;
+                  Venda, anúncio e taxa no mesmo lugar — para ver o que restou
+                  depois do checkout.
                 </p>
               </div>
-              <div className="aud-card pessoal glass">
-                <div className="edition mono">CASHFLOW PESSOAL</div>
-                <h3>Para quem controla o dia a dia</h3>
-                <ul>
-                  <li>Quer controlar salário, Pix, cartão e contas do mês</li>
-                  <li>
-                    Quer orçamento por categoria, com alerta antes de estourar
-                  </li>
-                  <li>
-                    Prefere um programa no Windows ou no Mac em vez de um app
-                    que sobe o extrato para a nuvem
-                  </li>
-                </ul>
+              <div className="aud-card pro glass">
+                <div className="edition mono">GESTOR DE TRÁFEGO</div>
+                <h3>Gasto não é resultado</h3>
                 <p className="aud-quote">
-                  &ldquo;O dinheiro some e eu só vejo no fim do mês.&rdquo;
+                  O gerenciador mostra o investimento. O Cashflow Pro mostra o
+                  caixa da oferta.
+                </p>
+              </div>
+              <div className="aud-card pro glass">
+                <div className="edition mono">INFOPRODUTO</div>
+                <h3>Fecha a operação</h3>
+                <p className="aud-quote">
+                  Faturamento, imposto, taxa e despesa do período, sem montar
+                  planilha na mão.
                 </p>
               </div>
             </div>
@@ -293,8 +319,8 @@ export function LandingContent() {
           <div className="wrap">
             <div className="head reveal">
               <div className="kicker">O PROBLEMA</div>
-              <h2>Não é falta de disciplina</h2>
-              <p>É falta de um lugar único e confiável para ver o dinheiro.</p>
+              <h2>Saiba quanto a operação deixou no caixa</h2>
+              <p>Não é falta de número. É falta de uma conta que junte venda, anúncio, taxa, imposto e despesa.</p>
             </div>
             <div className="dor-grid reveal">
               {DOR.map((item) => (
@@ -310,10 +336,10 @@ export function LandingContent() {
           <div className="wrap">
             <div className="head reveal">
               <div className="kicker">O PRODUTO</div>
-              <h2>O que o Cashflow faz</h2>
+              <h2>O que o Cashflow Pro faz</h2>
               <p>
-                Quatro peças que já resolvem o essencial — sem inflar o
-                programa de módulo que você não vai usar.
+                Receita, anúncio, taxa, imposto e despesa no mesmo programa —
+                com o resultado de cada oferta.
               </p>
             </div>
             <div className="bento reveal">
@@ -323,9 +349,8 @@ export function LandingContent() {
                 </div>
                 <h3>Abre o programa, já sabe onde está</h3>
                 <p className="benefit">
-                  Painel do período com receita, despesa e lucro líquido — e o
-                  ROI, se você usa o Pro. Saúde do caixa em três estados:
-                  saudável, atenção ou risco.
+                  Painel do período com receita, despesa, lucro líquido e ROI.
+                  Saúde do caixa em três estados: saudável, atenção ou risco.
                 </p>
                 <ul>
                   <li>Resumo e destaques do período</li>
@@ -361,13 +386,27 @@ export function LandingContent() {
                 <div className="icon-box violet">
                   <IconBell />
                 </div>
-                <h3>Avisa antes de estourar</h3>
+                <h3>A despesa da operação entra na conta</h3>
                 <p className="benefit">
-                  Teto por categoria, com aviso em 75%, 90% e 100% do limite.
-                  Projetos separados do caixa do dia — reforma, estoque,
-                  viagem.
+                  Teto por categoria, com aviso em 75%, 90% e 100%. Ferramenta,
+                  assinatura e custo fixo não ficam de fora do resultado.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="fechamento">
+          <div className="wrap">
+            <div className="head reveal">
+              <div className="kicker">FECHAMENTO</div>
+              <h2>Fechamento do mês em 1 clique</h2>
+              <p>
+                Não é fechamento contábil oficial e não substitui o contador. É
+                a organização da sua operação: veja receita, despesa,
+                investimento, taxas e resultado do período — e exporte em PDF
+                ou Excel.
+              </p>
             </div>
           </div>
         </section>
@@ -402,7 +441,10 @@ export function LandingContent() {
             <div className="head reveal">
               <div className="kicker">COMO FUNCIONA</div>
               <h2>Cinco passos até estar usando</h2>
-              <p>Sem conta grátis. Você compra 3 meses e recebe uma chave.</p>
+              <p>
+                Sem conta grátis. Você compra a licença do Cashflow Pro e recebe
+                uma chave.
+              </p>
             </div>
             <div className="steps reveal">
               <div className="step">
@@ -410,8 +452,9 @@ export function LandingContent() {
                 <div>
                   <h3>Escolhe o prazo e paga</h3>
                   <p>
-                    3 meses, 5 meses, anual ou vitalício — Pro ou Pessoal. O
-                    serial só nasce se o pagamento passar.
+                    {lifetimeOn
+                      ? "12 meses por R$ 97 ou vitalício por R$ 147. Os dois são pagamento único. O serial só nasce se o pagamento passar."
+                      : "12 meses por R$ 97, pagamento único. O serial só nasce se o pagamento passar."}
                   </p>
                 </div>
               </div>
@@ -450,9 +493,9 @@ export function LandingContent() {
                 <div>
                   <h3>Usa no computador</h3>
                   <p>
-                    O prazo da licença começa no dia em que você ativa — não no
-                    dia em que pagou. Depois disso o dia a dia é local; de
-                    tempos em tempos o app só confirma se a chave ainda vale.
+                    {lifetimeOn
+                      ? "Nos 12 meses, o prazo começa no dia em que você ativa — não no dia em que pagou. No vitalício não há validade. Depois disso o dia a dia é local; de tempos em tempos o app só confirma se a chave ainda vale."
+                      : "Os 12 meses começam no dia em que você ativa — não no dia em que pagou. Depois disso o dia a dia é local; de tempos em tempos o app só confirma se a chave ainda vale."}
                   </p>
                 </div>
               </div>
@@ -466,11 +509,11 @@ export function LandingContent() {
               <div className="kicker">INSTALADOR</div>
               <h2>Windows e Mac. Você escolhe o seu.</h2>
               <p>
-                Baixe o instalador da edição que você comprou. Sem a chave o
-                programa não abre — o serial sai depois do pagamento.
+                Baixe o instalador do Cashflow Pro. Sem a chave o programa
+                não abre — o serial sai depois do pagamento.
               </p>
             </div>
-            <div className="download-grid reveal">
+            <div className="download-grid single reveal">
               <div className="dl-card pro glass">
                 <div className="edition mono">CASHFLOW PRO</div>
                 <h3>Para quem vende e anuncia</h3>
@@ -487,32 +530,14 @@ export function LandingContent() {
                   </a>
                 </div>
               </div>
-              <div className="dl-card pessoal glass">
-                <div className="edition mono">CASHFLOW PESSOAL</div>
-                <h3>Para o caixa do dia a dia</h3>
-                <p>
-                  Controle pessoal no Windows ou no Mac, com os dados no seu
-                  computador.
-                </p>
-                <div className="dl-actions">
-                  <a href="/download/pessoal" className="btn btn-ghost">
-                    Windows (.exe)
-                  </a>
-                  <a href="/download/pessoal/mac" className="btn btn-ghost">
-                    Mac (.dmg)
-                  </a>
-                </div>
-              </div>
             </div>
             <p className="dl-note reveal">
               Ainda não tem chave?{" "}
-              <a href="#planos">Compre 3 meses por R$ 30</a> e ative depois de
+              <a href="#planos">Compre 12 meses por R$ 97</a> e ative depois de
               instalar.
             </p>
           </div>
         </section>
-
-        <PlansSection />
 
         <section>
           <div className="wrap">
@@ -522,22 +547,24 @@ export function LandingContent() {
               </div>
               <div>
                 <h3>
-                  O sistema fica no seu Windows ou Mac. O site só vende e
-                  libera a chave.
+                  Programa para Windows e Mac. Dados no seu computador. Sem
+                  mensalidade recorrente.
                 </h3>
                 <p>
-                  O caixa, as ofertas e os lançamentos são salvos no seu
-                  computador — não numa conta nossa na nuvem. A internet entra
-                  só para pagar, baixar e, de tempos em tempos, confirmar se a
-                  licença ainda vale.
+                  O caixa, as ofertas e os lançamentos ficam na sua máquina —
+                  não numa conta na nuvem. O site só vende e libera a chave. A
+                  internet entra para pagar, baixar e, de tempos em tempos,
+                  confirmar se a licença ainda vale.
                 </p>
               </div>
               <a href="#planos" className="btn btn-primary">
-                Comprar 3 meses
+                Comprar 12 meses
               </a>
             </div>
           </div>
         </section>
+
+        <PlansSection offers={offers} />
 
         <section id="faq">
           <div className="wrap">
@@ -561,15 +588,15 @@ export function LandingContent() {
             <div className="cta-final glass reveal">
               <div className="cta-glow" />
               <div className="cta-copy">
-                <h2>Pague R$ 30. Receba a chave. Ative quando for usar.</h2>
+                <h2>1 ano de Cashflow Pro — R$ 97</h2>
                 <p>
-                  Sem conta grátis, sem cartão preso a assinatura. Você compra 3
-                  meses, recebe o serial por e-mail e o instalador para Windows
-                  ou Mac — o tempo só começa a contar quando você ativa.
+                  Pagamento único. Sem mensalidade recorrente. Você recebe o
+                  serial por e-mail e o instalador para Windows ou Mac. Os 12
+                  meses só começam a contar quando você ativa.
                 </p>
               </div>
               <a href="#planos" className="btn btn-primary">
-                Comprar 3 meses — R$ 30
+                Comprar 12 meses — R$ 97
               </a>
             </div>
           </div>

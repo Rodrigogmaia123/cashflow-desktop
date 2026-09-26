@@ -38,8 +38,11 @@ export {
   editionLabel,
   formatLicensePrice,
   getPricedLicenseOffer,
+  getSellableLicenseOffer,
   licenseDurationLabel,
+  lifetimeOfferEnabled,
   listLicenseOffers,
+  listSellableLicenseOffers,
 } from "./catalog";
 export { installerMacUrlForEdition, installerUrlForEdition } from "./installers";
 export {

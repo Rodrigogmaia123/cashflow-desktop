@@ -6,7 +6,7 @@ import { adsContextFromRequest, trackLicenseFunnel } from "@/lib/ads/meta";
 import { stripe } from "@/lib/billing/stripe";
 import {
   DESKTOP_LICENSE_PRODUCT,
-  getPricedLicenseOffer,
+  getSellableLicenseOffer,
 } from "@/lib/license/catalog";
 import {
   pixCheckoutRef,
@@ -45,7 +45,7 @@ function originFromHeaders(headerList: Headers) {
 }
 
 function funnelContent(
-  offer: NonNullable<ReturnType<typeof getPricedLicenseOffer>>
+  offer: NonNullable<ReturnType<typeof getSellableLicenseOffer>>
 ) {
   return {
     contentName: offer.name,
@@ -59,11 +59,11 @@ export async function startLicenseCheckout(
   duration: LicenseDuration,
   traffic?: CheckoutTraffic
 ) {
-  const offer = getPricedLicenseOffer(edition, duration);
+  const offer = getSellableLicenseOffer(edition, duration);
   if (!offer) {
     return {
       error:
-        "Este prazo ainda não está à venda. Escolhe outro ou volta mais tarde.",
+        "Esse plano não está à venda. O Cashflow Pro está em 12 meses ou vitalício.",
     };
   }
 
@@ -175,11 +175,11 @@ export async function startPixCheckout(
   email: string,
   traffic?: CheckoutTraffic
 ) {
-  const offer = getPricedLicenseOffer(edition, duration);
+  const offer = getSellableLicenseOffer(edition, duration);
   if (!offer) {
     return {
       error:
-        "Este prazo ainda não está à venda. Escolhe outro ou volta mais tarde.",
+        "Esse plano não está à venda. O Cashflow Pro está em 12 meses ou vitalício.",
     };
   }
 

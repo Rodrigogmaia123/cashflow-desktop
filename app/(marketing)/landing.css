@@ -438,6 +438,40 @@
   }
 }
 
+.lp .download-grid.single {
+  grid-template-columns: minmax(0, 640px);
+}
+
+.lp .formula {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp .formula b {
+  color: var(--lp-dim);
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.lp .audience-grid.personas {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 800px) {
+  .lp .audience-grid.personas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp .equiv {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--lp-muted);
+}
+
 .lp .dl-card {
   border-radius: var(--lp-radius);
   padding: 34px;
