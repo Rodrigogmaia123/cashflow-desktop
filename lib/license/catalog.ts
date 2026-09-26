@@ -32,7 +32,7 @@ const DURATION_COPY: Record<
   },
   annual: {
     label: "12 meses",
-    sublabel: "365 dias a partir da ativação",
+    sublabel: "12 meses a partir da ativação",
   },
   lifetime: {
     label: "Vitalício",
@@ -48,9 +48,30 @@ const ENV_KEYS: Record<LicenseDuration, string> = {
   lifetime: "LICENSE_PRICE_LIFETIME_CENTS",
 };
 
+/**
+ * 3 meses permanece em R$ 30 só para cumprir pagamento e licença já vendidos.
+ * A vitrine pública não oferece esse prazo.
+ * 12 meses e vitalício são a oferta V2. Env ainda sobrescreve, se existir.
+ */
 const DEFAULT_PRICE_CENTS: Partial<Record<LicenseDuration, number>> = {
   "3m": 3000,
+  annual: 9700,
+  lifetime: 14700,
 };
+
+const SELLABLE_DURATIONS = ["annual", "lifetime"] as const satisfies readonly LicenseDuration[];
+
+function envDisabled(raw: string | undefined): boolean {
+  if (raw == null || raw.trim() === "") return false;
+  return ["0", "false", "off", "no"].includes(raw.trim().toLowerCase());
+}
+
+/** Desliga o vitalício na LP e no checkout com LICENSE_LIFETIME_ENABLED=false. */
+export function lifetimeOfferEnabled(): boolean {
+  if (envDisabled(process.env.LICENSE_LIFETIME_ENABLED)) return false;
+  if (envDisabled(process.env.NEXT_PUBLIC_LICENSE_LIFETIME_ENABLED)) return false;
+  return true;
+}
 
 function parseCents(raw: string | undefined): number | null {
   if (raw == null || raw.trim() === "") return null;
@@ -79,6 +100,19 @@ export function listLicenseOffers(): LicenseOffer[] {
   }));
 }
 
+/** Planos que a LP e o checkout público podem vender. Pro only. */
+export function listSellableLicenseOffers(): LicenseOffer[] {
+  return SELLABLE_DURATIONS.filter((duration) => {
+    if (duration === "lifetime" && !lifetimeOfferEnabled()) return false;
+    return licensePriceCents(duration) != null;
+  }).map((duration) => ({
+    duration,
+    label: DURATION_COPY[duration].label,
+    sublabel: DURATION_COPY[duration].sublabel,
+    amountCents: licensePriceCents(duration),
+  }));
+}
+
 export function getPricedLicenseOffer(
   edition: string,
   duration: string
@@ -90,7 +124,7 @@ export function getPricedLicenseOffer(
   const editionName = edition === "pessoal" ? "Cashflow Pessoal" : "Cashflow Pro";
   const days =
     duration === "lifetime"
-      ? "O prazo começa quando você ativa o serial no app."
+      ? "Licença sem data de validade. O acesso começa quando você ativa o serial no app."
       : `Licença de ${LICENSE_DURATION_DAYS[duration]} dias. O prazo começa quando você ativa o serial no app.`;
   return {
     edition,
@@ -106,6 +140,19 @@ export function formatLicensePrice(amountCents: number): string {
     style: "currency",
     currency: "BRL",
   }).format(amountCents / 100);
+}
+
+/** Oferta nova da LP. Licença antiga (3 meses, Pessoal) continua em getPricedLicenseOffer. */
+export function getSellableLicenseOffer(
+  edition: string,
+  duration: string
+) {
+  if (edition !== "pro") return null;
+  if (!SELLABLE_DURATIONS.includes(duration as (typeof SELLABLE_DURATIONS)[number])) {
+    return null;
+  }
+  if (duration === "lifetime" && !lifetimeOfferEnabled()) return null;
+  return getPricedLicenseOffer(edition, duration);
 }
 
 export function editionLabel(edition: LicenseEdition): string {

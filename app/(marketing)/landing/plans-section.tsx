@@ -1,64 +1,46 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, useTransition } from "react";
-import {
-  startLicenseCheckout,
-  startPixCheckout,
-  type LicenseEdition,
-} from "./checkout";
+import { useState, useTransition } from "react";
+import { startLicenseCheckout, startPixCheckout } from "./checkout";
 import type { LicenseDuration } from "@/lib/prisma-enums";
 import {
   editionLabel,
   formatLicensePrice,
-  listLicenseOffers,
+  type LicenseOffer,
 } from "@/lib/license/catalog";
 import {
   readClientAdsContext,
   trackMetaBrowserEvent,
 } from "@/lib/ads/meta-client";
 
-const INCLUDES: Record<LicenseEdition, string[]> = {
-  pro: [
-    "Visão geral, fluxo de caixa e orçamentos",
-    "Ofertas, taxas e ROI de campanha",
-    "Relatórios do período, PDF e Excel",
-    "1 serial = 1 cópia do app (vale no pendrive)",
-  ],
-  pessoal: [
-    "Visão geral, fluxo de caixa e orçamentos",
-    "Contas recorrentes e captura rápida",
-    "Relatórios do período",
-    "1 serial = 1 cópia do app (vale no pendrive)",
-  ],
-};
-
-const OFFERS = listLicenseOffers();
+const INCLUDES = [
+  "Visão geral, fluxo de caixa e orçamentos",
+  "Ofertas, taxas e ROI de campanha",
+  "Relatórios do período, PDF e Excel",
+  "1 serial = 1 cópia do app (vale no pendrive)",
+];
 
 type PayMethod = "card" | "pix";
 
-export function PlansSection() {
-  const [edition, setEdition] = useState<LicenseEdition>("pro");
-  const [duration, setDuration] = useState<LicenseDuration>("3m");
+export function PlansSection({ offers }: { offers: LicenseOffer[] }) {
+  const [duration, setDuration] = useState<LicenseDuration>(
+    offers[0]?.duration ?? "annual"
+  );
   const [method, setMethod] = useState<PayMethod>("card");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const proRef = useRef<HTMLButtonElement>(null);
-  const pessoalRef = useRef<HTMLButtonElement>(null);
-  const [indicator, setIndicator] = useState({ width: 0, x: 0 });
 
-  const offer = OFFERS.find((item) => item.duration === duration) ?? OFFERS[0];
-  const priced = offer.amountCents != null;
+  const lifetimeOn = offers.some((item) => item.duration === "lifetime");
+  const offer = offers.find((item) => item.duration === duration) ?? offers[0];
+  const priced = offer?.amountCents != null;
   const priceLabel = priced
     ? formatLicensePrice(offer.amountCents!)
     : "A definir";
-
-  useLayoutEffect(() => {
-    const active = edition === "pro" ? proRef.current : pessoalRef.current;
-    if (!active) return;
-    setIndicator({ width: active.offsetWidth, x: active.offsetLeft });
-  }, [edition]);
+  const monthlyHint =
+    offer?.duration === "annual" && offer.amountCents != null
+      ? `Equivale a cerca de ${formatLicensePrice(Math.round(offer.amountCents / 12))} por mês no período de 12 meses`
+      : null;
 
   function traffic() {
     const params = new URLSearchParams(window.location.search);
@@ -75,11 +57,12 @@ export function PlansSection() {
   }
 
   function fireCheckoutPixels(eventId: string, value: number) {
+    if (!offer) return;
     const params = {
       value: value / 100,
       currency: "BRL",
-      content_name: `${editionLabel(edition)} · ${offer.label}`,
-      content_ids: [`desktop-license:${edition}:${duration}`],
+      content_name: `${editionLabel("pro")} · ${offer.label}`,
+      content_ids: [`desktop-license:pro:${duration}`],
       content_type: "product",
     };
     trackMetaBrowserEvent("InitiateCheckout", `${eventId}:checkout`, params);
@@ -87,7 +70,7 @@ export function PlansSection() {
   }
 
   function buy() {
-    if (!priced) {
+    if (!offer || !priced) {
       setError("Este prazo ainda não está à venda.");
       return;
     }
@@ -101,8 +84,8 @@ export function PlansSection() {
       fireCheckoutPixels(ctx.eventId, offer.amountCents!);
       const result =
         method === "pix"
-          ? await startPixCheckout(edition, duration, email, ctx)
-          : await startLicenseCheckout(edition, duration, ctx);
+          ? await startPixCheckout("pro", duration, email, ctx)
+          : await startLicenseCheckout("pro", duration, ctx);
       if (result?.error) setError(result.error);
     });
   }
@@ -114,46 +97,16 @@ export function PlansSection() {
           <div className="plans-copy reveal in">
             <div className="head">
               <div className="kicker">PLANO</div>
-              <h2>Um prazo, uma chave, uma cópia do programa</h2>
+              <h2>Cashflow Pro, pagamento único</h2>
               <p>
-                Escolhe a edição, o prazo e como pagar. O serial só nasce se o
-                pagamento passar. O relógio começa na ativação, não na compra.
+                {lifetimeOn
+                  ? "12 meses por R$ 97 ou vitalício por R$ 147. Nenhum dos dois é mensalidade. O serial só nasce se o pagamento passar. Nos 12 meses, o relógio começa na ativação — não na compra."
+                  : "12 meses por R$ 97, sem mensalidade recorrente. O serial só nasce se o pagamento passar. O relógio começa na ativação — não na compra."}
               </p>
             </div>
 
-            <div
-              ref={wrapRef}
-              className="toggle glass"
-              role="tablist"
-              aria-label="Edição"
-            >
-              <div
-                className="toggle-indicator"
-                style={{
-                  width: indicator.width,
-                  transform: `translateX(${indicator.x}px)`,
-                }}
-              />
-              <button
-                ref={proRef}
-                type="button"
-                className={edition === "pro" ? "active" : undefined}
-                onClick={() => setEdition("pro")}
-              >
-                Cashflow Pro
-              </button>
-              <button
-                ref={pessoalRef}
-                type="button"
-                className={edition === "pessoal" ? "active" : undefined}
-                onClick={() => setEdition("pessoal")}
-              >
-                Cashflow Pessoal
-              </button>
-            </div>
-
             <div className="plan-durations" role="tablist" aria-label="Prazo">
-              {OFFERS.map((item) => (
+              {offers.map((item) => (
                 <button
                   key={item.duration}
                   type="button"
@@ -169,7 +122,11 @@ export function PlansSection() {
             </div>
 
             <ul className="plans-points">
-              <li>O prazo começa quando você ativa, não quando paga.</li>
+              <li>
+                {offer?.duration === "lifetime"
+                  ? "Vitalício: sem data de validade, a partir da ativação."
+                  : "12 meses contam a partir da ativação, não do pagamento."}
+              </li>
               <li>O caixa fica no seu computador, não na nuvem.</li>
               <li>Um serial, uma cópia — vale no pendrive.</li>
             </ul>
@@ -179,12 +136,13 @@ export function PlansSection() {
             <div className="plan-card destaque glass">
               <div className="badge">PAGAMENTO ÚNICO</div>
               <div className="plan-name">
-                {editionLabel(edition)} · {offer.label}
+                {editionLabel("pro")} · {offer?.label ?? "12 meses"}
               </div>
               <div className="plan-price">{priceLabel}</div>
-              <div className="plan-sub">{offer.sublabel} · sem mensalidade</div>
+              {monthlyHint ? <p className="equiv">{monthlyHint}</p> : null}
+              <div className="plan-sub">{offer?.sublabel} · sem mensalidade</div>
               <ul>
-                {INCLUDES[edition].map((item) => (
+                {INCLUDES.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>

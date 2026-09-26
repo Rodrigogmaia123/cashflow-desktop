@@ -6,9 +6,9 @@ import { LandingContent } from "./(marketing)/landing/landing-content";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Cashflow — Clareza de caixa no seu computador",
+  title: "Cashflow Pro — Quanto realmente sobrou",
   description:
-    "Programa para Windows e Mac: veja o que entra, o que sai e o que sobra. Dados no seu computador, licença por serial. 3 meses por R$ 30.",
+    "Saiba quanto a operação realmente deixou no caixa. Cashflow Pro para Windows e Mac: receita, ads, taxas, impostos e despesas. 12 meses por R$ 97, pagamento único.",
 };
 
 export default async function LandingPage() {
