@@ -274,14 +274,22 @@ export function LandingContent() {
             </div>
             <div className="formula reveal" aria-label="Receita menos ads, taxas, impostos e despesas">
               <span className="os-chip">Receita</span>
-              <b>−</b>
-              <span className="os-chip">Ads</span>
-              <b>−</b>
-              <span className="os-chip">Taxas</span>
-              <b>−</b>
-              <span className="os-chip">Impostos</span>
-              <b>−</b>
-              <span className="os-chip">Despesas</span>
+              <span className="formula-step">
+                <b>−</b>
+                <span className="os-chip">Ads</span>
+              </span>
+              <span className="formula-step">
+                <b>−</b>
+                <span className="os-chip">Taxas</span>
+              </span>
+              <span className="formula-step">
+                <b>−</b>
+                <span className="os-chip">Impostos</span>
+              </span>
+              <span className="formula-step">
+                <b>−</b>
+                <span className="os-chip">Despesas</span>
+              </span>
             </div>
           </div>
         </section>
