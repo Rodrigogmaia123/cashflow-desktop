@@ -16,7 +16,7 @@ import {
 const INCLUDES = [
   "Visão geral, fluxo de caixa e orçamentos",
   "Ofertas, taxas e ROI de campanha",
-  "Relatórios do período, PDF e Excel",
+  "Bônus: fechamento do mês em PDF e Excel",
   "1 serial = 1 cópia do app (vale no pendrive)",
 ];
 
@@ -129,6 +129,9 @@ export function PlansSection({ offers }: { offers: LicenseOffer[] }) {
               </li>
               <li>O caixa fica no seu computador, não na nuvem.</li>
               <li>Um serial, uma cópia — vale no pendrive.</li>
+              <li>
+                Se o serial não for ativado em 7 dias, devolvemos o valor.
+              </li>
             </ul>
           </div>
 
@@ -146,6 +149,10 @@ export function PlansSection({ offers }: { offers: LicenseOffer[] }) {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              <p className="pay-note">
+                Reembolso integral se você não ativar o serial em 7 dias depois
+                da compra. Ativou, a licença segue o prazo escolhido.
+              </p>
 
               <div className="pay-methods" role="tablist" aria-label="Forma de pagamento">
                 <button

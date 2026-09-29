@@ -47,6 +47,10 @@ function buildFaqs(lifetimeOn: boolean) {
       a: "Não. O caixa, as ofertas e os lançamentos ficam no seu computador. O site só cuida de pagamento, serial e download.",
     },
     {
+      q: "E se eu formatar o computador?",
+      a: "Os lançamentos ficam no seu PC. Formatar apaga esse histórico, a menos que você tenha exportado o período em PDF ou Excel, ou copiado os dados antes. A chave não some: você reinstala, cola o mesmo serial e a licença volta na máquina nova. O prazo não recomeça.",
+    },
+    {
       q: "E se eu usar em dois computadores?",
       a: "A licença é de uma cópia do programa, no Windows ou no Mac. No pendrive, você leva essa cópia e usa nas suas máquinas. Instalar de forma separada em dois computadores ao mesmo tempo não faz parte do modelo.",
     },
@@ -73,6 +77,12 @@ function buildFaqs(lifetimeOn: boolean) {
       a: lifetimeOn
         ? "Não. 12 meses é R$ 97 uma vez — uma licença de 12 meses, não uma assinatura. O vitalício é R$ 147 uma vez, sem data de validade. Nenhum dos dois cobra de novo todo mês."
         : "Não. 12 meses é R$ 97 uma vez — uma licença de 12 meses, não uma assinatura. Não cobra de novo todo mês.",
+    },
+    {
+      q: "E se eu pagar e não servir?",
+      a: lifetimeOn
+        ? "Se o serial não for ativado em 7 dias depois da compra, devolvemos o valor integral. Depois da ativação, a licença segue o prazo que você comprou — 12 meses ou vitalício."
+        : "Se o serial não for ativado em 7 dias depois da compra, devolvemos o valor integral. Depois da ativação, a licença segue os 12 meses.",
     },
     {
       q: "E quando acabar os 12 meses?",
@@ -402,10 +412,10 @@ export function LandingContent() {
               <div className="kicker">FECHAMENTO</div>
               <h2>Fechamento do mês em 1 clique</h2>
               <p>
-                Não é fechamento contábil oficial e não substitui o contador. É
-                a organização da sua operação: veja receita, despesa,
-                investimento, taxas e resultado do período — e exporte em PDF
-                ou Excel.
+                Entra na licença, sem custo à parte. Não é fechamento contábil
+                oficial e não substitui o contador: é a organização da sua
+                operação. Você vê receita, despesa, investimento, taxas e
+                resultado do período — e exporta em PDF ou Excel.
               </p>
             </div>
           </div>
