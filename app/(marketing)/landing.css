@@ -60,7 +60,7 @@
 }
 
 .lp section {
-  padding: 104px 0;
+  padding: 56px 0;
   position: relative;
   scroll-margin-top: 108px;
 }
@@ -73,7 +73,7 @@
   }
 
   .lp section {
-    padding: 68px 0;
+    padding: 40px 0;
   }
 
   .lp .blob {
@@ -445,14 +445,39 @@
 .lp .formula {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 14px 18px;
+  max-width: 980px;
+  margin: -12px auto 0;
+}
+
+.lp .formula-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .lp .formula b {
   color: var(--lp-dim);
   font-weight: 500;
   font-size: 18px;
+  line-height: 1;
+}
+
+@media (min-width: 900px) {
+  .lp .formula {
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 22px;
+    max-width: 100%;
+  }
+}
+
+.lp #mecanismo .head {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .lp .audience-grid.personas {
@@ -775,7 +800,7 @@
 
 .lp .head {
   max-width: 60ch;
-  margin-bottom: 52px;
+  margin-bottom: 28px;
 }
 
 .lp .head .kicker {
