@@ -1,43 +1,64 @@
-# Briefing de criativos — Cashflow
+# Briefing de criativos — Cashflow Pro
 
-Documento de estratégia e mensagem para anúncios (Meta, TikTok, YouTube, Google, stories, UGC).
+Mensagem para anúncios (Meta, TikTok, YouTube, Google, stories, UGC).  
+Visual em `docs/design-criativos.md`. Copy da página em `docs/BRIEFING-LP-COPY.md`.
 
-Fonte: landing no ar e catálogo de licença.  
-Visual e formatos ficam em `docs/design-criativos.md`.  
-Texto literal da página fica em `docs/copy-atual-da-lp.md`.
+A vitrine paga é **só Cashflow Pro**. Cashflow Pessoal continua no produto para quem já comprou. Não entra em anúncio, criativo nem público de aquisição.
 
-**Não usar** copy da era SaaS: conta grátis, mensalidade R$ 9,90 / R$ 49, “crie conta em segundos”, “cancele quando quiser”.
+**Não usar** copy da era SaaS nem da oferta V1: conta grátis, mensalidade, “crie conta em segundos”, “cancele quando quiser”, “3 meses por R$ 30” como oferta principal, comparação Pro vs Pessoal.
 
 ---
 
-## 1. O que estamos vendendo
+## 1. Como a oferta foi montada
 
-**Cashflow** é um programa para **Windows e Mac**. Você vê o que entra, o que sai e o que sobra — na empresa e na vida pessoal. Os dados ficam **no computador**, não numa conta na nuvem.
+As notas em `docs/Contexto Copy/` orientam a decisão. O criativo aplica a conclusão, sem citar livro e sem colar trecho.
 
-O site só vende, cobra, entrega o **serial** e o **instalador**. O sistema completo não abre no navegador.
+**Desejo que já existe.** O afiliado, o gestor e o infoprodutor já querem saber se a operação sobrou. O anúncio não cria vontade de “ter um software”. Ele liga esse desejo ao Cashflow Pro.
 
-| Edição | Para quem | Diferencial |
-|---|---|---|
-| **Cashflow Pro** | Quem vende e anuncia (infoproduto, afiliado, tráfego, oferta) | Ofertas, ROI, taxas de gateway, lucro depois do ads |
-| **Cashflow Pessoal** | Quem controla o dia a dia | Orçamento, recorrentes, captura rápida — **sem** módulo de ofertas |
+**Consciência do público.** Problema já conhecido, solução ainda confusa. A pessoa sabe que vendeu e não sabe o que ficou. Ainda não está procurando a marca. A headline nomeia o buraco (“quanto sobrou?”). “Dados no computador” e “sem mensalidade” fecham a objeção. Não abrem o anúncio.
 
-As duas edições saem **R$ 30 nos 3 meses** (pagamento único daquele prazo). 5 meses, 12 meses e vitalício só entram no criativo se o preço estiver à venda no site. Hoje o default de anúncio é **3 meses · R$ 30**.
+**Sofisticação do mercado.** “App de finanças” e “planilha de ROI” já são promessa gasta. O mecanismo novo é a conta nomeada: **Receita − Ads − Taxas − Impostos − Despesas**.
 
-Pagamento: **cartão (Stripe)** ou **PIX (Pushin Pay)**. A chave chega no e-mail. O prazo começa na **ativação**, não no pagamento.
+**Categoria.** Não é app de organização pessoal e não é SaaS de caixa. É o programa que mostra o resultado da oferta no computador, depois do anúncio, da taxa e do imposto.
+
+**Alternativas reais** (o que a pessoa usa hoje, não o concorrente que a gente escolhe): planilha, gerenciador de anúncios, extrato do banco, app que sobe o caixa para um site.
+
+**Equação de valor da oferta**
+
+| Variável | O que o criativo faz |
+|---|---|
+| Resultado desejado | Saber quanto a operação deixou no caixa |
+| Chance percebida | Tela real + mecanismo nomeado. Sem depoimento inventado |
+| Tempo | Abre o programa e vê o período. Fechamento do mês em PDF ou Excel |
+| Esforço | A pessoa lança. Não prometemos conectar o banco |
+| Risco | Reembolso integral se o serial não for ativado em 7 dias |
+
+O que a V1 mostrou, e a copy pode usar como fato interno (não como número de anúncio): o sinal bom veio do Pro e de “programa no computador, dados locais, não é SaaS”. R$ 30 de receita inicial não pagava o CPA. Por isso o anúncio vende **12 meses por R$ 97**, pagamento único.
+
+**Proibido no criativo:** escassez ou urgência fabricada (“últimas vagas”, contador, “só hoje”). A licença não é um lote limitado.
+
+---
+
+## 2. O que estamos vendendo
+
+**Cashflow Pro** é um programa para **Windows e Mac**. Organiza investimento em anúncios, faturamento, taxas, impostos e despesas, e mostra o resultado de cada oferta. Os dados ficam no computador.
+
+O site só vende, cobra, entrega o **serial** e o **instalador**.
+
+| Peça da oferta | O que dizer |
+|---|---|
+| Produto | Cashflow Pro |
+| Promessa | Você sabe quanto vendeu. O programa mostra quanto sobrou |
+| Mecanismo | Receita − Ads − Taxas − Impostos − Despesas |
+| Bônus | Fechamento do mês em PDF e Excel. Não é contábil e não substitui o contador |
+| Garantia | Reembolso integral se o serial **não for ativado em 7 dias**. Depois da ativação, a licença segue o prazo. Não é garantia de lucro |
+| Preço principal | **12 meses · R$ 97**, pagamento único. Não é R$ 97/mês. Se citar o equivalente: “cerca de R$ 8,08 por mês no período de 12 meses” |
+| Âncora | Vitalício · **R$ 147**, pagamento único, sem validade. Entra no criativo só como segunda opção, nunca no lugar dos 12 meses |
+| Entrega | Cartão (Stripe) ou PIX (Pushin Pay). Chave por e-mail. Prazo de 12 meses começa na **ativação** |
 
 **Empresa:** Nexpay Vendas Online LTDA · CNPJ 44.681.882/0001-73.
 
----
-
-## 2. Promessa
-
-**Norte (headline da LP):** Seu caixa não mora num site. Mora no seu computador.
-
-**Pro:** Você teve venda, gastou em ads, pagou taxa — e o Cashflow mostra se sobrou.
-
-**Pessoal:** O dinheiro some no mês. O programa avisa **antes** de estourar.
-
-**Oferta:** Pague R$ 30. Receba a chave. Ative quando for usar.
+Quem já comprou 3 meses por R$ 30 segue na licença antiga. O anúncio novo não oferece esse prazo.
 
 ---
 
@@ -45,284 +66,224 @@ Pagamento: **cartão (Stripe)** ou **PIX (Pushin Pay)**. A chave chega no e-mail
 
 Pode:
 
-- Pagamento único de **R$ 30** pelos **3 meses**
-- Sem mensalidade
-- Cartão ou PIX
-- Serial por e-mail + instalador Windows (.exe) e Mac (.dmg)
-- Prazo começa **na ativação**, não no dia do pagamento
-- Dados 100% locais
-- 1 serial = 1 cópia do app (vale no pendrive)
-- Programa de computador (Windows e Mac) — não é app de celular
+- 12 meses por **R$ 97**, pagamento único, sem mensalidade
+- Vitalício por **R$ 147**, se o anúncio for explicitamente desse plano
+- Reembolso integral em 7 dias **somente se o serial não foi ativado**
+- Cartão ou PIX, serial por e-mail, instalador Windows (.exe) e Mac (.dmg)
+- Prazo de 12 meses começa na ativação
+- Dados no computador
+- 1 serial = 1 cópia (vale no pendrive)
+- Fechamento do período em PDF e Excel, como organização da operação
+- ROI da oferta depois de investimento, taxa e imposto, em BR, US, AR, MX e CO
 
 Não pode:
 
+- “R$ 8,08/mês” seco, “R$ 97/mês”, mensalidade, “cancele quando quiser”
 - “Conta grátis”, “teste grátis”, “sem cartão”
-- “Cancele quando quiser” no sentido de assinatura recorrente
-- “Funciona no iPhone / Android”
-- “Seus dados ficam na nuvem segura da gente”
-- Preço de 5 meses / anual / vitalício se ainda estiver “a definir”
-- Garantia de lucro, “vai 3x seu ROI”, “pare de perder dinheiro com ads” como resultado garantido
-- Dizer que substitui banco, Meta Ads Manager ou gateway
-- Inventar depoimento, número de clientes, rating ou “usado por X mil pessoas” sem prova
-- “Conecta no Nubank automaticamente” — o usuário **lança**; não há Open Finance
+- Garantia incondicional, garantia de lucro, “vai 3x o ROI”
+- Depoimento, nota, “X mil usuários” ou print de cliente sem prova real
+- Cashflow Pessoal, “organize sua vida financeira”, salário e contas de casa como gancho
+- “3 meses por R$ 30” como oferta do anúncio
+- App de celular, nuvem, Open Finance, “conecta no Nubank”
+- Substituir banco, Meta Ads, gateway ou contador
+- Escassez fabricada
+- Preço riscado (R$ 197 → R$ 97). R$ 197 não foi preço praticado
 
 ---
 
 ## 4. CTA e destino
 
-CTA padrão:
+CTA padrão do anúncio e da primeira dobra: **Comprar 12 meses — R$ 97**.
 
-- **Comprar 3 meses — R$ 30**
-- Alternativas: **Pagar no PIX**, **Receber a chave**, **Ativar quando for usar**
+O vitalício aparece na seção de plano da página, como âncora. O anúncio não precisa empurrar os dois preços com o mesmo peso.
 
-CTA nativo da plataforma: **Comprar** ou **Saiba mais**. Não usar “Cadastrar-se”.
+Alternativas de texto: **Pagar no PIX**, **Receber a chave**, **Ativar quando for usar**.
 
-Destino: landing com âncora `#planos`.
+CTA nativo: **Comprar** ou **Saiba mais**. Não usar “Cadastrar-se”.
 
-Exemplo de URL:
+Destino: `#planos`.
 
-`https://SEU-DOMINIO/#planos?utm_source=meta&utm_medium=cpc&utm_campaign=pro_lucro_real&utm_content=reels_15s_v1`
-
----
-
-## 5. Público (separar no gerenciador)
-
-Não misture Pro e Pessoal no mesmo criativo. Audiência, copy e print mudam.
-
-### Campanha A — Cashflow Pro (prioridade)
-
-**Quem:** infoprodutor, afiliado, gestor de tráfego, dono de oferta, MEI/PJ que gasta em ads.
-
-**Dor de abertura:**
-
-- “Tive venda, gastei em ads, paguei taxa — e não sei se sobrou.”
-- Gerenciador mostra gasto; não mostra caixa.
-- Planilha quebra, duplica, ninguém atualiza.
-- Mistura casa, empresa e dinheiro da oferta no mesmo extrato.
-- Lucro “bonito” no dashboard de ads e vermelho no banco.
-
-**Ganho:** ROI e lucro **depois** de investimento, taxa de checkout e imposto. Países BR, US, AR, MX, CO.
-
-**Prints:** `offers.png`, `cashflow-cards.png`, `cashflow-chart.png`.
-
-### Campanha B — Cashflow Pessoal
-
-**Quem:** quem recebe salário/Pix, paga cartão e contas, quer teto por categoria, não quer extrato na nuvem.
-
-**Dor:**
-
-- “O dinheiro some e eu só vejo no fim do mês.”
-- Conta fixa (aluguel, ferramenta, assinatura) que esquece de lançar.
-- Orçamento que só aparece quando já estourou.
-
-**Ganho:** lançamentos (Pix, crédito, débito, dinheiro), orçamento com alerta 75% / 90% / 100%, recorrentes, captura rápida.
-
-**Prints:** `cashflow-expenses.png`, `cashflow-cards.png`, `plans.png`.
+`https://SEU-DOMINIO/#planos?utm_source=meta&utm_medium=cpc&utm_campaign=pro_quanto_sobrou&utm_content=reels_15s_v1`
 
 ---
 
-## 6. Ângulos (um ângulo = um anúncio)
+## 5. Público
 
-| # | Nome | Gancho | Edição |
+Uma campanha. Um público. Cashflow Pro.
+
+**Quem:** afiliado, gestor de tráfego, infoprodutor, dono de oferta, MEI/PJ que gasta em anúncio.
+
+**Comportamento que a copy pode narrar** (fato de rotina, não opinião sobre o produto):
+
+- Vendeu, gastou em ads, pagou taxa, e não fechou a conta.
+- O gerenciador mostra gasto ou “lucro”. O banco mostra outra coisa.
+- A planilha quebra, duplica, ou ninguém atualiza.
+- Casa, empresa e dinheiro da oferta caem no mesmo extrato.
+- O imposto e a taxa ficam de fora do ROI.
+
+**Ganho:** o que sobrou depois de anúncio, taxa, imposto e despesa, por oferta.
+
+**Prints:** `dashboard-hero.png`, `ofertas.png`, `oferta.png`, `comparar-ofertas.png`. `despesas.png` só para “você lança a saída”.
+
+---
+
+## 6. Ângulos
+
+Um ângulo por anúncio. Os quatro primeiros são os de aquisição. Os outros são fechamento, não gancho frio.
+
+| # | Nome | Gancho | Papel |
 |---|---|---|---|
-| 1 | Lucro real | Ads + taxa + venda no mesmo lugar | Pro |
-| 2 | Não é o gerenciador | O gerenciador mostra gasto. O Cashflow mostra se sobrou. | Pro |
-| 3 | Planilha vs programa | Planilha quebra. Programa no PC não some quando fecha o Drive. | Ambas |
-| 4 | Sem nuvem | Seu caixa não mora num site. | Ambas |
-| 5 | R$ 30 / 3 meses | Paga uma vez. Ativa quando for usar. | Ambas |
-| 6 | Alerta de orçamento | Avisa em 75%, 90% e 100% — não no vermelho do extrato. | Pessoal |
-| 7 | Pendrive | Um serial, uma cópia — leva no pendrive. | Ambas |
-| 8 | Multi-banco | Nubank, Inter, C6, Itaú… você lança. Não conecta o banco. | Ambas |
-| 9 | Ativação | O relógio começa quando você cola a chave, não quando paga. | Ambas |
-| 10 | Windows e Mac | Mesma chave. Instalador .exe ou .dmg. | Ambas |
-
-Teste um ângulo por criativo. Headline, visual e CTA alinhados.
+| 1 | Quanto sobrou | Você sabe quanto vendeu. Sabe quanto sobrou? | Abertura |
+| 2 | Não é o gerenciador | O gerenciador mostra o gasto. Não mostra o caixa | Abertura |
+| 3 | A conta | Receita − Ads − Taxas − Impostos − Despesas | Mecanismo |
+| 4 | Planilha | A planilha quebra. O resultado da oferta não pode morar nela | Abertura |
+| 5 | 12 meses · R$ 97 | Paga uma vez. Ativa quando for usar | Oferta |
+| 6 | 7 dias | Não ativou o serial em 7 dias, o valor volta | Risco |
+| 7 | Fechamento | O mês fecha em PDF ou Excel. Não é contábil | Bônus |
+| 8 | Sem nuvem | O caixa fica no computador | Diferencial de fechamento |
+| 9 | Vitalício | R$ 147 uma vez, sem validade | Âncora, não o anúncio padrão |
 
 ---
 
 ## 7. Headlines
 
-### Pro
+### Abertura
 
-- Teve venda. Gastou ads. Sobrou?
+- Você sabe quanto vendeu. E quanto sobrou?
 - O gerenciador não é o seu caixa
-- Lucro depois da taxa — no PC
-- ROI da oferta, sem planilha
-- Seu caixa não mora num site
-
-### Pessoal
-
-- O dinheiro some. O alerta chega antes.
-- Orçamento no PC, não no extrato
-- Pix, cartão e teto no mesmo lugar
-- Conta fixa que você esquece? Recorrente.
+- Vendeu. Gastou ads. Cadê o que ficou?
+- Lucro depois da taxa, do imposto e da despesa
 
 ### Oferta
 
-- 3 meses. R$ 30. Sem mensalidade.
-- Pague R$ 30. Receba a chave.
-- Ative quando for usar.
-- Cartão ou PIX. Chave no e-mail.
+- 12 meses. R$ 97. Pagamento único.
+- 1 ano de Cashflow Pro — R$ 97
+- Não é R$ 97 por mês
+- Pague R$ 97. Receba a chave. Ative quando for usar.
 
-### Texto primário — Pro
+### Fechamento (texto longo, não a primeira linha)
 
-> Você vendeu. Gastou em anúncio. Pagou taxa do checkout.
-> No gerenciador está “positivo”. No banco, não.
+- Dados no seu computador
+- Windows e Mac. A mesma chave
+- Sem mensalidade
+- Não ativou em 7 dias, devolvemos o valor
+
+### Texto primário
+
+> Você vendeu. Gastou em anúncio. Pagou taxa. O imposto ficou de fora da conta.
+> No gerenciador está positivo. No banco, não.
 >
-> Cashflow Pro é um programa no Windows e no Mac: cruza investimento, receita e taxa e mostra o lucro real de cada oferta. Os dados ficam no seu computador — não numa conta na nuvem.
+> Cashflow Pro faz a conta da oferta: receita, ads, taxas, impostos e despesas. É um programa no Windows e no Mac. Os dados ficam no seu computador.
 >
-> R$ 30 pelos 3 meses. Cartão ou PIX. O prazo só começa quando você ativa o serial.
+> 12 meses por R$ 97, uma vez. Cartão ou PIX. O prazo começa quando você ativa o serial. Se não ativar em 7 dias, o valor volta.
 
-### Texto primário — Pessoal
+### Ganchos de 3 segundos
 
-> No fim do mês você abre o extrato e pergunta pra onde foi.
->
-> Cashflow Pessoal é um programa no computador: lançamento (Pix, cartão, dinheiro), orçamento por categoria e alerta em 75%, 90% e 100%. Sem mandar o caixa inteiro pra um site.
->
-> R$ 30 · 3 meses · serial por e-mail.
-
-### Ganchos de 3 segundos (UGC / Reels)
-
-- “Se o Meta diz que você lucrou e o Nubank diz o contrário…”
-- “Eu parei de colocar o caixa da oferta na mesma planilha da casa.”
-- “Não é app. É programa. Os dados ficam aqui.” *(mostrar o computador)*
+- “Se o Meta diz que você lucrou e o banco diz o contrário…”
+- “Eu parei de fechar a oferta na mesma planilha da casa.”
+- “Não é o gerenciador. É o que sobrou.”
 
 ---
 
 ## 8. Roteiros
 
-Estrutura: **dor → prova na tela → oferta → CTA**. Legenda grande: o anúncio roda sem som.
+Estrutura: **buraco → conta na tela → oferta → CTA**. Legenda grande. O anúncio roda sem som.
 
-### 15s — Pro
+### 15s
 
-| Tempo | Imagem | Texto na tela |
+| Tempo | Imagem | Texto |
 |---|---|---|
-| 0–2s | Número vermelho ou tela | “Vendi. Gastei ads. Cadê o lucro?” |
-| 2–8s | Print `offers.png` | “Cashflow Pro cruza anúncio, taxa e venda.” |
-| 8–12s | Print `cashflow-cards.png` | “No seu PC. Sem nuvem.” |
-| 12–15s | Preço + botão | “3 meses · R$ 30. Comprar.” |
+| 0–2s | Tela ou número | “Vendi. Gastei ads. Cadê o que sobrou?” |
+| 2–8s | `oferta.png` ou `ofertas.png` | “Receita, anúncio, taxa e imposto. Por oferta.” |
+| 8–12s | `dashboard-hero.png` | “No seu computador.” |
+| 12–15s | Preço + botão | “12 meses · R$ 97. Comprar.” |
 
-### 30s — Pro
+### 30s
 
 1. **0–4s:** “O gerenciador de anúncio não é o seu caixa.”
-2. **4–10s:** planilha + extrato misturado + taxa que ninguém lança.
-3. **10–22s:** overview → caixa → ofertas. Narrar o que o olho vê: lucro, saída, ROI.
-4. **22–27s:** “Você paga no cartão ou no PIX, recebe o serial, instala no Windows ou no Mac, cola a chave. O prazo começa na ativação.”
-5. **27–30s:** “Cashflow Pro · 3 meses · R$ 30.”
-
-### 30s — Pessoal
-
-Gancho: “O dinheiro some e você só vê no fim do mês.”  
-Demo: despesas + cards + alerta de orçamento / projetos.  
-Fechar igual: serial, local, R$ 30.
+2. **4–10s:** planilha, taxa que ninguém lança, imposto fora do ROI.
+3. **10–22s:** caixa → ofertas. Narrar o que o olho vê.
+4. **22–27s:** “R$ 97 uma vez. Chave por e-mail. 12 meses a partir da ativação. Não ativou em 7 dias, o valor volta.”
+5. **27–30s:** “Cashflow Pro · 12 meses · R$ 97.”
 
 ### 60s — UGC
 
-- 0–5s: quem é (ex.: “rodo oferta no Meta”). Sem inventar resultado percentual.
-- 5–20s: rotina antiga (planilha, três abas, “acho que lucrei”).
-- 20–45s: mostrar o app. Números de demo só com “tela de demonstração”.
-- 45–55s: “não é mensalidade; 3 meses, R$ 30; começa quando eu ativo.”
-- 55–60s: CTA.
+- 0–5s: “rodo oferta”. Sem percentual inventado.
+- 5–20s: a rotina antiga (três abas, “acho que lucrei”).
+- 20–45s: a tela do programa. Se o número for de demonstração, dizer isso.
+- 45–55s: pagamento único, ativação, reembolso de 7 dias se não ativar.
+- 55–60s: CTA dos 12 meses.
+
+Não gravar roteiro de Cashflow Pessoal para tráfego frio.
 
 ---
 
-## 9. Carrossel (copy dos cards)
+## 9. Carrossel — 5 cards
 
-**Pro — 5 cards**
-
-1. Tive venda. Gastei ads. Paguei taxa. Cadê o que sobrou?
+1. Você sabe quanto vendeu. Sabe quanto sobrou?
 2. O gerenciador mostra o gasto. Não mostra o caixa.
-3. *(print ofertas)* Lucro depois da taxa — por oferta.
-4. *(print cards)* Dados no seu computador. Sem mensalidade.
-5. 3 meses · R$ 30 · cartão ou PIX. Comprar.
-
-**Pessoal — 5 cards**
-
-1. O dinheiro some. Você só vê no fim do mês.
-2. Pix, cartão, conta fixa — no mesmo programa.
-3. *(print despesas)* Lança. Categoriza. Pronto.
-4. Alerta em 75%, 90% e 100% do teto.
-5. R$ 30 · 3 meses. Windows ou Mac.
+3. *(print ofertas)* Receita − ads − taxa − imposto − despesa.
+4. *(print cards)* No seu computador. Sem mensalidade.
+5. 12 meses · R$ 97 · pagamento único. Comprar.
 
 ---
 
-## 10. Objeções (resposta curta)
+## 10. Objeções
 
 | Objeção | Resposta |
 |---|---|
 | É mais um SaaS? | Não. Programa no computador. O site só vende a chave. |
 | Meus dados vão pra nuvem? | Não. Caixa e ofertas ficam no computador. |
-| Precisa de internet? | Pagar, baixar e ativar: sim. Dia a dia: local. De tempos em tempos o app confirma se a chave vale. |
-| É mensalidade? | Não. Você compra um prazo. 3 meses = R$ 30. |
-| Começa a contar quando eu pago? | Não. Começa na ativação. |
+| E se eu formatar o PC? | O histórico local some, salvo se você exportou ou copiou os dados. A chave continua: reinstala e cola o mesmo serial. O prazo não recomeça. |
+| É R$ 97 por mês? | Não. R$ 97 é a licença de 12 meses, uma vez. |
+| E se eu instalar e não servir? | Se o serial não for ativado em 7 dias, devolvemos o valor. |
+| Começa a contar quando eu pago? | Não. Os 12 meses começam na ativação. |
 | Tem no celular? | Não. Windows e Mac. |
-| Tem para Mac? | Tem. Mesma chave. Baixa o .dmg, cola o serial. |
-| Posso usar em dois PCs ao mesmo tempo? | 1 serial = 1 cópia. No pendrive você leva essa cópia. Instalar separado em dois computadores ao mesmo tempo não faz parte do modelo. |
-| Substitui o Ads Manager? | Não. Organiza o que você lança: caixa, orçamento e, no Pro, resultado da oferta depois da taxa. |
-| E depois dos 3 meses? | Compra de novo, recebe outro serial, ativa de novo. |
-| Como é o PIX? | Informa o e-mail, paga o QR. Quando confirma, o serial vai para esse e-mail. |
+| Posso usar em dois PCs ao mesmo tempo? | 1 serial = 1 cópia. No pendrive você leva essa cópia. |
+| Substitui o Ads Manager? | Não. Organiza o que você lança e mostra o resultado da oferta. |
+| O PDF é contábil? | Não. É o fechamento da sua operação. Não substitui o contador. |
+| E depois dos 12 meses? | Compra de novo e ativa outro serial. O vitalício é R$ 147, uma vez. |
+| Como é o PIX? | Informa o e-mail, paga o QR. O serial vai para esse e-mail. |
 
 ---
 
 ## 11. Claims
 
-**Permitido:**
+**Permitido:** visão do período (receita, despesa, lucro, ROI), saúde do caixa (saudável / atenção / risco), lançamento manual (Pix, crédito, débito, dinheiro), bancos como “você lança” (Nubank, Inter, C6, Itaú, Bradesco, Banco do Brasil, Caixa, Santander, PicPay, Mercado Pago, PagBank), ofertas com taxa e imposto, orçamento 75/90/100, PDF e Excel do período, serial, pendrive, Windows e Mac, cartão ou PIX, reembolso de 7 dias sem ativação.
 
-- Visão do período: receita, despesa, lucro líquido; no Pro, ROI
-- Saúde do caixa: saudável / atenção / risco
-- Lançamentos: Pix, crédito, débito, dinheiro (o usuário lança; não há sincronização automática)
-- Bancos citados como “você lança”: Nubank, Inter, C6 Bank, Itaú, Bradesco, Banco do Brasil, Caixa, Santander, PicPay, Mercado Pago, PagBank
-- Despesas avulsas e recorrentes; captura rápida
-- Ofertas: investimento, receita, taxa, imposto; BR, US, AR, MX, CO (só Pro)
-- Orçamento por categoria com aviso 75% / 90% / 100%
-- Projetos separados do caixa do dia
-- Relatórios do período; Pro: PDF e Excel
-- Licença por serial; 1 cópia; pendrive; Windows e Mac
-- Pagamento único; cartão Stripe ou PIX Pushin Pay
-
-**Proibido:**
-
-- Integração automática com banco
-- “IA que investe por você” / “robô de tráfego”
-- Qualquer % de lucro, ROAS ou “clientes faturam X” sem dado real
-- App mobile
-- Conta grátis
-- Comparar com banco (“melhor que o Inter”)
-- Usar marca de Meta, Google ou Hotmart como se fosse parceria oficial
+**Proibido:** integração automática com banco, IA que investe, robô de tráfego, percentual de lucro sem prova, app mobile, conta grátis, “melhor que o banco X”, selo de parceria com Meta, Google ou Hotmart, depoimento inventado, escassez falsa.
 
 ---
 
-## 12. Checklist antes de publicar
+## 12. Checklist
 
-- [ ] Edição certa (Pro **ou** Pessoal) no texto e no print
-- [ ] Preço só **R$ 30 / 3 meses**, salvo se outro prazo já tiver preço no site
-- [ ] CTA não pede “criar conta grátis”
-- [ ] Deixa claro: **Windows ou Mac**, não celular
-- [ ] Deixa claro: **dados locais**
-- [ ] Nenhum resultado financeiro inventado
+- [ ] O anúncio é Cashflow Pro, não Pessoal
+- [ ] A primeira linha é o buraco (quanto sobrou), não “sem nuvem”
+- [ ] Preço visível: **R$ 97 / 12 meses**, pagamento único
+- [ ] Se aparecer R$ 147, está marcado como vitalício, não como mensalidade
+- [ ] Reembolso só nos 7 dias e só se o serial não foi ativado
+- [ ] Nenhum resultado financeiro ou depoimento inventado
 - [ ] Print real de `public/images/lp/` ou gravação do app
-- [ ] Texto legível sem som
-- [ ] Destino = `#planos` com UTM
+- [ ] Sem escassez fabricada
+- [ ] Destino `#planos` com UTM
 
 ---
 
-## 13. Matriz mínima (semana 1)
+## 13. Matriz mínima
 
-Seis criativos, não trinta.
+Quatro criativos de Pro. Não misturar com Pessoal.
 
-| ID | Formato | Ângulo | Edição |
-|---|---|---|---|
-| P-15-A | Reels 15s | Lucro real | Pro |
-| P-ST-B | Estático 1:1 | Gerenciador ≠ caixa | Pro |
-| P-CAR-C | Carrossel 5 cards | Seção 9 | Pro |
-| S-15-D | Reels 15s | Alerta de orçamento | Pessoal |
-| S-ST-E | Estático 1:1 | Sem nuvem + R$ 30 | Pessoal |
-| P-30-F | UGC 30s | Planilha vs programa | Pro |
+| ID | Formato | Ângulo |
+|---|---|---|
+| P-15-A | Reels 15s | Quanto sobrou |
+| P-ST-B | Estático 1:1 | Gerenciador ≠ caixa |
+| P-CAR-C | Carrossel | Seção 9 |
+| P-30-D | UGC 30s | Planilha vs a conta da oferta |
 
-Avaliar depois de volume real de clique (cerca de 50–100), não no primeiro dia. Escalar o que gera checkout iniciado.
+Avaliar depois de volume real de clique, não no primeiro dia. Escalar o que gera checkout, não só visualização.
 
 ---
 
-## Frase para colar no briefing do editor
+## Frase para o editor
 
-> Cashflow é programa de caixa para Windows e Mac. Duas edições: Pro (oferta + ROI depois da taxa) e Pessoal (orçamento e dia a dia). Dados no computador. Serial por e-mail. 3 meses por R$ 30, cartão ou PIX, prazo na ativação. Não é app de celular, não é nuvem, não é mensalidade, não é gerenciador de anúncio. O anúncio mostra a tela real, a dor em uma frase, o preço e o botão Comprar.
+> Cashflow Pro é o programa que mostra quanto a oferta sobrou: receita menos ads, taxas, impostos e despesas. Windows e Mac. Dados no computador. 12 meses por R$ 97, uma vez. Vitalício por R$ 147 fica na página, como segunda opção. Se o serial não for ativado em 7 dias, o valor volta. Não é app, não é nuvem, não é mensalidade, não é gerenciador de anúncio, não é garantia de lucro. O anúncio mostra a tela real, o buraco em uma frase, o preço e o botão Comprar 12 meses.

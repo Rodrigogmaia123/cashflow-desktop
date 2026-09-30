@@ -1,13 +1,15 @@
-# Design de criativos — Cashflow
+# Design de criativos — Cashflow Pro
 
 Especificação visual para estático, carrossel, stories, reels e end card.  
-Mensagem e ângulos ficam em `docs/briefing-criativos.md`.
+Mensagem em `docs/briefing-criativos.md`.
 
-O criativo segue a landing atual: fundo escuro, acento verde-lima, violeta só como detalhe. Não usar o tema violeta “SaaS antigo” como cor principal.
+Há duas peles. A **escura** é a da landing e o padrão do anúncio. A **clara** existe para teste de feed, onde o fundo claro para o scroll. As duas usam o mesmo lime, a mesma tipo e a mesma tela real do programa. Não desenhar uma fintech branca genérica e chamar de versão clara.
+
+O anúncio é Cashflow Pro. Não desenhar badge “Pessoal” nem preço de 3 meses.
 
 ---
 
-## 1. Cores
+## 1. Versão escura (padrão)
 
 | Token | Hex | Uso |
 |---|---|---|
@@ -17,160 +19,182 @@ O criativo segue a landing atual: fundo escuro, acento verde-lima, violeta só c
 | Superfície 2 | `#16221c` | Card interno |
 | Texto | `#f3f7f4` | Headline |
 | Muted | `#9ca9a1` | Subtexto |
-| Dim | `#64706a` | Kicker, legenda secundária |
-| Borda | `rgba(234, 240, 236, 0.1)` | Contorno glass |
-| Lime | `#c7f156` | CTA, preço, underline, badge |
+| Dim | `#64706a` | Kicker |
+| Borda | `rgba(234, 240, 236, 0.1)` | Contorno |
+| Lime | `#c7f156` | CTA, preço, pílula |
 | Lime 2 | `#8fcb2e` | Segundo acento |
-| Violeta | `#ac93ff` | Tag PRO, glow, detalhe |
+| Violeta | `#ac93ff` | Tag PRO, detalhe |
 | Violeta 2 | `#7a57f0` | Glow secundário |
-| Ok | `#8fd37a` | Lucro / positivo |
-| Warn | `#e4c15c` | Alerta de orçamento |
-| Texto no botão | `#0a0f0c` | Sempre texto escuro em cima do lime |
+| Ok | `#8fd37a` | Lucro na legenda, se precisar recolorir |
+| Warn | `#e4c15c` | Alerta, com parcimônia |
+| Texto no botão | `#0a0f0c` | Sempre escuro em cima do lime |
 
-Glow sugerido (não obrigatório):
+Glow: `0 0 60px -12px rgba(199, 241, 86, 0.55)`.  
+Glass: `rgba(255,255,255,0.045)` → `rgba(255,255,255,0.015)`, borda 1px, raio **16px**.
 
-- Lime: `0 0 60px -12px rgba(199, 241, 86, 0.55)`
-- Violeta: `0 0 60px -12px rgba(172, 147, 255, 0.55)`
-
-Glass: degradê leve `rgba(255,255,255,0.045)` → `rgba(255,255,255,0.015)`, borda 1px, raio **16px**.
-
-**Regra do botão:** fundo `#c7f156`, texto `#0a0f0c`, peso 600. Nunca texto branco em cima do lime.
+Barra da janela do app: `#121c17`.
 
 ---
 
-## 2. Tipografia
+## 2. Versão clara
+
+O miolo continua sendo o print escuro do programa. O que clareia é a moldura em volta: papel, headline e card.
+
+| Token | Hex | Uso |
+|---|---|---|
+| Fundo | `#f3f6f1` | Papel. Não usar `#ffffff` chapado na peça inteira |
+| Fundo 2 | `#e6eee4` | Faixa, verso de card |
+| Superfície | `#ffffff` | Card da oferta, moldura |
+| Texto | `#14201a` | Headline |
+| Muted | `#5c6b63` | Subtexto |
+| Dim | `#7d8b84` | Kicker |
+| Borda | `rgba(20, 32, 26, 0.12)` | Contorno do card |
+| Lime | `#c7f156` | Botão e pílula de preço. Não usar como cor de texto longo |
+| Lime texto | `#3f6212` | Kicker, sublinhado e preço quando o fundo é claro |
+| Violeta | `#6d28d9` | Tag PRO em fundo claro. O `#ac93ff` some no papel |
+| Ok | `#3f7d32` | Número positivo fora do print |
+| Warn | `#a16207` | Alerta em fundo claro |
+| Texto no botão | `#0a0f0c` | Igual à versão escura |
+
+Sombra do card: `0 16px 40px -24px rgba(20, 32, 26, 0.35)`. Sem glow neon.  
+A barra da janela do print pode continuar `#121c17`, porque a tela do produto é escura. Não “clarear” o screenshot no Photoshop.
+
+Pílulas da equação no claro: fundo `#ffffff`, borda `rgba(20, 32, 26, 0.14)`, texto `#3f6212`.
+
+---
+
+## 3. O que as duas versões compartilham
+
+**Botão:** fundo `#c7f156`, texto `#0a0f0c`, peso 600. Nunca texto branco em cima do lime.
+
+**Tipografia**
 
 | Papel | Família | Peso |
 |---|---|---|
 | Headline | Space Grotesk | 600 ou 700 |
 | Corpo | IBM Plex Sans | 400 / 500 |
-| Preço, kicker, serial, tag de edição | IBM Plex Mono | 400 ou 500 |
+| Preço, kicker, serial | IBM Plex Mono | 400 ou 500 |
 
-Arquivos no repo: `app/(marketing)/fonts/`.
+Arquivos: `app/(marketing)/fonts/`. Tracking da headline `-0.01em`.
 
-Headline com tracking levemente negativo (`-0.01em`), como na LP. Kicker em mono, caixa alta, cor muted ou lime: `CASHFLOW PRO`, `CASHFLOW PESSOAL`, `3 MESES`.
+Kicker em mono, caixa alta: `CASHFLOW PRO`, `12 MESES`, `PAGAMENTO ÚNICO`.
 
-**Tom visual da letra:** frases curtas, segunda pessoa, sem guru. Sem emoji no estático. No texto do anúncio, no máximo um.
+Frases curtas. Sem emoji no estático. No texto do anúncio, no máximo um.
 
----
-
-## 3. Logo e marca
+**Logo**
 
 - Ícone: `public/brand/cashflow-icon.png`
-- Wordmark: **Cashflow** (Space Grotesk). Sem “Pro” no logo quando o anúncio for da edição Pessoal.
-- Badge de edição, separado do logo, em mono: `CASHFLOW PRO` ou `CASHFLOW PESSOAL`.
-- Pro pode usar um filete ou ponto violeta. Pessoal usa lime.
-- Não colocar logo de banco, Meta, Google, Hotmart ou Stripe como selo de parceria.
+- Wordmark: **Cashflow** (Space Grotesk) + badge `CASHFLOW PRO` em mono
+- Sem logo de banco, Meta, Google, Hotmart, Stripe ou Apple/Microsoft como selo de parceria
 
----
+**Moldura do produto**
 
-## 4. Moldura do produto
-
-Janela tipo app:
-
-- Barra superior escura (`#121c17`)
 - Três pontos discretos
-- Título em mono, minúsculo: `fluxo de caixa · cards`, `ofertas · ROI`
-- Print dentro, sem distorcer
-- Borda glass + glow lime suave atrás
-
-Números das prints são de demonstração. Se o criativo destacar um valor da tela, a legenda diz **tela do programa** — não vender aquele número como resultado de quem anuncia.
+- Título em mono: `ofertas · ROI`, `fluxo de caixa · cards`
+- Print sem distorcer
+- Se o número da tela aparecer grande, a legenda diz **tela do programa**
 
 ---
 
-## 5. Prints prontos
+## 4. Prints
 
 Pasta: `public/images/lp/`
 
-| Arquivo | O que mostra | Onde usar |
-|---|---|---|
-| `cashflow-cards.png` | Lucro, receita, saída, projeção | Hero de caixa, ambas as edições |
-| `cashflow-chart.png` | Evolução do mês | Prova visual |
-| `offers.png` | ROI e faturamento por oferta | **Só Pro** |
-| `plans.png` | Projetos: planejado vs pago | Teto / projeto |
-| `cashflow-expenses.png` | Lançamentos, categoria, Pix/cartão | Pessoal e “você lança” |
+| Arquivo | Uso |
+|---|---|
+| `dashboard-hero.png` | Hero. Investimento, faturamento, taxas, lucro, ROI |
+| `visao-geral.png` | Receita, despesa, lucro, saúde do caixa |
+| `ofertas.png` | Radar de ROI e cadastro de oferta |
+| `oferta.png` | Uma oferta aberta |
+| `comparar-ofertas.png` | Comparação entre ofertas |
+| `despesas.png` | Saídas, categoria e taxa |
+| `investimentos.png` | Entradas e aportes |
+| `projetos.png` | Planejado versus pago |
+| `orcamentos.png` | Teto por categoria |
 
-Recorte novo: capturar o app em 1920×1080, depois enquadrar 1:1 e 9:16. Não esticar.
-
-Não usar: print do painel admin, tela de serial vazada, fluxo de tester, mock genérico de dashboard SaaS.
+Não usar: painel admin, serial vazado, mock de dashboard SaaS, seta de “+300%”.
 
 ---
 
-## 6. Formatos
+## 5. Formatos
 
 | Canal | Proporção | Tamanho | O que entra |
 |---|---|---|---|
-| Feed Meta | 1:1 | 1080×1080 | Print + headline + preço |
+| Feed Meta | 1:1 | 1080×1080 | Print + headline + R$ 97 |
 | Stories / Reels / TikTok | 9:16 | 1080×1920 | Demo + texto no miolo |
-| YouTube / in-stream | 16:9 | 1920×1080 | Demo + end card de 5s |
-| Google Demand Gen | 1.91:1 e 1:1 | 1200×628 e 1080×1080 | Headline curta + print |
-| Carrossel Meta | 1:1 | 1080×1080 × 4–5 | 1 problema + 3 telas + oferta |
+| YouTube | 16:9 | 1920×1080 | Demo + end card de 5s |
+| Demand Gen | 1.91:1 e 1:1 | 1200×628 e 1080×1080 | Headline curta + print |
+| Carrossel | 1:1 | 1080×1080 × 5 | Buraco, mecanismo, 2 telas, oferta |
 
-**Zona segura 9:16:** texto, logo e preço fora dos ~250px de cima e ~350px de baixo (avatar, caption, botão nativo).
+**Zona segura 9:16:** texto e preço fora dos ~250px de cima e ~350px de baixo.
 
-**Primeiro frame:** texto legível em 1 segundo. Sem intro de logo de 3 segundos.
+**Primeiro frame:** legível em 1 segundo. Sem intro de logo.
 
-**Hierarquia do estático 1:1 (de cima para baixo):**
+**Estático 1:1, de cima para baixo**
 
-1. Badge da edição (mono)
-2. Headline (2 linhas no máximo)
+1. `CASHFLOW PRO`
+2. Headline em até 2 linhas
 3. Print na moldura
-4. Preço em mono: `3 MESES · R$ 30`
-5. Botão lime: `Comprar`
+4. `12 MESES · R$ 97` em mono
+5. Botão: `Comprar`
 
-Subtexto opcional, uma linha: `Sem mensalidade · Windows e Mac · dados no PC`.
+Linha opcional: `Pagamento único · não é mensalidade`.
+
+A versão clara usa a mesma ordem. Só troca o papel e a cor do texto.
 
 ---
 
-## 7. Composição por ângulo
+## 6. Composição por ângulo
 
-| Ângulo | Visual dominante | Cor de acento |
+| Ângulo | Visual | Acento |
 |---|---|---|
-| Lucro real | Zoom em `offers.png` | Lime no ROI, violeta na tag PRO |
-| Gerenciador ≠ caixa | Split: tela de ads borrada / print do Cashflow nítido | Lime só no lado Cashflow |
-| Sem nuvem | Print + cadeado “Salvo localmente” | Lime |
-| R$ 30 | Preço grande em mono, print menor | Botão lime |
-| Alerta de orçamento | `plans.png` ou card de teto | Warn `#e4c15c` só no número do alerta |
-| Windows e Mac | Dois chips `Windows` / `macOS`, mesmo estilo da LP | Lime |
+| Quanto sobrou | Zoom em `dashboard-hero.png` ou `oferta.png` | Lime no resultado, tag PRO |
+| Gerenciador ≠ caixa | Split: ads borrado / Cashflow nítido | Lime só no lado Cashflow |
+| A conta | Cinco pílulas numa linha: Receita − Ads − Taxas − Impostos − Despesas | O sinal fica colado na pílula seguinte |
+| 12 meses | Preço grande em mono, print menor | Botão lime |
+| Sem nuvem | Print + “Salvo no computador” | Fechamento, não a peça de abertura |
+| Windows e Mac | Dois chips `Windows` / `macOS` | Sem logo oficial |
 
-Chips de sistema (como a LP): pílula com borda, texto sans, sem logo oficial da Apple ou da Microsoft em tamanho de parceria.
+No claro, as pílulas não podem usar texto `#c7f156` em cima do papel. Usar texto `#3f6212` ou pílula lime com texto `#0a0f0c`.
 
 ---
 
-## 8. End card (últimos 3–5s do vídeo)
+## 7. End card (3–5s)
 
-Fundo `#0a0f0c`.
+**Escuro:** fundo `#0a0f0c`, texto `#f3f7f4`.  
+**Claro:** fundo `#f3f6f1`, texto `#14201a`.
+
+Nos dois:
 
 - Wordmark Cashflow
-- Linha: `3 meses · R$ 30 · sem mensalidade`
-- Botão: `Comprar`
-- Linha pequena em muted: `Windows e Mac · chave por e-mail`
+- `12 meses · R$ 97 · pagamento único`
+- Botão lime `Comprar`
+- Linha pequena: `Windows e Mac · chave por e-mail`
 
-Sem URL gigante se a plataforma já mostra o botão. Se precisar de URL, só o domínio.
+Sem URL gigante se a plataforma já mostra o botão.
 
 ---
 
-## 9. O que não desenhar
+## 8. O que não desenhar
 
-- App de celular, mock de iPhone como produto principal
-- Nuvem, cadeado de “banco na nuvem”, Open Finance
-- Gráfico de crescimento inventado (seta 300%, “+R$ 50 mil”)
-- Depoimento com foto de estoque e estrela sem prova
-- Fundo branco clean de fintech genérica
+- App de celular como produto
+- Nuvem, Open Finance, cadeado de “banco seguro na nuvem”
+- Gráfico inventado, depoimento de banco de imagem, estrela sem prova
+- Selos “garantido”, “#1”, “X mil usuários”, contador de escassez
 - Gradiente roxo dominante
-- Preço de prazo que ainda está “A definir” na LP
-- Selos “garantido”, “#1 do Brasil”, “usado por milhares”
+- Preço de 3 meses ou de Pessoal
+- “R$ 8,08/mês” como se fosse assinatura
+- Versão clara que seja só um dashboard branco, sem lime e sem a tela real
 
 ---
 
-## 10. Checklist do arquivo final
+## 9. Checklist
 
-- [ ] Fundo `#0a0f0c` (ou variação `#0d1612`)
-- [ ] Headline em Space Grotesk
-- [ ] Preço em IBM Plex Mono
-- [ ] Botão lime com texto `#0a0f0c`
-- [ ] Edição (Pro ou Pessoal) visível se o print for de ofertas
-- [ ] `offers.png` só em peça de Pro
+- [ ] Pele declarada no arquivo: `escura` ou `clara`
+- [ ] Se clara: papel `#f3f6f1`, texto `#14201a`, kicker `#3f6212`, botão lime com texto `#0a0f0c`
+- [ ] Se escura: fundo `#0a0f0c`, texto `#f3f7f4`
+- [ ] Headline em Space Grotesk, preço em IBM Plex Mono
+- [ ] Preço `12 MESES · R$ 97`
+- [ ] Print de oferta só em peça de Pro, sem distorção
 - [ ] Texto fora da zona de UI no 9:16
-- [ ] Print sem distorção
-- [ ] Export: PNG (estático) ou MP4 H.264 (vídeo), sem marca d’água de editor
+- [ ] PNG ou MP4 H.264, sem marca d’água de editor
