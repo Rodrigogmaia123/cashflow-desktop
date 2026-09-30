@@ -166,11 +166,7 @@ export function LandingContent() {
   return (
     <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`}>
       <LandingEffects />
-      <div className="bg-fx" aria-hidden>
-        <div className="blob blob-lime" />
-        <div className="blob blob-violet" />
-        <div className="blob blob-lime2" />
-      </div>
+      <div className="glow" aria-hidden />
       <div className="grain" aria-hidden />
 
       <header>
