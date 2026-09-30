@@ -13,49 +13,85 @@ export type ProductShot = {
 
 export const PRODUCT_SHOTS: ProductShot[] = [
   {
-    id: "caixa",
-    tab: "Caixa",
-    title: "fluxo de caixa · cards",
+    id: "dashboard",
+    tab: "Dashboard",
+    title: "dashboard · setembro",
     caption:
-      "Lucro, receita, saída e projeção do período — no mesmo lugar, sem abrir planilha.",
-    src: "/images/lp/cashflow-cards.png",
-    alt: "Tela de fluxo de caixa do Cashflow com cards de lucro, receita, saídas e projeção",
+      "Investimento, faturamento, taxas, lucro e ROI do mês — e a evolução logo abaixo.",
+    src: "/images/lp/dashboard-hero.png",
+    alt: "Dashboard do Cashflow Pro com investimento, faturamento, taxas, lucro, ROI e gráfico do período",
   },
   {
-    id: "evolucao",
-    tab: "Evolução",
-    title: "fluxo de caixa · gráfico",
+    id: "visao",
+    tab: "Visão geral",
+    title: "visão geral · lucro",
     caption:
-      "Entradas, saídas e saldo no gráfico do mês. O insight avisa quando uma origem concentra demais a receita.",
-    src: "/images/lp/cashflow-chart.png",
-    alt: "Gráfico de evolução do cashflow com entradas, saídas e saldo acumulado",
+      "Receita, despesa, lucro líquido e ROI. A saúde do caixa fica no mesmo painel.",
+    src: "/images/lp/visao-geral.png",
+    alt: "Visão geral do Cashflow Pro com receita, despesas, lucro líquido e ROI",
   },
   {
     id: "ofertas",
     tab: "Ofertas",
-    title: "ofertas · ROI",
+    title: "ofertas · radar",
     caption:
-      "Radar das ofertas: ROI, faturamento e país. Só na edição Pro.",
-    src: "/images/lp/offers.png",
-    alt: "Grade de ofertas do Cashflow Pro com ROI e faturamento de cada campanha",
+      "Cria a oferta e vê o radar: ROI, país e se a campanha está ativa.",
+    src: "/images/lp/ofertas.png",
+    alt: "Lista de ofertas do Cashflow Pro com ROI de cada campanha e formulário para criar oferta",
   },
   {
-    id: "projetos",
-    tab: "Projetos",
-    title: "projetos · teto",
+    id: "oferta",
+    tab: "Uma oferta",
+    title: "oferta · resultado",
     caption:
-      "Planejado não mistura com o caixa. Pago vira despesa de verdade. Reforma, estoque, viagem — separado.",
-    src: "/images/lp/plans.png",
-    alt: "Tela de projetos do Cashflow com planejado, pago e itens ainda a pagar",
+      "Uma campanha aberta: investimento, faturamento, taxa, lucro e ROI real.",
+    src: "/images/lp/oferta.png",
+    alt: "Dashboard de uma oferta do Cashflow Pro com investimento, faturamento, taxa, lucro e ROI",
+  },
+  {
+    id: "comparar",
+    tab: "Comparar",
+    title: "ofertas · comparação",
+    caption:
+      "Até três ofertas na mesma métrica, para ver qual deixou mais.",
+    src: "/images/lp/comparar-ofertas.png",
+    alt: "Comparação de lucro entre ofertas no dashboard do Cashflow Pro",
   },
   {
     id: "despesas",
     tab: "Despesas",
-    title: "fluxo de caixa · lançamentos",
+    title: "fluxo de caixa · saídas",
     caption:
-      "Onde o dinheiro saiu: categoria, Pix ou cartão, banco. Dá para lançar entrada e investimento na mesma tela.",
-    src: "/images/lp/cashflow-expenses.png",
-    alt: "Lista de despesas do período no Cashflow, com categoria e forma de pagamento",
+      "Para onde saiu: origem, categoria e taxa da oferta. Anúncio e ferramenta no mesmo lugar.",
+    src: "/images/lp/despesas.png",
+    alt: "Fluxo de caixa do Cashflow Pro com gráficos de saída e lista de despesas",
+  },
+  {
+    id: "entradas",
+    tab: "Entradas",
+    title: "fluxo de caixa · entradas",
+    caption:
+      "O que entrou e o que foi aportado, separado da despesa do dia.",
+    src: "/images/lp/investimentos.png",
+    alt: "Lançamentos de receita e investimentos do período no Cashflow Pro",
+  },
+  {
+    id: "projetos",
+    tab: "Projetos",
+    title: "projetos · planejado",
+    caption:
+      "Planejado não entra no caixa. Quando você paga, vira despesa de verdade.",
+    src: "/images/lp/projetos.png",
+    alt: "Projeto de escala no Cashflow Pro com planejado, pago e o que ainda falta pagar",
+  },
+  {
+    id: "orcamentos",
+    tab: "Orçamentos",
+    title: "orçamentos · teto",
+    caption:
+      "Teto por categoria. O que estourou aparece aqui, não só no extrato.",
+    src: "/images/lp/orcamentos.png",
+    alt: "Orçamentos do Cashflow Pro com categorias no limite e categorias que estouraram",
   },
 ];
 
@@ -85,7 +121,7 @@ function ShotWindow({
 export function HeroShot() {
   const shot = PRODUCT_SHOTS[0];
   return (
-    <ShotWindow title="fluxo de caixa · agosto" src={shot.src} alt={shot.alt} />
+    <ShotWindow title={shot.title} src={shot.src} alt={shot.alt} />
   );
 }
 
