@@ -187,7 +187,7 @@ export function LandingContent() {
             <a href="#faq">DÚVIDAS</a>
           </nav>
           <a href="#planos" className="btn btn-primary">
-            Comprar 12 meses
+            Comprar
           </a>
         </div>
         <div className="ticker">
@@ -210,9 +210,8 @@ export function LandingContent() {
                 CASHFLOW PRO
               </div>
               <h1>
-                Você sabe quanto vendeu.
-                <br />
-                Mas sabe quanto realmente sobrou?
+                Você sabe quanto vendeu.{" "}
+                <em>Mas sabe quanto realmente sobrou?</em>
               </h1>
               <p className="lead">
                 Organize investimento em anúncios, faturamento, taxas, impostos
@@ -265,31 +264,59 @@ export function LandingContent() {
           <div className="wrap">
             <div className="head reveal">
               <div className="kicker">COMO A CONTA FECHA</div>
-              <h2>Receita − Ads − Taxas − Impostos − Despesas</h2>
+              <h2>
+                O gerenciador mostra o gasto.{" "}
+                <em>Você precisa ver o que sobrou.</em>
+              </h2>
               <p>
-                O gerenciador mostra o gasto. O Cashflow Pro junta o que entrou,
-                o que foi para anúncio, a taxa, o imposto e a despesa — e mostra
-                o que sobrou em cada oferta.
+                O Cashflow Pro junta o que entrou, o que foi para anúncio, a
+                taxa, o imposto e a despesa — e mostra o resultado de cada
+                oferta.
               </p>
             </div>
-            <div className="formula reveal" aria-label="Receita menos ads, taxas, impostos e despesas">
-              <span className="os-chip">Receita</span>
-              <span className="formula-step">
-                <b>−</b>
-                <span className="os-chip">Ads</span>
-              </span>
-              <span className="formula-step">
-                <b>−</b>
-                <span className="os-chip">Taxas</span>
-              </span>
-              <span className="formula-step">
-                <b>−</b>
-                <span className="os-chip">Impostos</span>
-              </span>
-              <span className="formula-step">
-                <b>−</b>
-                <span className="os-chip">Despesas</span>
-              </span>
+            <ol className="calc reveal">
+              <li className="calc-row glass">
+                <span className="op">+</span>
+                <div>
+                  <span className="n">Receita</span>
+                  <span className="h">o que entrou</span>
+                </div>
+              </li>
+              <li className="calc-row glass">
+                <span className="op">−</span>
+                <div>
+                  <span className="n">Ads</span>
+                  <span className="h">o que foi para anúncio</span>
+                </div>
+              </li>
+              <li className="calc-row glass">
+                <span className="op">−</span>
+                <div>
+                  <span className="n">Taxas</span>
+                  <span className="h">checkout e gateway</span>
+                </div>
+              </li>
+              <li className="calc-row glass">
+                <span className="op">−</span>
+                <div>
+                  <span className="n">Impostos</span>
+                  <span className="h">o que já tinha dono</span>
+                </div>
+              </li>
+              <li className="calc-row glass">
+                <span className="op">−</span>
+                <div>
+                  <span className="n">Despesas</span>
+                  <span className="h">ferramentas e equipe</span>
+                </div>
+              </li>
+            </ol>
+            <div className="calc-res reveal">
+              <span className="op">=</span>
+              <div>
+                <b>O que sobrou</b>
+                <span>em cada oferta</span>
+              </div>
             </div>
           </div>
         </section>
@@ -410,21 +437,18 @@ export function LandingContent() {
                   assinatura e custo fixo não ficam de fora do resultado.
                 </p>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="fechamento">
-          <div className="wrap">
-            <div className="head reveal">
-              <div className="kicker">FECHAMENTO</div>
-              <h2>Fechamento do mês em 1 clique</h2>
-              <p>
-                Entra na licença, sem custo à parte. Não é fechamento contábil
-                oficial e não substitui o contador: é a organização da sua
-                operação. Você vê receita, despesa, investimento, taxas e
-                resultado do período — e exporta em PDF ou Excel.
-              </p>
+              <div className="feat-card span-all glass">
+                <div className="icon-box lime">
+                  <IconLock />
+                </div>
+                <div className="feat-tag">FECHAMENTO</div>
+                <h3>Fechamento do mês em 1 clique</h3>
+                <p className="benefit">
+                  Entra na licença, sem custo à parte. Não é fechamento contábil
+                  oficial e não substitui o contador: é a organização da sua
+                  operação. Exporta em PDF ou Excel.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -531,54 +555,19 @@ export function LandingContent() {
                 não abre — o serial sai depois do pagamento.
               </p>
             </div>
-            <div className="download-grid single reveal">
-              <div className="dl-card pro glass">
-                <div className="edition mono">CASHFLOW PRO</div>
-                <h3>Para quem vende e anuncia</h3>
-                <p>
-                  Mesma chave nos dois sistemas. Escolha o instalador do seu
-                  computador.
-                </p>
-                <div className="dl-actions">
-                  <a href="/download/pro" className="btn btn-ghost">
-                    Windows (.exe)
-                  </a>
-                  <a href="/download/pro/mac" className="btn btn-ghost">
-                    Mac (.dmg)
-                  </a>
-                </div>
-              </div>
+            <div className="dl-pair reveal">
+              <a href="/download/pro" className="btn btn-ghost">
+                Windows (.exe)
+              </a>
+              <a href="/download/pro/mac" className="btn btn-ghost">
+                Mac (.dmg)
+              </a>
             </div>
             <p className="dl-note reveal">
               Ainda não tem chave?{" "}
               <a href="#planos">Compre 12 meses por R$ 97</a> e ative depois de
               instalar.
             </p>
-          </div>
-        </section>
-
-        <section>
-          <div className="wrap">
-            <div className="priv-band glass reveal">
-              <div className="priv-icon">
-                <IconLock />
-              </div>
-              <div>
-                <h3>
-                  Programa para Windows e Mac. Dados no seu computador. Sem
-                  mensalidade recorrente.
-                </h3>
-                <p>
-                  O caixa, as ofertas e os lançamentos ficam na sua máquina —
-                  não numa conta na nuvem. O site só vende e libera a chave. A
-                  internet entra para pagar, baixar e, de tempos em tempos,
-                  confirmar se a licença ainda vale.
-                </p>
-              </div>
-              <a href="#planos" className="btn btn-primary">
-                Comprar 12 meses
-              </a>
-            </div>
           </div>
         </section>
 
@@ -606,7 +595,9 @@ export function LandingContent() {
             <div className="cta-final glass reveal">
               <div className="cta-glow" />
               <div className="cta-copy">
-                <h2>1 ano de Cashflow Pro — R$ 97</h2>
+                <h2>
+                  1 ano de Cashflow Pro — <em>R$ 97</em>
+                </h2>
                 <p>
                   Pagamento único. Sem mensalidade recorrente. Você recebe o
                   serial por e-mail e o instalador para Windows ou Mac. Os 12
