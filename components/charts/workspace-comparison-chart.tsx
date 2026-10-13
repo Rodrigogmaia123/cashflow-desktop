@@ -1,9 +1,11 @@
 "use client";
 
+import { useId, useMemo } from "react";
 import {
+  Bar,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,6 +13,7 @@ import {
 } from "recharts";
 import { parseLocalDate } from "@/lib/utils/date-local";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
+import { numericSeriesIsSparse } from "@/components/charts/series-density";
 
 type Metric = "revenue" | "profit" | "roi";
 
@@ -46,49 +49,122 @@ function formatDate(dateStr: string): string {
 
 export function WorkspaceComparisonChart({ metric, lines, data, currency }: Props) {
   const isPercent = metric === "roi";
+  const gradientPrefix = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const flat = useMemo(
+    () => data.map((point) => ({ date: point.date, ...point.values })),
+    [data]
+  );
+  const sparseIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const line of lines) {
+      if (numericSeriesIsSparse(flat.map((point) => point[line.offerId]))) {
+        ids.add(line.offerId);
+      }
+    }
+    return ids;
+  }, [flat, lines]);
+
+  const barLines = lines.filter((line) => sparseIds.has(line.offerId));
+  const curveLines = lines.filter((line) => !sparseIds.has(line.offerId));
+  const maxBarSize = barLines.length <= 1 ? 22 : 12;
+  const chartData = flat.map((point) => {
+    if (barLines.length === 0) return point;
+    const next: Record<string, unknown> = { ...point };
+    for (const line of barLines) {
+      if (next[line.offerId] === 0) next[line.offerId] = null;
+    }
+    return next;
+  });
+  const lowest = chartData.reduce((min, point) => {
+    for (const line of lines) {
+      const value = point[line.offerId];
+      if (typeof value === "number" && value < min) return value;
+    }
+    return min;
+  }, 0);
 
   return (
-    <div className="h-72 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-          <XAxis
-            dataKey="date"
-            tickFormatter={formatDate}
-            tickMargin={8}
-            fontSize={11}
-          />
-          <YAxis
-            tickMargin={8}
-            fontSize={11}
-            tickFormatter={(v) =>
-              isPercent
-                ? `${(Number(v) * 100).toFixed(0)}%`
-                : formatMoney(Number(v), currency, { maximumFractionDigits: 0, minimumFractionDigits: 0 })
-            }
-          />
-          <Tooltip
-            formatter={(value: unknown, name: string) => {
-              if (typeof value !== "number") return [String(value), name];
-              return isPercent ? [`${(value * 100).toFixed(2)}%`, name] : [formatMoney(value, currency), name];
-            }}
-            labelFormatter={(label) => `Data: ${typeof label === "string" ? formatDate(label) : label}`}
-          />
-
-          {lines.map((l) => (
-            <Line
-              key={l.offerId}
-              type="monotone"
-              dataKey={(p: ComparisonChartPoint) => p.values[l.offerId] ?? 0}
-              name={l.offerName}
-              stroke={l.color}
-              strokeWidth={2}
-              dot={false}
+    <>
+      <div className="h-72 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={chartData}
+            margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
+            barGap={2}
+            barCategoryGap="20%"
+          >
+            {barLines.length > 0 && (
+              <defs>
+                {barLines.map((line) => {
+                  const id = `${gradientPrefix}-${line.offerId.replace(/[^a-zA-Z0-9]/g, "")}`;
+                  return (
+                    <linearGradient key={line.offerId} id={id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={line.color} stopOpacity={0.72} />
+                      <stop offset="100%" stopColor={line.color} stopOpacity={0.16} />
+                    </linearGradient>
+                  );
+                })}
+              </defs>
+            )}
+            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+            <XAxis
+              dataKey="date"
+              tickFormatter={formatDate}
+              tickMargin={8}
+              fontSize={11}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+            <YAxis
+              domain={barLines.length > 0 ? [lowest < 0 ? "auto" : 0, "auto"] : undefined}
+              tickMargin={8}
+              fontSize={11}
+              tickFormatter={(v) =>
+                isPercent
+                  ? `${(Number(v) * 100).toFixed(0)}%`
+                  : formatMoney(Number(v), currency, { maximumFractionDigits: 0, minimumFractionDigits: 0 })
+              }
+            />
+            <Tooltip
+              formatter={(value: unknown, name: string) => {
+                if (typeof value !== "number") return [String(value), name];
+                return isPercent ? [`${(value * 100).toFixed(2)}%`, name] : [formatMoney(value, currency), name];
+              }}
+              labelFormatter={(label) => `Data: ${typeof label === "string" ? formatDate(label) : label}`}
+            />
+
+            {curveLines.map((line) => (
+              <Line
+                key={line.offerId}
+                type="monotone"
+                dataKey={line.offerId}
+                name={line.offerName}
+                stroke={line.color}
+                strokeWidth={2}
+                dot={false}
+              />
+            ))}
+            {barLines.map((line) => (
+              <Bar
+                key={line.offerId}
+                dataKey={line.offerId}
+                name={line.offerName}
+                fill={`url(#${gradientPrefix}-${line.offerId.replace(/[^a-zA-Z0-9]/g, "")})`}
+                stroke={line.color}
+                strokeWidth={1.5}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={maxBarSize}
+                barSize={maxBarSize}
+              />
+            ))}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      {barLines.length > 0 && (
+        <p className="text-[11px] text-muted-foreground">
+          Lançamentos com dias vazios no meio entram em barras, no dia do registro.
+          A altura é o valor anotado.
+        </p>
+      )}
+    </>
   );
 }
 
