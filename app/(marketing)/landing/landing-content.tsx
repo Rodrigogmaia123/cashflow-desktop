@@ -34,6 +34,12 @@ const VISIBLE_UPDATES = 5;
 
 const UPDATES = [
   {
+    version: "0.2.4",
+    when: "13 OUT",
+    title: "Lançamento por período deixa de virar pico",
+    body: "Quem anota de poucos em poucos dias vê o valor em barra, no dia do registro. Quem anota quase todo dia continua com a curva.",
+  },
+  {
     version: "0.2.3",
     when: "22 SET",
     title: "Atualizar não apaga o caixa",
@@ -56,12 +62,6 @@ const UPDATES = [
     when: "8 SET",
     title: "Windows, Mac e PIX",
     body: "Instalador para os dois sistemas. Pagamento no cartão ou no PIX, com o serial no e-mail depois que o pagamento cai.",
-  },
-  {
-    version: "0.1.6",
-    when: "4 SET",
-    title: "Suporte dentro do programa",
-    body: "Uma aba de suporte para falar com a gente sem sair do Cashflow Pro.",
   },
 ];
 
