@@ -29,7 +29,13 @@ O anúncio é Cashflow Pro. Não desenhar badge “Pessoal” nem preço de 3 me
 | Warn | `#e4c15c` | Alerta, com parcimônia |
 | Texto no botão | `#0a0f0c` | Sempre escuro em cima do lime |
 
-Glow: `0 0 60px -12px rgba(199, 241, 86, 0.55)`.  
+Glow de botão: `0 0 60px -12px rgba(199, 241, 86, 0.55)`.  
+Fundo da landing, fixo, sem animação:
+
+- lima no canto superior esquerdo: `radial-gradient(520px 420px at 0% 0%, rgba(111, 143, 31, 0.4), transparent 70%)`
+- violeta à direita: `radial-gradient(520px 480px at 100% 70%, rgba(122, 87, 240, 0.28), transparent 70%)`
+
+O criativo escuro pode usar os mesmos dois glows. Não usar manchas animadas nem degradê roxo cobrindo a peça.  
 Glass: `rgba(255,255,255,0.045)` → `rgba(255,255,255,0.015)`, borda 1px, raio **16px**.
 
 Barra da janela do app: `#121c17`.
@@ -59,7 +65,7 @@ O miolo continua sendo o print escuro do programa. O que clareia é a moldura em
 Sombra do card: `0 16px 40px -24px rgba(20, 32, 26, 0.35)`. Sem glow neon.  
 A barra da janela do print pode continuar `#121c17`, porque a tela do produto é escura. Não “clarear” o screenshot no Photoshop.
 
-Pílulas da equação no claro: fundo `#ffffff`, borda `rgba(20, 32, 26, 0.14)`, texto `#3f6212`.
+Faixa da conta no claro: cards brancos, borda `rgba(20, 32, 26, 0.14)`, texto `#14201a`. O nome da receita e a barra “O que sobrou” usam texto `#3f6212`, ou a barra lime com texto `#0a0f0c`. Não escrever a equação em `#c7f156` sobre o papel.
 
 ---
 
@@ -150,12 +156,12 @@ A versão clara usa a mesma ordem. Só troca o papel e a cor do texto.
 |---|---|---|
 | Quanto sobrou | Zoom em `dashboard-hero.png` ou `oferta.png` | Lime no resultado, tag PRO |
 | Gerenciador ≠ caixa | Split: ads borrado / Cashflow nítido | Lime só no lado Cashflow |
-| A conta | Cinco pílulas numa linha: Receita − Ads − Taxas − Impostos − Despesas | O sinal fica colado na pílula seguinte |
+| A conta | Faixa da conta, como na landing: Receita, Ads, Taxas, Impostos, Despesas, e a barra “O que sobrou” | Lime na receita e no resultado |
 | 12 meses | Preço grande em mono, print menor | Botão lime |
 | Sem nuvem | Print + “Salvo no computador” | Fechamento, não a peça de abertura |
 | Windows e Mac | Dois chips `Windows` / `macOS` | Sem logo oficial |
 
-No claro, as pílulas não podem usar texto `#c7f156` em cima do papel. Usar texto `#3f6212` ou pílula lime com texto `#0a0f0c`.
+No claro, a faixa da conta não usa texto `#c7f156` em cima do papel. Usar texto `#3f6212` ou barra lime com texto `#0a0f0c`.
 
 ---
 

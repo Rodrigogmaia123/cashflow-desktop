@@ -75,7 +75,7 @@ Nesta ordem, na página e em qualquer bloco novo:
 5. **Diferencial de fechamento.** Programa para Windows e Mac, dados no computador, sem mensalidade.
 6. **Oferta.** 12 meses por R$ 97, pagamento único. Vitalício por R$ 147 ao lado, como âncora. Bônus: fechamento do mês em PDF e Excel. Garantia: 7 dias se o serial não for ativado.
 
-O CTA do topo e do hero é **Comprar 12 meses**. Isso é intencional: o caminho de R$ 97 entra primeiro; o vitalício compete na seção de plano.
+O CTA do menu é **Comprar** e leva ao plano. O CTA do hero e o do fim da página são **Comprar 12 meses — R$ 97**. Isso é intencional: o caminho de R$ 97 entra primeiro; o vitalício compete na seção de plano.
 
 ---
 
@@ -193,22 +193,22 @@ Evitar: conta grátis, nuvem como lugar do dinheiro, IA, banco automático, pre�
 
 ## 12. Estrutura da página
 
-A ordem já está certa. Não acrescentar seção. O que faltava (garantia, backup, bônus) mora dentro do plano e do FAQ.
+A ordem já está certa. Não acrescentar seção. Garantia, backup e bônus moram no plano e no FAQ. “Dados no computador” e “sem mensalidade” também ficam no hero, no download e no FAQ — não há faixa própria disso.
 
-1. Hero — promessa + Comprar 12 meses — R$ 97
-2. Mecanismo — as cinco pílulas
+1. Hero — promessa, segunda frase em lime, CTA Comprar 12 meses — R$ 97
+2. Mecanismo — faixa da conta (Receita, Ads, Taxas, Impostos, Despesas) e a barra lime “O que sobrou”
 3. Para quem é — afiliado, gestor, infoproduto
-4. Problema
-5. O que o Cashflow Pro faz
-6. Fechamento do mês em 1 clique, marcado como parte da licença
-7. Telas reais
-8. Diferencial — Windows e Mac, dados locais, sem mensalidade
-9. Como funciona
-10. Download só do Pro
-11. Plano — 12 meses em destaque, vitalício ao lado, cartão e PIX, reembolso de 7 dias
-12. FAQ
-13. CTA final — 1 ano, R$ 97, pagamento único
-14. Rodapé com razão social e CNPJ
+4. Problema — cada item com ×
+5. O que o Cashflow Pro faz — o fechamento do mês em PDF e Excel é um card desta seção, marcado como parte da licença
+6. Telas reais
+7. Como funciona
+8. Download — dois botões, Windows (.exe) e Mac (.dmg), só do Pro
+9. Plano — um card central. 12 meses e vitalício no mesmo card. Cartão e PIX. Reembolso de 7 dias
+10. FAQ
+11. CTA final — 1 ano, R$ 97 em lime, pagamento único
+12. Rodapé com razão social e CNPJ
+
+Fundo da página: escuro `#0a0f0c`, com glow fixo lima no canto superior esquerdo e violeta à direita. Sem manchas animadas.
 
 ---
 
