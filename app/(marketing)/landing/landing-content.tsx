@@ -29,6 +29,39 @@ const BANKS = [
   "PagBank",
 ];
 
+const UPDATES = [
+  {
+    version: "0.2.3",
+    when: "22 SET",
+    title: "Atualizar não apaga o caixa",
+    body: "Instalar a versão nova por cima preserva lançamentos, projetos e a licença. Relatórios por período deixam de recarregar em loop.",
+  },
+  {
+    version: "0.2.0",
+    when: "13 SET",
+    title: "O programa avisa quando sai versão nova",
+    body: "Um aviso dentro do programa aponta a atualização. Os filtros que você escolheu ficam salvos na próxima abertura.",
+  },
+  {
+    version: null,
+    when: "11 SET",
+    title: "A mesma chave depois de reinstalar",
+    body: "Formatar ou trocar de máquina não pede outra compra: você cola o mesmo serial. Despesa recorrente passa a ter data de início.",
+  },
+  {
+    version: null,
+    when: "8 SET",
+    title: "Windows, Mac e PIX",
+    body: "Instalador para os dois sistemas. Pagamento no cartão ou no PIX, com o serial no e-mail depois que o pagamento cai.",
+  },
+  {
+    version: "0.1.6",
+    when: "4 SET",
+    title: "Suporte dentro do programa",
+    body: "Uma aba de suporte para falar com a gente sem sair do Cashflow Pro.",
+  },
+];
+
 const DOR = [
   "Saber o faturamento e não saber o que sobrou.",
   "Gerenciador de anúncio que mostra o gasto, mas não o caixa.",
@@ -178,6 +211,7 @@ export function LandingContent() {
           <nav className="nav-links">
             <a href="#produto">O PRODUTO</a>
             <a href="#telas">TELAS</a>
+            <a href="#atualizacoes">NOVIDADES</a>
             <a href="#download">BAIXAR</a>
             <a href="#planos">PLANO</a>
             <a href="#faq">DÚVIDAS</a>
@@ -567,6 +601,42 @@ export function LandingContent() {
           </div>
         </section>
 
+        <section id="atualizacoes">
+          <div className="wrap">
+            <div className="head reveal">
+              <div className="kicker">ATUALIZAÇÕES</div>
+              <h2>
+                A licença inclui o que vier depois.{" "}
+                <em>O programa continua melhorando.</em>
+              </h2>
+              <p>
+                Quem já comprou recebe a versão nova no mesmo serial. Você
+                instala por cima. Lançamentos e a chave ficam no computador.
+                Sem mensalidade para acompanhar.
+              </p>
+            </div>
+            <ol className="updates reveal">
+              {UPDATES.map((item) => (
+                <li
+                  key={`${item.when}-${item.title}`}
+                  className={`update glass${item.version === "0.2.3" ? " is-latest" : ""}`}
+                >
+                  <div className="update-meta">
+                    <span className="update-when">{item.when}</span>
+                    {item.version ? (
+                      <span className="update-ver">v{item.version}</span>
+                    ) : null}
+                  </div>
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
         <PlansSection offers={offers} />
 
         <section id="faq">
@@ -614,6 +684,7 @@ export function LandingContent() {
           <div>Nexpay Vendas Online LTDA · CNPJ 44.681.882/0001-73</div>
           <div className="foot-links">
             <a href="#download">Baixar</a>
+            <a href="#atualizacoes">Novidades</a>
             <a href="#faq">Dúvidas</a>
             <a href="#planos">Plano</a>
             <a href="#telas">Telas</a>
