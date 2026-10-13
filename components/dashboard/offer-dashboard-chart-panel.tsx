@@ -202,9 +202,8 @@ export function OfferDashboardChartPanel({
       <OfferPerformanceChart data={data} shown={state.shown} focus={state.focus} currency={currency} />
 
       <p className="text-[11px] text-muted-foreground">
-        1 métrica em foco (linha forte). As demais visíveis ficam em baixa
-        opacidade. O tooltip mostra apenas as métricas visíveis. Nenhum cálculo
-        é feito no client.
+        1 métrica em foco, com as demais visíveis em baixa opacidade. O tooltip
+        mostra apenas as métricas visíveis. Nenhum cálculo é feito no client.
       </p>
     </div>
   );

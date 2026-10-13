@@ -1,5 +1,6 @@
 "use client";
 
+import { useId, useMemo } from "react";
 import {
   CartesianGrid,
   ComposedChart,
@@ -9,10 +10,12 @@ import {
   XAxis,
   YAxis,
   Area,
+  Bar,
   type TooltipProps
 } from "recharts";
 import { parseLocalDate } from "@/lib/utils/date-local";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
+import { numericSeriesIsSparse } from "@/components/charts/series-density";
 
 export type PerformanceChartPoint = {
   date: string;
@@ -172,8 +175,44 @@ function ActiveTooltip({
 
 
 export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
+  const gradientPrefix = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const sparseByKey = useMemo(() => {
+    const map = new Map<string, boolean>();
+    if (!data || data.length === 0) return map;
+    for (const series of seriesConfig) {
+      const key = String(series.dataKey);
+      map.set(key, numericSeriesIsSparse(data.map((point) => point[series.dataKey] as number)));
+    }
+    return map;
+  }, [data]);
+
   if (!data || data.length === 0) {
     return null;
+  }
+
+  const visibleSeries = seriesConfig.filter((series) => shown[series.metricId]);
+  const barSeries = visibleSeries.filter((series) => sparseByKey.get(String(series.dataKey)));
+  const curveSeries = visibleSeries.filter((series) => !sparseByKey.get(String(series.dataKey)));
+  const maxBarSize = barSeries.length <= 1 ? 22 : 12;
+  const barKeys = new Set(barSeries.map((series) => String(series.dataKey)));
+  const chartData = data.map((point) => {
+    if (barKeys.size === 0) return point;
+    const next: Record<string, unknown> = { ...point };
+    for (const key of barKeys) {
+      if (next[key] === 0) next[key] = null;
+    }
+    return next;
+  });
+
+  function axisMin(keys: string[]) {
+    let min = 0;
+    for (const point of data) {
+      for (const key of keys) {
+        const value = point[key as keyof PerformanceChartPoint];
+        if (typeof value === "number" && value < min) min = value;
+      }
+    }
+    return min < 0 ? "auto" : 0;
   }
 
   const showPercentAxis = Boolean(
@@ -182,9 +221,44 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
   const showCountAxis = Boolean(seriesConfig.some((c) => c.kind === "count" && shown[c.metricId]));
 
   return (
+    <>
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
+        <ComposedChart
+          data={chartData}
+          margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
+          barGap={2}
+          barCategoryGap="20%"
+        >
+          {barSeries.length > 0 && (
+            <defs>
+              {barSeries.map((series) => {
+                const key = String(series.dataKey);
+                const focused = focus === series.metricId;
+                return (
+                  <linearGradient
+                    key={key}
+                    id={`${gradientPrefix}-${key}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={series.color}
+                      stopOpacity={focused ? 0.72 : 0.34}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={series.color}
+                      stopOpacity={focused ? 0.16 : 0.06}
+                    />
+                  </linearGradient>
+                );
+              })}
+            </defs>
+          )}
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
           <XAxis
             dataKey="date"
@@ -197,6 +271,18 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
             yAxisId="money"
             tickMargin={8}
             fontSize={11}
+            domain={
+              barSeries.some((series) => series.kind === "money")
+                ? [
+                    axisMin(
+                      visibleSeries
+                        .filter((series) => series.kind === "money")
+                        .map((series) => String(series.dataKey))
+                    ),
+                    "auto"
+                  ]
+                : undefined
+            }
             tickFormatter={(v) =>
               formatMoney(Number(v), currency, {
                 maximumFractionDigits: 0,
@@ -230,18 +316,13 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
             )}
           />
 
-          {seriesConfig.map((c) => {
-            if (!shown[c.metricId]) return null;
-
+          {curveSeries.map((c) => {
             const focused = focus === c.metricId;
-            // Aumentada opacidade de 0.15 para 0.5 para melhor visibilidade das linhas secundárias
             const opacity = focused ? 1 : 0.5;
             const width = focused ? 2.5 : 1;
-
             const yAxisId =
               c.kind === "money" ? "money" : c.kind === "percent" ? "percent" : "count";
 
-            // Money: métrica em foco ganha "área"; as demais viram linha fina sem preenchimento.
             if (c.kind === "money" && focused) {
               return (
                 <Area
@@ -272,9 +353,39 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
               />
             );
           })}
+
+          {barSeries.map((c) => {
+            const focused = focus === c.metricId;
+            const key = String(c.dataKey);
+            const yAxisId =
+              c.kind === "money" ? "money" : c.kind === "percent" ? "percent" : "count";
+
+            return (
+              <Bar
+                key={`${c.metricId}:${key}`}
+                yAxisId={yAxisId}
+                dataKey={key}
+                name={c.name}
+                fill={`url(#${gradientPrefix}-${key})`}
+                stroke={c.color}
+                strokeOpacity={focused ? 1 : 0.45}
+                strokeWidth={focused ? 1.5 : 1}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={maxBarSize}
+                barSize={maxBarSize}
+              />
+            );
+          })}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
+    {barSeries.length > 0 && (
+      <p className="text-[11px] text-muted-foreground">
+        Lançamentos com dias vazios no meio entram em barras, no dia do registro.
+        A altura é o valor anotado, e o modo Acumulado segue em curva contínua.
+      </p>
+    )}
+    </>
   );
 }
 
