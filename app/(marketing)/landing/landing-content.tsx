@@ -29,6 +29,9 @@ const BANKS = [
   "PagBank",
 ];
 
+/** Mais recente no topo. A LP mostra só estas; a sexta deixa de aparecer. */
+const VISIBLE_UPDATES = 5;
+
 const UPDATES = [
   {
     version: "0.2.3",
@@ -616,10 +619,10 @@ export function LandingContent() {
               </p>
             </div>
             <ol className="updates reveal">
-              {UPDATES.map((item) => (
+              {UPDATES.slice(0, VISIBLE_UPDATES).map((item, index) => (
                 <li
                   key={`${item.when}-${item.title}`}
-                  className={`update glass${item.version === "0.2.3" ? " is-latest" : ""}`}
+                  className={`update glass${index === 0 ? " is-latest" : ""}`}
                 >
                   <div className="update-meta">
                     <span className="update-when">{item.when}</span>
