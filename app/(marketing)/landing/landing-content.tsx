@@ -1,9 +1,12 @@
+import { cookies } from "next/headers";
 import { LandingEffects } from "./landing-effects";
 import { display, mono, sans } from "./fonts";
 import { PlansSection } from "./plans-section";
 import { HeroShot, ProductShots } from "./product-shots";
+import { ThemeToggle } from "./theme-toggle";
 import { listSellableLicenseOffers } from "@/lib/license/catalog";
 import "../landing.css";
+import "../landing-light.css";
 
 const TICKER = [
   "RECEITA − ADS − TAXAS − IMPOSTOS",
@@ -33,6 +36,12 @@ const BANKS = [
 const VISIBLE_UPDATES = 5;
 
 const UPDATES = [
+  {
+    version: "0.2.5",
+    when: "14 OUT",
+    title: "Anotações na agenda",
+    body: "Notas, tarefas e lembretes no calendário, com checklist. Também dá para guardar notas avulsas por tema.",
+  },
   {
     version: "0.2.4",
     when: "13 OUT",
@@ -192,7 +201,8 @@ function IconLock() {
   );
 }
 
-export function LandingContent() {
+export async function LandingContent() {
+  const theme = (await cookies()).get("lp-theme")?.value === "light" ? "light" : "dark";
   const ticker = [...TICKER, ...TICKER];
   const banks = [...BANKS, ...BANKS];
   const offers = listSellableLicenseOffers();
@@ -200,7 +210,7 @@ export function LandingContent() {
   const faqs = buildFaqs(lifetimeOn);
 
   return (
-    <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`}>
+    <div className={`lp ${display.variable} ${sans.variable} ${mono.variable}`} data-theme={theme}>
       <LandingEffects />
       <div className="glow" aria-hidden />
       <div className="grain" aria-hidden />
@@ -219,9 +229,12 @@ export function LandingContent() {
             <a href="#planos">PLANO</a>
             <a href="#faq">DÚVIDAS</a>
           </nav>
-          <a href="#planos" className="btn btn-primary">
-            Comprar
-          </a>
+          <div className="nav-actions">
+            <ThemeToggle initial={theme} />
+            <a href="#planos" className="btn btn-primary">
+              Comprar
+            </a>
+          </div>
         </div>
         <div className="ticker">
           <div className="ticker-track">
