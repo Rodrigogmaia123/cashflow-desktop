@@ -222,6 +222,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+}
+
+.lp .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.lp .theme-toggle {
+  padding: 8px 12px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .lp .brand {
@@ -264,6 +278,12 @@
 @media (max-width: 760px) {
   .lp .nav-links {
     display: none;
+  }
+
+  .lp .theme-toggle,
+  .lp .nav-actions .btn-primary {
+    padding: 8px 10px;
+    font-size: 12.5px;
   }
 }
 
