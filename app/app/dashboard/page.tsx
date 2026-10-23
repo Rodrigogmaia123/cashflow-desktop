@@ -13,10 +13,9 @@ import { WorkspaceCalendarOfferSelector } from "@/components/dashboard/workspace
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { MetricCard } from "@/components/dashboard/metric-card";
+import { PeriodEquation } from "@/components/dashboard/period-equation";
 import { MainAlert } from "@/components/dashboard/main-alert";
 import { DashboardSection } from "@/components/dashboard/dashboard-section";
-import { SoftBadge } from "@/components/dashboard/soft-badge";
 import type { DashboardRange } from "@/lib/analytics/date-range";
 import { WorkspaceDashboardChartPanel } from "@/components/dashboard/workspace-dashboard-chart-panel";
 import Link from "next/link";
@@ -36,12 +35,74 @@ import { ViewToggle } from "@/components/ui/view-toggle";
 import { DashboardSpreadsheetView } from "@/components/dashboard/dashboard-spreadsheet-view";
 import { CurrencyViewSelector } from "@/components/currency/currency-view-selector";
 import { getCurrencyViewMode } from "@/lib/domain/currency-view-server";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 import { formatMoney as formatMoneyCurrency, type CurrencyCode } from "@/lib/domain/currency";
 
 export const dynamic = "force-dynamic";
 
 function formatMoney(value: Decimal | number, currency: CurrencyCode) {
   return formatMoneyCurrency(value, currency);
+}
+
+function formatTableAmount(value: number) {
+  return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function TopOffersCard({
+  offers,
+  offerQuery,
+  periodDays
+}: {
+  offers: Array<{ offerId: string; offerName: string; revenue: number; profit: number; roi: number }>;
+  offerQuery: string;
+  periodDays: number;
+}) {
+  return (
+    <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-4 md:p-[22px]">
+      <div className="mb-3.5 flex items-center justify-between gap-3">
+        <h2 className="font-display text-base font-semibold">Top ofertas · {periodDays} dias</h2>
+        <Link href="/app/offers" className="text-[13px] font-medium text-[#ac93ff]">
+          Ver todas →
+        </Link>
+      </div>
+      {offers.length === 0 ? (
+        <p className="py-8 text-center text-sm text-[#64706a]">Sem dados no período selecionado.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr>
+                <th className="pb-2.5 text-left font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">Oferta</th>
+                <th className="pb-2.5 text-right font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">Fatur.</th>
+                <th className="pb-2.5 text-right font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">Lucro</th>
+                <th className="pb-2.5 text-right font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offers.map((offer) => (
+                <tr key={offer.offerId}>
+                  <td className="py-2 pr-3 text-left">
+                    <Link className="text-foreground hover:text-[#ac93ff]" href={`/app/offers/${offer.offerId}/dashboard?${offerQuery}`}>
+                      {offer.offerName}
+                    </Link>
+                  </td>
+                  <td className="py-2 text-right font-mono text-[#f3f7f4]">{formatTableAmount(offer.revenue)}</td>
+                  <td className={`py-2 text-right font-mono ${offer.profit >= 0 ? "text-[#8fd37a]" : "text-[#f08a7a]"}`}>
+                    {formatTableAmount(offer.profit)}
+                  </td>
+                  <td className="py-2 text-right">
+                    <span className="inline-block rounded-full bg-[rgba(172,147,255,0.2)] px-2 py-0.5 font-mono text-[11px] font-medium text-[#c9bcff]">
+                      {(offer.roi * 100).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
 }
 
 type Props = {
@@ -152,7 +213,8 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
   const alerts = await getBusinessAlerts({
     workspaceId,
     startDate: resolvedRange.startDate,
-    endDate: resolvedRange.endDate
+    endDate: resolvedRange.endDate,
+    currencyView
   });
 
   return (
@@ -160,11 +222,11 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
       {/* HEADER - Mobile: compacto, Desktop: original */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
         <div className="space-y-1 md:space-y-2">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">
             Dashboard
           </h1>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            <span className="hidden md:inline">Visão executiva com ROI ponderado. Período: </span>
+          <p className="text-[13px] text-muted-foreground">
+            <span className="hidden md:inline">Período </span>
             <span className="font-medium text-foreground">
               {resolvedRange.startDate.toISOString().split("T")[0]} →{" "}
               {resolvedRange.endDate.toISOString().split("T")[0]}
@@ -201,50 +263,34 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
         <>
           {/* SEÇÃO 1: KPIs PRINCIPAIS - Mobile: 1 coluna, Desktop: grid */}
           <DashboardSection>
-            <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-5" data-tour="dashboard-kpis">
-              <MetricCard
-                label="Investimento"
-                value={formatMoney(kpis.investmentTotal, displayCurrency)}
-                tooltip="Valor gasto em tráfego/mídia (sem taxas)"
-              />
-              <MetricCard
-                label="Faturamento"
-                value={formatMoney(kpis.revenueTotal, displayCurrency)}
-                tooltip="Receita total das vendas"
-              />
-              <MetricCard
-                label="Taxas"
-                value={formatMoney(kpis.feeTotal, displayCurrency)}
-                tooltip="Checkout + Gateway + Impostos"
-                className="ring-1 ring-orange-500/20"
-              />
-              <MetricCard
-                label="Lucro"
-                value={formatMoney(kpis.profitTotal, displayCurrency)}
-                delta={
+            <div data-tour="dashboard-kpis">
+              <PeriodEquation
+                revenue={formatMoney(kpis.revenueTotal, displayCurrency)}
+                investment={formatMoney(kpis.investmentTotal, displayCurrency)}
+                fees={formatMoney(kpis.feeTotal, displayCurrency)}
+                profit={formatMoney(kpis.profitTotal, displayCurrency)}
+                roi={`${kpis.roiWeighted.mul(100).toFixed(2)}%`}
+                sales={kpis.salesTotal}
+                profitDeltaPct={
                   comparison.delta.profitPct
-                    ? {
-                        value: comparison.delta.profitPct.toNumber(),
-                        percentage: comparison.delta.profitPct.mul(100).toNumber()
-                      }
+                    ? comparison.delta.profitPct.mul(100).toNumber()
                     : null
                 }
-                tooltip="Faturamento - (Investimento + Taxas)"
-                className={!kpis.profitTotal.lessThan(0) ? "ring-1 ring-success-vibrant/20" : ""}
-              />
-              <MetricCard
-                label="ROI real (ponderado)"
-                value={`${kpis.roiWeighted.mul(100).toFixed(2)}%`}
-                delta={
+                roiDeltaPct={
                   comparison.delta.roiPct
+                    ? comparison.delta.roiPct.mul(100).toNumber()
+                    : null
+                }
+                topOffer={
+                  topOffers[0] && kpis.revenueTotal.greaterThan(0)
                     ? {
-                        value: comparison.delta.roiPct.toNumber(),
-                        percentage: comparison.delta.roiPct.mul(100).toNumber()
+                        name: topOffers[0].offerName,
+                        revenue: formatMoney(topOffers[0].revenue, displayCurrency),
+                        sharePct: (topOffers[0].revenue / kpis.revenueTotal.toNumber()) * 100,
                       }
                     : null
                 }
-                tooltip="Faturamento ÷ (Investimento + Taxas)"
-                className={!kpis.roiWeighted.lessThan(1) ? "ring-1 ring-primary/20" : ""}
+                offersHref={`/app/offers?${offerQuery}`}
               />
             </div>
           </DashboardSection>
@@ -294,15 +340,15 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
               )}
             </DashboardSection>
           ) : (
-            <DashboardSection title="Evolução do Período">
-              <Card className="border-white/5 bg-card">
-                <CardContent className="p-4 md:p-6">
+            <div className="grid items-start gap-[18px] xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+              <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-4 md:p-[22px]">
                 {dailySeries.length === 0 ? (
                   <div className="flex min-h-[288px] flex-col items-center justify-center space-y-3 text-center">
+                    <h2 className="font-display text-base font-semibold">Evolução do período</h2>
                     <p className="text-sm font-medium text-muted-foreground">
                       Nenhum dado para este período
                     </p>
-                    <p className="text-xs text-muted-foreground max-w-md">
+                    <p className="max-w-md text-xs text-muted-foreground">
                       Comece criando uma oferta e adicionando lançamentos de performance diária.
                     </p>
                     <Link href="/app/offers">
@@ -312,18 +358,20 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
                     </Link>
                   </div>
                 ) : (
-                  <>
-                    <WorkspaceDashboardChartPanel
-                      workspaceId={workspaceId}
-                      dailySeries={dailySeries}
-                      cumulativeSeries={cumulativeSeries}
-                      currency={displayCurrency}
-                    />
-                  </>
+                  <WorkspaceDashboardChartPanel
+                    workspaceId={workspaceId}
+                    dailySeries={dailySeries}
+                    cumulativeSeries={cumulativeSeries}
+                    currency={displayCurrency}
+                  />
                 )}
-                </CardContent>
-              </Card>
-            </DashboardSection>
+              </section>
+              <TopOffersCard
+                offers={topOffers}
+                offerQuery={offerQuery}
+                periodDays={Math.max(1, Math.round((resolvedRange.endDate.getTime() - resolvedRange.startDate.getTime()) / 86400000) + 1)}
+              />
+            </div>
           )}
 
           {/* SEÇÃO 4: COMPARAÇÃO DE PERÍODOS (Relatórios Avançados) */}
@@ -336,6 +384,7 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
                 workspaceId={workspaceId}
                 comparisonType={(params?.compareType === "today" || params?.compareType === "7d" || params?.compareType === "30d") ? params.compareType : "30d"}
                 currency={displayCurrency}
+                currencyView={currencyView}
               />
             </DashboardSection>
           ) : (
@@ -350,103 +399,6 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
             </DashboardSection>
           )}
 
-          {/* SEÇÃO 5: TOP OFERTAS - Mobile: cards, Desktop: tabela */}
-          <DashboardSection title="Top Ofertas">
-            <Card className="border-white/5 bg-card">
-              <CardContent className="p-0">
-                {topOffers.length === 0 ? (
-                  <div className="px-4 md:px-6 py-8 md:py-12 text-center">
-                    <p className="text-xs md:text-sm text-muted-foreground">
-                      Sem dados no período selecionado.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    {/* Desktop: tabela */}
-                    <div className="hidden md:block overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-white/5">
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Oferta</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Faturamento</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Fee</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lucro</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">ROI</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                          {topOffers.map((o) => (
-                            <tr key={o.offerId} className="transition-colors hover:bg-white/5">
-                              <td className="px-6 py-4">
-                                <Link
-                                  className="font-medium text-foreground hover:text-primary transition-colors"
-                                  href={`/app/offers/${o.offerId}/dashboard?${offerQuery}`}
-                                >
-                                  {o.offerName}
-                                </Link>
-                              </td>
-                              <td className="px-6 py-4 text-foreground">{formatMoney(o.revenue, displayCurrency)}</td>
-                              <td className="px-6 py-4 text-foreground">{formatMoney(o.fee, displayCurrency)}</td>
-                              <td className={`px-6 py-4 font-semibold ${o.profit >= 0 ? "text-success-vibrant" : "text-destructive-vibrant"}`}>
-                                {formatMoney(o.profit, displayCurrency)}
-                              </td>
-                              <td className="px-6 py-4">
-                                <SoftBadge variant={o.roi >= 1 ? "success" : "danger"}>
-                                  {(o.roi * 100).toFixed(2)}%
-                                </SoftBadge>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    {/* Mobile: cards */}
-                    <div className="md:hidden divide-y divide-white/5">
-                      {topOffers.map((o) => (
-                        <div key={o.offerId} className="p-4 space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <Link
-                              className="font-medium text-sm text-foreground hover:text-primary transition-colors flex-1 min-w-0"
-                              href={`/app/offers/${o.offerId}/dashboard?${offerQuery}`}
-                            >
-                              {o.offerName}
-                            </Link>
-                            <SoftBadge variant={o.roi >= 1 ? "success" : "danger"} className="shrink-0">
-                              {(o.roi * 100).toFixed(2)}%
-                            </SoftBadge>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div>
-                              <div className="text-muted-foreground">Faturamento</div>
-                              <div className="font-medium text-foreground">{formatMoney(o.revenue, displayCurrency)}</div>
-                            </div>
-                            <div>
-                              <div className="text-muted-foreground">Fee</div>
-                              <div className="font-medium text-foreground">{formatMoney(o.fee, displayCurrency)}</div>
-                            </div>
-                            <div>
-                              <div className="text-muted-foreground">Lucro</div>
-                              <div className={`font-semibold ${o.profit >= 0 ? "text-success-vibrant" : "text-destructive-vibrant"}`}>
-                                {formatMoney(o.profit, displayCurrency)}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="border-t border-white/5 px-4 md:px-6 py-3 md:py-4">
-                      <Link
-                        href="/app/offers"
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        Ver todas as ofertas →
-                      </Link>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </DashboardSection>
         </>
       )}
 
@@ -458,6 +410,7 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
           offersList={offersList}
           searchParams={searchParams}
           currency={displayCurrency}
+          currencyView={currencyView}
         />
       )}
 
@@ -470,6 +423,7 @@ export default async function WorkspaceDashboardPage({ searchParams }: Props) {
           searchParams={searchParams}
           offerQuery={offerQuery}
           currency={displayCurrency}
+          currencyView={currencyView}
         />
       )}
     </section>
@@ -483,6 +437,7 @@ async function CompareSection(props: {
   offersList: Array<{ id: string; name: string }>;
   searchParams: Props["searchParams"];
   currency: CurrencyCode;
+  currencyView: CurrencyViewMode;
 }) {
   const params = await props.searchParams;
   const metric =
@@ -506,7 +461,8 @@ async function CompareSection(props: {
     offerIds: selectedOfferIds,
     startDate: props.startDate,
     endDate: props.endDate,
-    metric
+    metric,
+    currencyView: props.currencyView
   });
 
   const colorByOffer = new Map<string, string>();
@@ -560,6 +516,7 @@ async function HeatmapSection(props: {
   searchParams: Props["searchParams"];
   offerQuery: string;
   currency: CurrencyCode;
+  currencyView: CurrencyViewMode;
 }) {
   const params = await props.searchParams;
   const selectedOfferId = params?.offerId || undefined;
@@ -568,7 +525,8 @@ async function HeatmapSection(props: {
     workspaceId: props.workspaceId,
     startDate: props.startDate,
     endDate: props.endDate,
-    offerId: selectedOfferId
+    offerId: selectedOfferId,
+    currencyView: props.currencyView
   });
 
   return (

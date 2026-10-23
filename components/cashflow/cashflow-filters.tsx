@@ -121,7 +121,7 @@ export function CashflowFilters({ active, userPlan, workspaceId }: Props) {
   }
 
   return (
-    <div className="space-y-3 rounded-md border bg-card p-3">
+    <div className="min-w-0 flex-1 space-y-2">
       <PersistedUrlPrefs
         storageKey={prefKey("url", "cashflow", workspaceId)}
         keys={CASHFLOW_URL_KEYS}

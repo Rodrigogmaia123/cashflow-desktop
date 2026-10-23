@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, RefreshCw, FileText } from "lucide-react";
+import { Calendar, RefreshCw } from "lucide-react";
 import { usePeriodReport, useRenewBudget } from "./use-period-report";
 import { PeriodReportView } from "./period-report-view";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
 import { SimpleAlert } from "@/components/ui/simple-alert";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/date-local";
 import { prefKey, useLocalPref } from "@/lib/ui/local-prefs";
+import { field, pageLead, pageTitle, surface } from "@/lib/ui/screen";
+import { cn } from "@/lib/utils";
 
 function currentMonthRange() {
   const today = new Date();
@@ -92,147 +92,71 @@ export function PeriodReportPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Success Alert */}
+    <div className="space-y-4">
       {showSuccess && (
-        <SimpleAlert
-          type="success"
-          message={successMessage}
-          onDismiss={() => setShowSuccess(false)}
-        />
+        <SimpleAlert type="success" message={successMessage} onDismiss={() => setShowSuccess(false)} />
       )}
 
-      {/* Header */}
       <div className="space-y-1">
-        <h2 className="text-sm font-semibold text-foreground">Relatórios de Fechamento</h2>
-        <p className="text-xs text-muted-foreground">Análise detalhada de performance dos orçamentos</p>
+        <h1 className={pageTitle}>Relatórios</h1>
+        <p className={pageLead}>Fechamento e análise detalhada de performance dos orçamentos.</p>
       </div>
 
-      {/* Filtros e Ações */}
-      <DashboardSection>
-        <Card className="border-white/5 bg-card">
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-4">
-              {/* Date Range */}
-              <div className="flex flex-col md:flex-row md:items-end gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Data Início
-                  </label>
-                  <input
-                    type="date"
-                    value={range.start}
-                    onChange={(e) => setRange((prev) => ({ ...prev, start: e.target.value }))}
-                    className="w-full px-3 py-2 border border-white/10 rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Data Fim
-                  </label>
-                  <input
-                    type="date"
-                    value={range.end}
-                    onChange={(e) => setRange((prev) => ({ ...prev, end: e.target.value }))}
-                    className="w-full px-3 py-2 border border-white/10 rounded-lg bg-background text-foreground focus:ring-2 focus:ring-primary/50"
-                  />
-                </div>
-              </div>
+      <section className={cn(surface, "p-4 md:p-5")}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-1.5">
+            <span className="text-xs text-[#9ca9a1]">Data início</span>
+            <input
+              type="date"
+              value={range.start}
+              onChange={(e) => setRange((prev) => ({ ...prev, start: e.target.value }))}
+              className={field}
+            />
+          </label>
+          <label className="space-y-1.5">
+            <span className="text-xs text-[#9ca9a1]">Data fim</span>
+            <input
+              type="date"
+              value={range.end}
+              onChange={(e) => setRange((prev) => ({ ...prev, end: e.target.value }))}
+              className={field}
+            />
+          </label>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleQuickSelect("lastMonth")}>Mês passado</Button>
+            <Button variant="outline" size="sm" onClick={() => handleQuickSelect("currentMonth")}>Mês atual</Button>
+            <Button variant="outline" size="sm" onClick={() => handleQuickSelect("last3Months")}>Últimos 3 meses</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {report && (
+              <Button onClick={handleRenewAll} disabled={renewLoading} size="sm" variant="outline">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {renewLoading ? "Renovando..." : "Renovar orçamentos"}
+              </Button>
+            )}
+            <Button onClick={handleGenerateReport} disabled={loading} size="sm" variant="accent">
+              {loading ? "Gerando..." : "Gerar relatório"}
+            </Button>
+          </div>
+        </div>
+      </section>
 
-              {/* Quick Select Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickSelect("lastMonth")}
-                >
-                  Mês Passado
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickSelect("currentMonth")}
-                >
-                  Mês Atual
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickSelect("last3Months")}
-                >
-                  Últimos 3 Meses
-                </Button>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button
-                  onClick={handleGenerateReport}
-                  disabled={loading}
-                  size="sm"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  {loading ? "Gerando..." : "Gerar Relatório"}
-                </Button>
-                {report && (
-                  <Button
-                    onClick={handleRenewAll}
-                    disabled={renewLoading}
-                    size="sm"
-                    variant="default"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    {renewLoading ? "Renovando..." : "Renovar Orçamentos"}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DashboardSection>
-
-      {/* Error */}
       {error && (
-        <SimpleAlert
-          type="error"
-          message={error}
-          details="Tente ajustar o período ou entre em contato com o suporte"
-        />
+        <SimpleAlert type="error" message={error} details="Tente ajustar o período ou entre em contato com o suporte" />
       )}
 
-      {/* Report */}
-      {report && !loading && (
-        <DashboardSection>
-          <PeriodReportView report={report} />
-        </DashboardSection>
-      )}
+      {report && !loading && <PeriodReportView report={report} />}
 
-      {/* Empty State */}
       {!report && !loading && !error && (
-        <DashboardSection>
-          <Card className="border-white/5 bg-card">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Gerar Relatório de Período
-              </h3>
-              <div className="text-sm text-muted-foreground text-center max-w-md space-y-3">
-                <p>
-                  Selecione o período desejado e clique em "Gerar Relatório" para visualizar a análise completa.
-                </p>
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mt-4">
-                  <p className="font-medium text-foreground mb-2">💡 Dica:</p>
-                  <p>
-                    Se você acabou de criar orçamentos, selecione o período do <strong>mês atual</strong> para vê-los no relatório!
-                  </p>
-                </div>
-                <p className="pt-2">
-                  O relatório mostra: orçamentos vs gastos reais, categorias que estouraram, economia total e mais.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </DashboardSection>
+        <section className={cn(surface, "flex flex-col items-center px-6 py-12 text-center")}>
+          <Calendar className="mb-4 h-10 w-10 text-[#64706a]" />
+          <h3 className="font-display text-lg font-semibold">Gerar relatório de período</h3>
+          <p className="mt-2 max-w-md text-sm text-[#9ca9a1]">
+            Selecione o período e clique em Gerar relatório. O fechamento compara orçado, gasto, economia e categorias sem orçamento.
+          </p>
+        </section>
       )}
     </div>
   );

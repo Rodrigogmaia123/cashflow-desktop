@@ -10,6 +10,7 @@ import {
 } from "@/lib/domain/currency";
 import { OFFER_COUNTRY_OPTIONS, type OfferCountryCode } from "@/lib/domain/offer-country";
 import { createOffer } from "./actions";
+import { field } from "@/lib/ui/screen";
 
 export function CreateOfferForm() {
   const router = useRouter();
@@ -40,11 +41,11 @@ export function CreateOfferForm() {
         minLength={3}
         maxLength={120}
         placeholder="Nome da oferta (ex: Funil Webinar XYZ)"
-        className="w-full rounded-xl border-0 bg-[#0F131A] px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:shadow-[0_0_0_3px_rgba(139,92,246,0.1)]"
+        className={field}
       />
       <select
         name="status"
-        className="w-full rounded-xl border-0 bg-[#0F131A] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:shadow-[0_0_0_3px_rgba(139,92,246,0.1)]"
+        className={field}
         defaultValue="ACTIVE"
       >
         <option value="ACTIVE" className="bg-card">Ativa</option>
@@ -54,7 +55,7 @@ export function CreateOfferForm() {
       <select
         name="country"
         onChange={handleCountryChange}
-        className="w-full rounded-xl border-0 bg-[#0F131A] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:shadow-[0_0_0_3px_rgba(139,92,246,0.1)]"
+        className={field}
         defaultValue=""
       >
         <option value="" className="bg-card">Sem bandeira</option>
@@ -68,7 +69,7 @@ export function CreateOfferForm() {
         name="currency"
         value={currency}
         onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-        className="w-full rounded-xl border-0 bg-[#0F131A] px-4 py-2.5 text-sm text-foreground outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-card focus-visible:shadow-[0_0_0_3px_rgba(139,92,246,0.1)]"
+        className={field}
       >
         {CURRENCY_OPTIONS.map((c) => (
           <option key={c.code} value={c.code} className="bg-card">
@@ -76,7 +77,7 @@ export function CreateOfferForm() {
           </option>
         ))}
       </select>
-      <Button type="submit" size="sm" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-9 md:h-auto">
+      <Button type="submit" size="sm" variant="accent" className="h-10">
         Criar
       </Button>
     </form>

@@ -33,29 +33,23 @@ export default async function CategoriesPage() {
   });
 
   const getTypeColor = (type: string) => {
-    if (type === "INCOME") return "#7CFF6B"; // Verde Lima
-    if (type === "EXPENSE") return "#FF5C5C"; // Vermelho Coral
-    return "#3B82F6"; // Azul Elétrico (BOTH)
-  };
-
-  const getTypeBgColor = (type: string) => {
-    if (type === "INCOME") return "bg-[#7CFF6B]/10 border-[#7CFF6B]/20";
-    if (type === "EXPENSE") return "bg-[#FF5C5C]/10 border-[#FF5C5C]/20";
-    return "bg-[#3B82F6]/10 border-[#3B82F6]/20";
+    if (type === "INCOME") return "#8fd37a";
+    if (type === "EXPENSE") return "#f08a7a";
+    return "#6aa7ff";
   };
 
   return (
     <section className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
+        <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">
           Categorias
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
           Categorias customizadas reutilizáveis em despesas e entradas manuais.
         </p>
       </div>
 
-      <Card className="border-white/5 bg-card">
+      <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] shadow-none">
         <CardHeader className="pb-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Criar categoria
@@ -66,7 +60,7 @@ export default async function CategoriesPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-white/5 bg-card">
+      <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] shadow-none">
         <CardHeader className="pb-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Categorias do workspace
@@ -82,11 +76,10 @@ export default async function CategoriesPage() {
               {categories.map((c) => {
                 const inUse = c._count.expenses > 0 || c._count.incomes > 0;
                 const typeColor = getTypeColor(c.type);
-                const typeBg = getTypeBgColor(c.type);
                 return (
-                  <div 
-                    key={c.id} 
-                    className={`rounded-xl border-2 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 ${typeBg}`}
+                  <div
+                    key={c.id}
+                    className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-4"
                   >
                     <form action={updateCategory} className="grid gap-4 md:grid-cols-[1fr_200px_auto] mb-3">
                       <div className="flex items-center gap-3">

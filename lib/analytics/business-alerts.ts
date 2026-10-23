@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { prisma } from "@/lib/db";
-import { calculateFee } from "@/lib/domain/finance";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 import { getPeriodComparison } from "./period-comparison";
+import { performanceMoneyInView } from "./performance-money";
 import { getComparisonDateRanges } from "./period-comparison-ranges";
 import { startOfDay } from "./date-range-utils";
 import { measure } from "@/lib/observability/measure";
@@ -26,6 +26,7 @@ async function aggregatePeriodMetrics(params: {
   offerId?: string;
   startDate: Date;
   endDate: Date;
+  currencyView: CurrencyViewMode | "NATIVE";
 }) {
   const rows = await prisma.dailyPerformance.findMany({
     where: {
@@ -36,7 +37,10 @@ async function aggregatePeriodMetrics(params: {
       offer: {
         workspaceId: params.workspaceId,
         ...(params.offerId ? { id: params.offerId } : {})
-      }
+      },
+      ...(params.currencyView !== "CONVERTED" && params.currencyView !== "NATIVE"
+        ? { currency: params.currencyView }
+        : {})
     },
     include: {
       offer: {
@@ -48,19 +52,16 @@ async function aggregatePeriodMetrics(params: {
 
   const totals = rows.reduce(
     (acc, r) => {
-      const fee = calculateFee({
-        revenue: r.revenue,
-        sales: r.sales,
-        checkoutPercentage: r.checkoutPercentageSnapshot,
-        gatewayFeePerSale: r.gatewayFeePerSaleSnapshot,
-        taxPercentage: r.taxPercentageSnapshot
-      });
-      const profit = r.revenue.sub(r.investment.add(fee));
+      const money =
+        params.currencyView === "NATIVE"
+          ? performanceMoneyInView(r, r.currency as CurrencyViewMode)
+          : performanceMoneyInView(r, params.currencyView);
+      if (!money) return acc;
 
-      acc.investment = acc.investment.add(r.investment);
-      acc.revenue = acc.revenue.add(r.revenue);
-      acc.fee = acc.fee.add(fee);
-      acc.profit = acc.profit.add(profit);
+      acc.investment = acc.investment.add(money.investment);
+      acc.revenue = acc.revenue.add(money.revenue);
+      acc.fee = acc.fee.add(money.fee);
+      acc.profit = acc.profit.add(money.profit);
       return acc;
     },
     {
@@ -90,7 +91,12 @@ async function aggregatePeriodMetrics(params: {
       offerName: r.offer.name,
       revenue: new Decimal(0)
     };
-    existing.revenue = existing.revenue.add(r.revenue);
+    const money =
+      params.currencyView === "NATIVE"
+        ? performanceMoneyInView(r, r.currency as CurrencyViewMode)
+        : performanceMoneyInView(r, params.currencyView);
+    if (!money) continue;
+    existing.revenue = existing.revenue.add(money.revenue);
     byOffer.set(r.offerId, existing);
   }
 
@@ -119,6 +125,7 @@ export async function getBusinessAlerts(params: {
   offerId?: string;
   startDate: Date;
   endDate: Date;
+  currencyView?: CurrencyViewMode;
 }): Promise<BusinessAlert[]> {
   return measure(
     "analytics.businessAlerts",
@@ -127,12 +134,16 @@ export async function getBusinessAlerts(params: {
       const startDate = startOfDay(params.startDate);
       const endDate = endOfDayUTC(params.endDate);
 
+      const currencyView: CurrencyViewMode | "NATIVE" =
+        params.currencyView ?? (params.offerId ? "NATIVE" : "CONVERTED");
+
       const [currentMetrics, workspace, offer] = await Promise.all([
         aggregatePeriodMetrics({
           workspaceId: params.workspaceId,
           offerId: params.offerId,
           startDate,
-          endDate
+          endDate,
+          currencyView
         }),
         prisma.workspace.findUnique({
           where: { id: params.workspaceId },
@@ -146,9 +157,11 @@ export async function getBusinessAlerts(params: {
           : Promise.resolve(null)
       ]);
 
-      const currency = (offer?.currency ??
-        workspace?.baseCurrency ??
-        "BRL") as CurrencyCode;
+      const currency = (
+        currencyView !== "CONVERTED" && currencyView !== "NATIVE"
+          ? currencyView
+          : (offer?.currency ?? workspace?.baseCurrency ?? "BRL")
+      ) as CurrencyCode;
 
       // CRITICAL: Lucro negativo no período
       if (currentMetrics.profit < 0) {
@@ -166,7 +179,8 @@ export async function getBusinessAlerts(params: {
           workspaceId: params.workspaceId,
           offerId: params.offerId,
           current: { startDate, endDate },
-          previous: getComparisonDateRanges("30d").previous
+          previous: getComparisonDateRanges("30d").previous,
+          currencyView: currencyView === "NATIVE" ? undefined : currencyView
         });
 
         if (comparison.roi.deltaPct < -20) {

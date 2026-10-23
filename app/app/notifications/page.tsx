@@ -10,11 +10,7 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
-  const workspaceId = await requireActiveWorkspaceId();
+  await requireActiveWorkspaceId();
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <NotificationPanel />
-    </div>
-  );
+  return <NotificationPanel />;
 }

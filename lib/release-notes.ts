@@ -14,6 +14,26 @@ export type ReleaseNote = {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.2.6",
+    items: [
+      {
+        title: "Design novo",
+        description:
+          "O app abre com a cara nova: barra lateral, cartões e as telas principais no visual floresta.",
+      },
+    ],
+  },
+  {
+    version: "0.2.5",
+    items: [
+      {
+        title: "Anotações",
+        description:
+          "Agenda por dia e notas avulsas, com tarefa, lembrete e checklist. O padrão é só seu; dá para abrir para o workspace.",
+      },
+    ],
+  },
+  {
     version: "0.2.3",
     items: [
       {

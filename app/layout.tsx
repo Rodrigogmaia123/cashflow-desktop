@@ -1,7 +1,26 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { MetaPixel } from "@/components/ads/meta-pixel";
+
+const sans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
+
+const display = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   title: "Cashflow — Clareza de caixa no seu computador",
@@ -28,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className="scroll-smooth">
+    <html lang="pt-BR" suppressHydrationWarning className={cn("scroll-smooth", sans.variable, mono.variable, display.variable)}>
       <body
         className={cn(
           "h-full bg-background font-sans antialiased text-sm text-foreground"

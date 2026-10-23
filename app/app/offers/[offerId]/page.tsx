@@ -237,16 +237,13 @@ export default async function OfferDetailPage({ params }: OfferPageProps) {
       {/* 3️⃣ GRÁFICO PRINCIPAL (Hero Chart) */}
       <OfferHeroChart data={chartData} currency={offer.currency as CurrencyCode} />
 
-      {/* 4️⃣ INSIGHTS SECUNDÁRIOS */}
-      {alerts.length > 0 && (
-        <div className="rounded-lg bg-card border border-white/5 p-6">
-          <OfferInsights alerts={alerts} />
+      {(alerts.length > 0 || (dateRange._min.date && dateRange._max.date)) && (
+        <div className="grid items-start gap-[18px] lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          {alerts.length > 0 && <OfferInsights alerts={alerts} />}
+          {dateRange._min.date && dateRange._max.date && (
+            <OfferActivityCalendar data={calendarData} currency={offer.currency as CurrencyCode} />
+          )}
         </div>
-      )}
-
-      {/* 5️⃣ CALENDÁRIO DE ATIVIDADE MENSAL */}
-      {dateRange._min.date && dateRange._max.date && (
-        <OfferActivityCalendar data={calendarData} currency={offer.currency as CurrencyCode} />
       )}
 
       {/* 6️⃣ HISTÓRICO / TABELA OPERACIONAL */}
@@ -263,29 +260,18 @@ export default async function OfferDetailPage({ params }: OfferPageProps) {
 
       {/* Formulário de lançamento (mantido para funcionalidade) */}
       {canCreate && (
-        <Card className="border-white/5 bg-card">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-sm font-semibold text-foreground mb-1">
-                  Lançar performance diária
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Adicione novos lançamentos para atualizar os dados da oferta
-                </p>
-              </div>
-              <DailyPerformanceForm offerId={offer.id} currency={offer.currency} />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {canCreate && (
-        <Card className="border-white/5 bg-card">
-          <CardContent className="pt-6">
+        <div className="grid items-start gap-[18px] lg:grid-cols-2">
+          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]">
+            <h2 className="font-display text-base font-semibold text-foreground">Lançar performance diária</h2>
+            <p className="mt-0.5 text-xs text-[#64706a]">
+              Adicione novos lançamentos para atualizar os dados da oferta
+            </p>
+            <DailyPerformanceForm offerId={offer.id} currency={offer.currency} />
+          </section>
+          <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]">
             <WeeklyCloseForm offerId={offer.id} currency={offer.currency} />
-          </CardContent>
-        </Card>
+          </section>
+        </div>
       )}
 
       {/* Link para dashboard completo */}

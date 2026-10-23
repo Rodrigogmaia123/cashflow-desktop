@@ -85,12 +85,7 @@ export function CreateWorkspaceForm() {
           Usada para despesas, orçamentos e consolidação convertida.
         </p>
       </div>
-      <Button 
-        type="submit" 
-        size="sm" 
-        disabled={isPending}
-        className="w-full bg-gradient-to-r from-[#8B5CF6] to-purple-600 hover:from-[#8B5CF6]/90 hover:to-purple-600/90"
-      >
+      <Button type="submit" size="sm" variant="accent" disabled={isPending} className="w-full">
         {isPending ? "Criando..." : "Criar workspace"}
       </Button>
     </form>

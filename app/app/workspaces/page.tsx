@@ -43,11 +43,11 @@ export default async function WorkspacesPage() {
 
   return (
     <section className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
+      <div className="space-y-1">
+        <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">
           Workspaces
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
           Multi-tenant: cada workspace representa uma empresa ou operação
           distinta. O workspace ativo é resolvido no servidor e usado em todas
           as queries de negócio.
@@ -56,7 +56,7 @@ export default async function WorkspacesPage() {
 
       <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Meus workspaces</h2>
+          <h2 className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">Meus workspaces</h2>
           <div className="space-y-3">
             {sortedMemberships.map((m) => {
               const isActive = user.activeWorkspaceId === m.workspaceId;
@@ -65,10 +65,10 @@ export default async function WorkspacesPage() {
               return (
                 <div
                   key={m.workspaceId}
-                  className={`relative overflow-hidden rounded-xl border-2 transition-all hover:shadow-lg hover:-translate-y-0.5 ${
+                  className={`relative overflow-hidden rounded-2xl border transition-colors ${
                     isActive
-                      ? "border-[#A855F7]/30 bg-gradient-to-br from-[#A855F7]/10 via-[#A855F7]/5 to-transparent hover:shadow-[#A855F7]/20"
-                      : "border-white/5 bg-card hover:bg-card-hover"
+                      ? "border-[rgba(172,147,255,0.45)] bg-[linear-gradient(180deg,rgba(172,147,255,0.12),rgba(255,255,255,0.02))]"
+                      : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))]"
                   }`}
                 >
                   <div className="p-4">
@@ -98,9 +98,9 @@ export default async function WorkspacesPage() {
           </div>
         </div>
 
-        <Card className="border-white/5 bg-card">
+        <Card className="border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))]">
           <CardContent className="p-6">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+            <h2 className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">
               Criar novo workspace
             </h2>
             <CreateWorkspaceForm />

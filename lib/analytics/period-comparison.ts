@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { prisma } from "@/lib/db";
-import { calculateFee } from "@/lib/domain/finance";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 import { measure } from "@/lib/observability/measure";
+import { performanceMoneyInView } from "./performance-money";
 
 export type ComparisonMetric = {
   current: number;
@@ -28,6 +28,7 @@ async function aggregatePeriod(params: {
   offerId?: string;
   startDate: Date;
   endDate: Date;
+  currencyView: CurrencyViewMode | "NATIVE";
 }) {
   const rows = await prisma.dailyPerformance.findMany({
     where: {
@@ -38,26 +39,26 @@ async function aggregatePeriod(params: {
       offer: {
         workspaceId: params.workspaceId,
         ...(params.offerId ? { id: params.offerId } : {})
-      }
+      },
+      ...(params.currencyView !== "CONVERTED" && params.currencyView !== "NATIVE"
+        ? { currency: params.currencyView }
+        : {})
     },
     orderBy: { date: "asc" }
   });
 
   const totals = rows.reduce(
     (acc, r) => {
-      const fee = calculateFee({
-        revenue: r.revenue,
-        sales: r.sales,
-        checkoutPercentage: r.checkoutPercentageSnapshot,
-        gatewayFeePerSale: r.gatewayFeePerSaleSnapshot,
-        taxPercentage: r.taxPercentageSnapshot
-      });
-      const profit = r.revenue.sub(r.investment.add(fee));
+      const money =
+        params.currencyView === "NATIVE"
+          ? performanceMoneyInView(r, r.currency as CurrencyViewMode)
+          : performanceMoneyInView(r, params.currencyView);
+      if (!money) return acc;
 
-      acc.investment = acc.investment.add(r.investment);
-      acc.revenue = acc.revenue.add(r.revenue);
-      acc.fee = acc.fee.add(fee);
-      acc.profit = acc.profit.add(profit);
+      acc.investment = acc.investment.add(money.investment);
+      acc.revenue = acc.revenue.add(money.revenue);
+      acc.fee = acc.fee.add(money.fee);
+      acc.profit = acc.profit.add(money.profit);
       return acc;
     },
     {
@@ -98,6 +99,8 @@ export async function getPeriodComparison(params: {
   offerId?: string;
   current: { startDate: Date; endDate: Date };
   previous: { startDate: Date; endDate: Date };
+  /** Sem offerId, o padrão converte para a moeda base. Uma oferta fica na moeda dela. */
+  currencyView?: CurrencyViewMode;
 }): Promise<PeriodComparisonResult> {
   return measure(
     "analytics.periodComparison",
@@ -106,19 +109,23 @@ export async function getPeriodComparison(params: {
       const currentEnd = startOfDayUTC(params.current.endDate);
       const previousStart = startOfDayUTC(params.previous.startDate);
       const previousEnd = startOfDayUTC(params.previous.endDate);
+      const currencyView: CurrencyViewMode | "NATIVE" =
+        params.currencyView ?? (params.offerId ? "NATIVE" : "CONVERTED");
 
       const [current, previous] = await Promise.all([
         aggregatePeriod({
           workspaceId: params.workspaceId,
           offerId: params.offerId,
           startDate: currentStart,
-          endDate: currentEnd
+          endDate: currentEnd,
+          currencyView
         }),
         aggregatePeriod({
           workspaceId: params.workspaceId,
           offerId: params.offerId,
           startDate: previousStart,
-          endDate: previousEnd
+          endDate: previousEnd,
+          currencyView
         })
       ]);
 

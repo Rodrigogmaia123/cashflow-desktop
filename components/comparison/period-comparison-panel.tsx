@@ -26,7 +26,7 @@ function formatRoi(value: number) {
 function DeltaIndicator({ deltaPct }: { deltaPct: number }) {
   if (deltaPct === 0) {
     return (
-      <span className="ml-2 inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+      <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-white/5 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
         <span>=</span>
         <span>{formatPercentage(deltaPct)}</span>
       </span>
@@ -39,7 +39,7 @@ function DeltaIndicator({ deltaPct }: { deltaPct: number }) {
     : "bg-destructive-soft text-destructive-vibrant border-destructive-vibrant/30";
 
   return (
-    <span className={`ml-2 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${className}`}>
+    <span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-2.5 py-1 text-xs font-semibold ${className}`}>
       {isPositive ? (
         <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
@@ -70,13 +70,13 @@ function ComparisonCard({
   formatter: (value: number) => string;
 }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-card-secondary/50 p-4 transition-colors hover:bg-card-secondary">
+    <div className="min-w-0 rounded-xl border border-white/5 bg-card-secondary/50 p-4 transition-colors hover:bg-card-secondary">
       <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
       <div className="space-y-2">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-xl font-bold tracking-tight">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+          <span className="min-w-0 text-xl font-bold tracking-tight">
             {formatter(current)}
           </span>
           <DeltaIndicator deltaPct={deltaPct} />

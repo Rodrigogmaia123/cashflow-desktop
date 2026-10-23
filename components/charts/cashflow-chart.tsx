@@ -66,18 +66,16 @@ function CashflowTooltip({
   if (visible.balance) items.push({ label: "Saldo", value: formatMoney(byKey.get("balance") ?? 0, currency) });
 
   return (
-    <div className="rounded-xl border border-white/10 bg-card px-4 py-3 text-xs shadow-lg backdrop-blur-sm">
-      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+    <div className="min-w-[170px] rounded-xl border border-white/15 bg-[#16221c] px-3 py-2.5 font-mono text-xs shadow-[0_18px_40px_-16px_rgba(0,0,0,0.7)]">
+      <div className="mb-1 text-[#64706a]">
         {typeof label === "string" ? formatDate(label) : label}
       </div>
-      <div className="mt-2 space-y-2">
-        {items.map((it) => (
-          <div key={it.label} className="flex items-center justify-between gap-6">
-            <span className="text-muted-foreground">{it.label}</span>
-            <span className="font-bold text-foreground">{it.value}</span>
-          </div>
-        ))}
-      </div>
+      {items.map((it) => (
+        <div key={it.label} className="mt-1 flex justify-between gap-4 text-[#9ca9a1]">
+          <span>{it.label}</span>
+          <b className="font-medium text-[#f3f7f4]">{it.value}</b>
+        </div>
+      ))}
     </div>
   );
 }
@@ -109,33 +107,27 @@ export function CashflowChart({ data, visible, currency }: Props) {
             stroke="rgba(255,255,255,0.3)"
             tick={{ fill: "rgba(255,255,255,0.5)" }}
           />
-          <Tooltip content={(props: TooltipProps<number, string>) => <CashflowTooltip {...props} visible={visible} currency={currency} />} />
+          <Tooltip
+            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            wrapperStyle={{ outline: "none" }}
+            content={(props: TooltipProps<number, string>) => <CashflowTooltip {...props} visible={visible} currency={currency} />}
+          />
 
           {visible.inflow && (
-            <Bar dataKey="inflow" name="Entradas" fill="#7CFF6B" fillOpacity={1} radius={[6, 6, 0, 0]} stroke="#7CFF6B" strokeWidth={1} />
+            <Bar dataKey="inflow" name="Entradas" fill="#c7f156" fillOpacity={0.9} radius={[2, 2, 0, 0]} maxBarSize={8} />
           )}
           {visible.outflow && (
-            <Bar dataKey="outflow" name="Saídas" fill="#FF5C5C" fillOpacity={1} radius={[6, 6, 0, 0]} stroke="#FF5C5C" strokeWidth={1} />
+            <Bar dataKey="outflow" name="Saídas" fill="#f08a7a" fillOpacity={0.9} radius={[2, 2, 0, 0]} maxBarSize={8} />
           )}
-          <defs>
-            <filter id="glow-purple" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
           {visible.balance && (
             <Line
               type="monotone"
               dataKey="balance"
               name="Saldo"
-              stroke="#A855F7"
-              strokeWidth={3.5}
+              stroke="#ac93ff"
+              strokeWidth={2}
               dot={false}
               strokeLinecap="round"
-              filter="url(#glow-purple)"
             />
           )}
         </ComposedChart>

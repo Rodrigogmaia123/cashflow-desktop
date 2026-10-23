@@ -37,6 +37,12 @@ const VISIBLE_UPDATES = 5;
 
 const UPDATES = [
   {
+    version: "0.2.6",
+    when: "23 OUT",
+    title: "Design novo",
+    body: "O app abre com a cara nova: barra lateral, cartões e as telas principais no visual floresta.",
+  },
+  {
     version: "0.2.5",
     when: "14 OUT",
     title: "Anotações na agenda",

@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { surface } from "@/lib/ui/screen";
+import { cn } from "@/lib/utils";
 
 type NextActionsProps = {
   hasOffers: boolean;
@@ -16,15 +17,9 @@ export function NextActions({
   hasExpenses,
   hasManualIncomes,
   hasFeeConfig,
-  workspaceId,
-  personal = false,
+  personal = false
 }: NextActionsProps) {
-  const actions: Array<{
-    title: string;
-    description: string;
-    href: string;
-    buttonLabel: string;
-  }> = [];
+  const actions: Array<{ title: string; description: string; href: string; buttonLabel: string }> = [];
 
   if (!personal && !hasOffers) {
     actions.push({
@@ -64,44 +59,29 @@ export function NextActions({
     });
   }
 
-  if (actions.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <h3 className="text-sm font-semibold">Próximas Ações</h3>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            Você já configurou os principais elementos do workspace. Continue monitorando os dashboards para insights.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <h3 className="text-sm font-semibold">Próximas Ações Sugeridas</h3>
-        <p className="mt-1 text-xs text-muted-foreground">Recomendações baseadas no estado atual</p>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {actions.map((action, index) => (
-            <div key={index} className="flex items-center justify-between gap-4 rounded-lg border border-white/5 bg-card-secondary/50 p-4 transition-colors hover:border-white/10 hover:bg-card-secondary">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold">{action.title}</div>
-                <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{action.description}</div>
+    <section className={cn(surface, "p-5")}>
+      <h2 className="font-display text-base font-semibold">Próximas ações sugeridas</h2>
+      <p className="mt-1 text-xs text-[#64706a]">Recomendações baseadas no estado atual</p>
+      {actions.length === 0 ? (
+        <p className="mt-4 text-sm text-[#9ca9a1]">
+          Você já configurou os principais elementos do workspace. Continue monitorando os dashboards para insights.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {actions.map((action) => (
+            <div key={action.title} className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium">{action.title}</div>
+                <p className="mt-0.5 text-xs leading-relaxed text-[#9ca9a1]">{action.description}</p>
               </div>
-              <Link href={action.href}>
-                <Button size="sm" variant="outline" className="flex-shrink-0">
-                  {action.buttonLabel}
-                </Button>
-              </Link>
+              <Button asChild size="sm" variant="accent" className="shrink-0">
+                <Link href={action.href}>{action.buttonLabel}</Link>
+              </Button>
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </section>
   );
 }

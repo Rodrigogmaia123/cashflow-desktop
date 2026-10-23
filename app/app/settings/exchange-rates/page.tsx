@@ -48,10 +48,10 @@ export default async function ExchangeRatesPage() {
   return (
     <section className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
+        <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">
           Taxas de câmbio
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
           Configure as taxas usadas ao lançar performances em moeda diferente da
           base do workspace ({baseCurrency}). A taxa resolvida no momento do
           lançamento fica gravada (snapshot) e não muda se você editar a config
@@ -68,7 +68,7 @@ export default async function ExchangeRatesPage() {
         </div>
       )}
 
-      <Card className="max-w-2xl border-white/5 bg-card">
+      <Card className="max-w-3xl border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] shadow-none">
         <CardContent className="p-6 space-y-6">
           {isAdmin && (
             <form action={upsertExchangeRate} className="grid gap-4 sm:grid-cols-4">
@@ -117,7 +117,7 @@ export default async function ExchangeRatesPage() {
                 />
               </div>
               <div className="flex items-end">
-                <Button type="submit" size="sm" className="w-full">
+                <Button type="submit" size="sm" variant="accent" className="w-full">
                   Salvar
                 </Button>
               </div>

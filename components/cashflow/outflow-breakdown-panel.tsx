@@ -1,4 +1,4 @@
-import { DonutChart, type DonutSlice } from "@/components/cashflow/donut-chart";
+import { DonutChart, DonutEmpty, type DonutSlice } from "@/components/cashflow/donut-chart";
 import type { CurrencyCode } from "@/lib/domain/currency";
 
 type OutflowBreakdown = {
@@ -14,19 +14,21 @@ type OutflowBreakdown = {
 };
 
 const sourceColors = {
-  manualExpenses: "#FF5C5C", // Vermelho Coral
-  adInvestment: "#6366F1", // Índigo (Investimento em Ads)
-  offerCosts: "#8B5CF6", // Roxo Violeta (Fees)
-  investments: "#3B82F6" // Azul (Investimentos / reserva)
+  manualExpenses: "#f08a7a",
+  adInvestment: "#ac93ff",
+  offerCosts: "#f0b35a",
+  investments: "#6aa7ff"
 } as const;
 
-const expensesCategoryPalette = ["#FF5C5C", "#FACC15", "#8B5CF6", "#A855F7", "#3B82F6"] as const;
+const expensesCategoryPalette = ["#ac93ff", "#c7f156", "#f0b35a", "#6aa7ff", "#f08a7a", "#8fd37a"] as const;
 
 const offerCostColors = {
-  checkoutFee: "#FACC15", // Amarelo Âmbar
-  gatewayFee: "#FF5C5C", // Vermelho Coral
-  tax: "#8B5CF6" // Roxo Violeta
+  checkoutFee: "#f0b35a",
+  gatewayFee: "#f08a7a",
+  tax: "#ac93ff"
 } as const;
+
+const donutCard = "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]";
 
 export function OutflowBreakdownPanel({
   data,
@@ -119,46 +121,31 @@ export function OutflowBreakdownPanel({
   ].filter((s) => s.amount > 0);
 
   return (
-    <div className="space-y-8">
-      <div className={hideOfferSources ? "grid gap-8 md:grid-cols-2" : "grid gap-8 md:grid-cols-3"}>
-        <div className="space-y-4">
-          <div className="text-sm font-semibold text-foreground">Saídas por origem</div>
-          <DonutChart data={bySource} currency={currency} />
-        </div>
+    <div className={hideOfferSources ? "grid gap-[18px] md:grid-cols-2" : "grid gap-[18px] lg:grid-cols-3"}>
+      <section className={donutCard}>
+        <h2 className="font-display text-base font-semibold">Saídas por origem</h2>
+        <DonutChart data={bySource} currency={currency} />
+      </section>
 
-        <div className="space-y-4">
-          <div className="text-sm font-semibold text-foreground">Despesas manuais por categoria</div>
-          {data.bySource.manualExpenses === 0 ? (
-            <div className="flex items-center justify-center h-64 rounded-xl border border-white/5 bg-card-secondary/30">
-              <p className="text-sm text-muted-foreground">
-                Sem despesas manuais no período.
-              </p>
-            </div>
-          ) : (
-            <DonutChart data={manualByCategory} currency={currency} />
-          )}
-        </div>
-
-        {!hideOfferSources && (
-        <div className="space-y-4">
-          <div className="text-sm font-semibold text-foreground">Custos das ofertas (fees)</div>
-          {offerCostsTotal === 0 ? (
-            <div className="flex items-center justify-center h-64 rounded-xl border border-white/5 bg-card-secondary/30">
-              <p className="text-sm text-muted-foreground">
-                Sem custos de ofertas no período.
-              </p>
-            </div>
-          ) : (
-            <>
-              <DonutChart data={offerCostsByType} currency={currency} />
-              <p className="text-xs text-muted-foreground">
-                Custos das ofertas são calculados automaticamente via snapshots históricos.
-              </p>
-            </>
-          )}
-        </div>
+      <section className={donutCard}>
+        <h2 className="font-display text-base font-semibold">Despesas manuais por categoria</h2>
+        {data.bySource.manualExpenses === 0 ? (
+          <DonutEmpty message="Sem despesas manuais no período." />
+        ) : (
+          <DonutChart data={manualByCategory} currency={currency} />
         )}
-      </div>
+      </section>
+
+      {!hideOfferSources && (
+      <section className={donutCard}>
+        <h2 className="font-display text-base font-semibold">Custos das ofertas (fees)</h2>
+        {offerCostsTotal === 0 ? (
+          <DonutEmpty message="Sem custos de ofertas no período." />
+        ) : (
+          <DonutChart data={offerCostsByType} currency={currency} />
+        )}
+      </section>
+      )}
     </div>
   );
 }

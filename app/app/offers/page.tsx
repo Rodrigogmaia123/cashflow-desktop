@@ -1,6 +1,5 @@
 import { requireActiveWorkspaceId } from "@/lib/workspace";
 import { listOffersWithMetrics, type OfferWithMetrics } from "./actions";
-import { Card, CardContent } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { getUserWorkspaceRole } from "@/lib/rbac/workspace-permissions";
 import { hasPermission } from "@/lib/rbac/permissions";
@@ -28,25 +27,14 @@ export default async function OffersPage() {
 
   return (
     <OfferActionsProvider>
-      <section className="space-y-6 md:space-y-8">
-        {/* Header */}
-        <div className="space-y-1 md:space-y-2">
-          <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
-            Ofertas
-          </h1>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            Radar de performance das suas ofertas digitais.
-          </p>
-        </div>
+      <section className="space-y-4">
+        <h1 className="sr-only">Ofertas</h1>
 
-        {/* Formulário criar oferta */}
         {canCreate && (
-          <Card className="transition-all hover:shadow-lg hover:-translate-y-0.5">
-            <CardContent className="pt-4 md:pt-6 px-4 md:px-6">
-              <h2 className="text-xs md:text-sm font-semibold mb-4 md:mb-6 text-foreground">Criar nova oferta</h2>
-              <CreateOfferForm />
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] px-4 py-4 md:px-5">
+            <h2 className="mb-3 text-sm font-medium text-foreground">Criar nova oferta</h2>
+            <CreateOfferForm />
+          </div>
         )}
 
         {/* Lista de ofertas */}

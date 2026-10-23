@@ -1,13 +1,12 @@
 "use client";
 
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, type TooltipProps } from "recharts";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
 
 export type DonutSlice = {
   id: string;
   label: string;
   amount: number;
-  percentage: number; // fração (0..1)
+  percentage: number;
   color: string;
 };
 
@@ -16,66 +15,68 @@ type Props = {
   currency: CurrencyCode;
 };
 
-function formatPercent(value: number) {
-  return `${(value * 100).toFixed(0)}%`;
-}
-
-function DonutTooltip({
-  active,
-  payload,
-  currency
-}: TooltipProps<number, string> & { currency: CurrencyCode }) {
-  if (!active) return null;
-  const item = (payload?.[0]?.payload as DonutSlice | undefined);
-  if (!item) return null;
-
-  return (
-    <div className="rounded-xl border border-white/10 bg-card px-4 py-3 text-xs shadow-lg backdrop-blur-sm">
-      <div className="text-[11px] font-semibold text-foreground uppercase tracking-wider">{item.label}</div>
-      <div className="mt-2 space-y-2">
-        <div className="flex items-center justify-between gap-6">
-          <span className="text-muted-foreground">Valor</span>
-          <span className="font-bold text-foreground">{formatMoney(item.amount, currency)}</span>
-        </div>
-        <div className="flex items-center justify-between gap-6">
-          <span className="text-muted-foreground">Percentual</span>
-          <span className="font-bold text-foreground">{formatPercent(item.percentage)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
+const RADIUS = 70;
+const CIRC = 2 * Math.PI * RADIUS;
 
 export function DonutChart({ data, currency }: Props) {
   if (!data || data.length === 0) {
     return null;
   }
 
+  const total = data.reduce((sum, slice) => sum + slice.amount, 0);
+  let offset = 0;
+  const segments = data.map((slice) => {
+    const fraction = total > 0 ? slice.amount / total : 0;
+    const length = fraction * CIRC;
+    const segment = { ...slice, fraction, length, offset };
+    offset += length;
+    return segment;
+  });
+
   return (
-    <div className="h-64 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Tooltip
-            content={(props: TooltipProps<number, string>) => (
-              <DonutTooltip {...props} currency={currency} />
-            )}
+    <div className="mt-3.5 flex flex-col items-stretch gap-[18px]">
+      <svg viewBox="0 0 200 200" className="mx-auto h-40 w-40" aria-hidden="true">
+        <circle cx="100" cy="100" r={RADIUS} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="34" />
+        {segments.map((slice) => (
+          <circle
+            key={slice.id}
+            cx="100"
+            cy="100"
+            r={RADIUS}
+            fill="none"
+            stroke={slice.color}
+            strokeWidth="34"
+            strokeDasharray={`${slice.length.toFixed(2)} ${(CIRC - slice.length).toFixed(2)}`}
+            strokeDashoffset={(-slice.offset).toFixed(2)}
+            transform="rotate(-90 100 100)"
           />
-          <Pie
-            data={data}
-            dataKey="amount"
-            nameKey="label"
-            innerRadius={60}
-            outerRadius={100}
-            paddingAngle={0.5}
-            stroke="rgba(0,0,0,0.2)"
-            strokeWidth={1.5}
+        ))}
+      </svg>
+      <div className="flex w-full flex-col">
+        {segments.map((slice) => (
+          <div
+            key={slice.id}
+            className="grid grid-cols-[10px_minmax(0,1fr)_auto_52px] items-center gap-2.5 border-t border-white/10 py-2 text-[13px]"
           >
-            {data.map((d) => (
-              <Cell key={d.id} fill={d.color} fillOpacity={1} />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
+            <i className="block h-2.5 w-2.5 rounded-[3px]" style={{ background: slice.color }} />
+            <em className="truncate not-italic text-[#f3f7f4]">{slice.label}</em>
+            <b className="text-right font-mono text-[12.5px] font-medium text-[#f3f7f4]">
+              {formatMoney(slice.amount, currency)}
+            </b>
+            <span className="text-right font-mono text-xs text-[#9ca9a1]">
+              {(slice.fraction * 100).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DonutEmpty({ message }: { message: string }) {
+  return (
+    <div className="mt-3.5 grid min-h-[150px] w-full place-items-center rounded-xl border border-dashed border-white/15 px-4 py-6 text-center text-[13px] text-[#64706a]">
+      {message}
     </div>
   );
 }

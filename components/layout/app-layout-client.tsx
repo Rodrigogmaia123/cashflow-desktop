@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MobileHeader } from "./mobile-header";
 import { MobileSidebar } from "./mobile-sidebar";
 import { Sidebar } from "./sidebar";
@@ -23,6 +23,11 @@ export function AppLayoutClient({
 }: AppLayoutClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  useEffect(() => {
+    document.documentElement.classList.add("cf-app");
+    return () => document.documentElement.classList.remove("cf-app");
+  }, []);
+
   return (
     <QuickCaptureProvider>
       <ReleaseNotesDialog version={appVersion} enabled={announceUpdates} />
@@ -41,17 +46,17 @@ export function AppLayoutClient({
         onOpenChange={setMobileMenuOpen}
       />
 
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div className="cf-app flex h-screen overflow-hidden">
         {/* Desktop Sidebar - Visível apenas em desktop */}
         <div className="hidden lg:block">
           <Sidebar {...sidebarProps} variant="desktop" />
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 h-screen overflow-y-auto bg-background-secondary scrollbar-thin">
+        <main className="flex-1 h-screen overflow-y-auto scrollbar-thin">
           {/* Mobile: adicionar padding-top para o header fixo */}
           <div className="lg:pt-0 pt-14">
-            <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-[1280px] p-4 sm:p-6 lg:px-9 lg:py-7">
               {sidebarProps.desktopMode ? <DesktopUpdateBanner /> : null}
               {children}
             </div>

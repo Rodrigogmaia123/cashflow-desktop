@@ -6,7 +6,6 @@ import { getWorkspaceCashflow } from "@/lib/analytics/cashflow";
 import { getBusinessAlerts } from "@/lib/analytics/business-alerts";
 import { prisma } from "@/lib/db";
 import { OverviewMetrics } from "@/components/overview/overview-metrics";
-import { BusinessHealth } from "@/components/overview/business-health";
 import { Highlights } from "@/components/overview/highlights";
 import { NextActions } from "@/components/overview/next-actions";
 import { PeriodSummary } from "@/components/overview/period-summary";
@@ -17,10 +16,8 @@ import { getBusinessHealthScore } from "@/lib/analytics/business-health-score";
 import { getWeeklySnapshot } from "@/lib/analytics/weekly-snapshot";
 import { startOfDay, addDaysUTC, endOfDay, currentMonthToDateRange } from "@/lib/analytics/date-range-utils";
 import { resolvePreviousDateRange } from "@/lib/analytics/date-range";
-import { hasFeature } from "@/lib/plans/features";
 import { requireHistoricalAnalysis } from "@/lib/plans/authorization";
 import { OverviewFilters } from "@/components/overview/overview-filters";
-import { DashboardSection } from "@/components/dashboard/dashboard-section";
 import { CurrencyViewSelector } from "@/components/currency/currency-view-selector";
 import { getCurrencyViewMode } from "@/lib/domain/currency-view-server";
 import { isPersonalEdition } from "@/lib/desktop-edition";
@@ -136,7 +133,8 @@ export default async function OverviewPage({ searchParams }: Props) {
     getBusinessAlerts({
       workspaceId,
       startDate: finalStartDate,
-      endDate: finalEndDate
+      endDate: finalEndDate,
+      currencyView
     }),
     prisma.offer.findMany({
       where: { workspaceId },
@@ -162,12 +160,14 @@ export default async function OverviewPage({ searchParams }: Props) {
       previous: resolvePreviousDateRange({
         startDate: finalStartDate,
         endDate: finalEndDate
-      })
+      }),
+      currencyView
     }),
     getBusinessHealthScore({
       workspaceId,
       startDate: finalStartDate,
-      endDate: finalEndDate
+      endDate: finalEndDate,
+      currencyView
     }),
     getWeeklySnapshot({
       workspaceId,
@@ -234,23 +234,31 @@ export default async function OverviewPage({ searchParams }: Props) {
   // Se foi ajustado (FREE tentou > 30 dias), mostra aviso
   const wasAdjusted = !historicalCheck.allowed && (startDate.getTime() !== finalStartDate.getTime() || endDate.getTime() !== finalEndDate.getTime());
 
+  const formatDay = (date: Date) =>
+    date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+  const revenueNumber = revenue.toNumber();
+  const bestOfferShare =
+    !personal && topOffer && revenueNumber > 0
+      ? (topOffer.revenue / revenueNumber) * 100
+      : null;
+  const mainAlert = alerts.find((alert) => alert.level === "CRITICAL")
+    ?? alerts.find((alert) => alert.level === "WARNING")
+    ?? null;
+
   return (
-    <section className="space-y-8">
+    <section className="space-y-4">
       <div className="space-y-2">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
-            <p className="text-sm text-muted-foreground">
-              {personal
-                ? "Resumo das suas finanças."
-                : "Resumo executivo do seu negócio."}{" "}
-              <span className="font-medium text-foreground">
-                {periodDays} {periodDays === 1 ? "dia" : "dias"}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="sr-only">Visão geral</h1>
+            <p className="text-[13px] text-[#9ca9a1]">
+              {personal ? "Resumo das suas finanças" : "Resumo executivo do seu negócio"}
+              <span className="text-[#64706a]">
+                {" "}· {periodDays} {periodDays === 1 ? "dia" : "dias"} ({formatDay(finalStartDate)} → {formatDay(finalEndDate)})
               </span>
-              {" "}({finalStartDate.toISOString().split("T")[0]} → {finalEndDate.toISOString().split("T")[0]})
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
             <CurrencyViewSelector
               current={currencyView}
               baseCurrency={cashflowData.baseCurrency}
@@ -273,35 +281,37 @@ export default async function OverviewPage({ searchParams }: Props) {
         )}
       </div>
 
-      <OverviewMetrics
-        revenue={revenue}
-        expenses={expensesTotal}
-        profit={profit}
-        roi={roi}
-        currency={cashflowData.displayCurrency}
-        hideRoi={personal}
-      />
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <BusinessHealth
-          alerts={alerts}
-          netProfit={profit}
-          title={personal ? "Saúde financeira" : undefined}
-          emptyMessage={
-            personal
-              ? "Suas finanças estão em boa saúde. Continue acompanhando entradas e gastos."
-              : undefined
+      <div className="grid items-stretch gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1.15fr)]">
+        <BusinessHealthScore
+          score={healthScore}
+          notice={mainAlert ? `${mainAlert.title}. ${mainAlert.description}` : personal ? "Suas finanças estão em boa saúde. Continue acompanhando entradas e gastos." : undefined}
+          banner={
+            bestOfferShare !== null && topOffer
+              ? {
+                  name: topOffer.offerName,
+                  detail: `gerou ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: cashflowData.displayCurrency }).format(topOffer.revenue)} (${bestOfferShare.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% do total)`,
+                  href: "/app/offers"
+                }
+              : null
           }
         />
-        <BusinessHealthScore score={healthScore} />
+        <OverviewMetrics
+          revenue={revenue}
+          expenses={expensesTotal}
+          profit={profit}
+          roi={roi}
+          currency={cashflowData.displayCurrency}
+          hideRoi={personal}
+          periodLabel={`${periodDays} ${periodDays === 1 ? "dia" : "dias"}`}
+        />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <PeriodSummary comparison={periodComparison} currency={cashflowData.displayCurrency} hideRoi={personal} />
+      <div className="grid gap-4 xl:grid-cols-2">
+        <PeriodSummary comparison={periodComparison} currency={cashflowData.displayCurrency} hideRoi={personal} periodDays={periodDays} />
         <WeeklySnapshot snapshot={weeklySnapshot} />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-2">
         <Highlights
           topOffer={topOffer}
           worstOffer={worstOffer}

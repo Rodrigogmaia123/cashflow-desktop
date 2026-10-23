@@ -20,8 +20,7 @@ export function OnboardingTrigger({ className }: OnboardingTriggerProps) {
       className={className}
       title="Guia do Sistema"
     >
-      <span className="mr-2">🎓</span>
-      <span className="text-xs">Guia do Sistema</span>
+      <span>Guia do Sistema</span>
     </Button>
   );
 }

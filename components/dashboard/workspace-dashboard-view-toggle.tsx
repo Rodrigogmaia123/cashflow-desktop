@@ -46,5 +46,3 @@ export function WorkspaceDashboardViewToggle({ activeView }: Props) {
     </div>
   );
 }
-
-

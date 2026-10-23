@@ -1,6 +1,5 @@
 "use client";
 
-import { AlertTriangle, TrendingUp, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { BusinessAlert } from "@/lib/analytics/business-alerts";
 
@@ -8,26 +7,21 @@ type OfferInsightsProps = {
   alerts: BusinessAlert[];
 };
 
-function getAlertIcon(level: BusinessAlert["level"]) {
-  switch (level) {
-    case "CRITICAL":
-      return <AlertTriangle className="h-4 w-4 text-destructive-vibrant" />;
-    case "WARNING":
-      return <AlertCircle className="h-4 w-4 text-warning" />;
-    case "INFO":
-      return <Info className="h-4 w-4 text-primary" />;
-  }
-}
-
 function getAlertStyles(level: BusinessAlert["level"]) {
   switch (level) {
     case "CRITICAL":
-      return "border-destructive-vibrant/30 bg-destructive-soft/20";
     case "WARNING":
-      return "border-warning/30 bg-warning-soft/20";
+      return "border-[rgba(228,193,92,0.5)] bg-[rgba(228,193,92,0.07)]";
     case "INFO":
-      return "border-primary/30 bg-primary-soft/20";
+      return "border-[rgba(172,147,255,0.28)] bg-[rgba(172,147,255,0.06)]";
   }
+}
+
+function getBadgeStyles(level: BusinessAlert["level"]) {
+  if (level === "INFO") {
+    return "border-[rgba(172,147,255,0.5)] text-[#ac93ff]";
+  }
+  return "border-[rgba(228,193,92,0.6)] text-[#e4c15c]";
 }
 
 export function OfferInsights({ alerts }: OfferInsightsProps) {
@@ -39,39 +33,32 @@ export function OfferInsights({ alerts }: OfferInsightsProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]">
+      <h2 className="font-display text-base font-semibold">Insights inteligentes</h2>
+      <p className="mb-3.5 mt-1 text-xs text-[#64706a]">Alertas e comparações automáticas</p>
       <div>
-        <h3 className="text-sm font-semibold text-foreground mb-1">
-          Insights Inteligentes
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          Alertas e comparações automáticas
-        </p>
-      </div>
-      <div className="space-y-2">
         {visibleAlerts.map((alert) => (
           <div
             key={alert.id}
             className={cn(
-              "rounded-lg border p-3 flex items-start gap-3",
+              "mt-2.5 flex gap-3 rounded-xl border px-4 py-3 first:mt-0",
               getAlertStyles(alert.level)
             )}
           >
-            <div className="mt-0.5 flex-shrink-0">
-              {getAlertIcon(alert.level)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold text-foreground mb-1">
-                {alert.title}
-              </div>
-              <div className="text-xs text-muted-foreground leading-relaxed">
-                {alert.description}
-              </div>
+            <span className={cn(
+              "grid h-[22px] w-[22px] flex-none place-items-center rounded-full border font-mono text-xs font-semibold",
+              getBadgeStyles(alert.level)
+            )}>
+              {alert.level === "INFO" ? "i" : "!"}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-sm font-medium text-foreground">{alert.title}</div>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-[#9ca9a1]">{alert.description}</p>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

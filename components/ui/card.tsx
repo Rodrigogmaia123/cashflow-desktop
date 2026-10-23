@@ -3,13 +3,16 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement> {}
+  extends React.HTMLAttributes<HTMLDivElement> {
+  solid?: boolean;
+}
 
-export function Card({ className, ...props }: CardProps) {
+export function Card({ className, solid, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/5 bg-card text-card-foreground shadow-card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5",
+        "cf-surface rounded-2xl border border-white/5 bg-card text-card-foreground shadow-card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5",
+        solid && "cf-solid",
         className
       )}
       {...props}

@@ -6,6 +6,7 @@ import type { CurrencyCode } from "@/lib/domain/currency";
 import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 import { resolveDisplayCurrency } from "@/lib/domain/currency-view";
 import { projectAmountForView } from "@/lib/domain/currency-projection";
+import { performanceMoneyInView } from "@/lib/analytics/performance-money";
 import {
   resolveDateRange,
   resolvePreviousDateRange,
@@ -821,6 +822,7 @@ export async function getWorkspaceComparisonDashboard(params: {
   startDate: Date;
   endDate: Date;
   metric: WorkspaceComparisonMetric;
+  currencyView?: CurrencyViewMode;
 }): Promise<{
   points: WorkspaceComparisonPoint[];
   resolvedRange: { startDate: Date; endDate: Date };
@@ -862,25 +864,20 @@ export async function getWorkspaceComparisonDashboard(params: {
   });
 
   const byDateOffer = new Map<string, Map<string, number>>();
+  const comparisonView = params.currencyView ?? "CONVERTED";
 
   for (const r of rows) {
     const key = toDateKey(startOfDayUTC(r.date));
-    const fee = calculateFee({
-      revenue: r.revenue,
-      sales: r.sales,
-      checkoutPercentage: r.checkoutPercentageSnapshot,
-      gatewayFeePerSale: r.gatewayFeePerSaleSnapshot,
-      taxPercentage: r.taxPercentageSnapshot
-    });
-    const profit = r.revenue.sub(r.investment.add(fee));
-    const denom = r.investment.add(fee);
-    const roi = denom.equals(0) ? 0 : r.revenue.div(denom).toNumber();
+    const money = performanceMoneyInView(r, comparisonView);
+    if (!money) continue;
+    const denom = money.investment.add(money.fee);
+    const roi = denom.equals(0) ? 0 : money.revenue.div(denom).toNumber();
 
     const value =
       params.metric === "revenue"
-        ? r.revenue.toNumber()
+        ? money.revenue.toNumber()
         : params.metric === "profit"
-          ? profit.toNumber()
+          ? money.profit.toNumber()
           : roi;
 
     const m = byDateOffer.get(key) ?? new Map<string, number>();
@@ -927,6 +924,7 @@ export async function getWorkspaceHeatmap(params: {
   endDate: Date;
   metric: WorkspaceHeatmapMetric;
   limitOffers?: number; // default: 8
+  currencyView?: CurrencyViewMode;
 }): Promise<{
   offers: Array<{ offerId: string; offerName: string }>;
   rows: WorkspaceHeatmapRow[];
@@ -948,25 +946,20 @@ export async function getWorkspaceHeatmap(params: {
 
   const totalsByOffer = new Map<string, { offerId: string; offerName: string; total: number }>();
   const byDateOffer = new Map<string, Map<string, number>>();
+  const heatmapView = params.currencyView ?? "CONVERTED";
 
   for (const r of rows) {
     const key = toDateKey(startOfDayUTC(r.date));
-    const fee = calculateFee({
-      revenue: r.revenue,
-      sales: r.sales,
-      checkoutPercentage: r.checkoutPercentageSnapshot,
-      gatewayFeePerSale: r.gatewayFeePerSaleSnapshot,
-      taxPercentage: r.taxPercentageSnapshot
-    });
-    const profit = r.revenue.sub(r.investment.add(fee));
-    const denom = r.investment.add(fee);
-    const roi = denom.equals(0) ? 0 : r.revenue.div(denom).toNumber();
+    const money = performanceMoneyInView(r, heatmapView);
+    if (!money) continue;
+    const denom = money.investment.add(money.fee);
+    const roi = denom.equals(0) ? 0 : money.revenue.div(denom).toNumber();
 
     const value =
       params.metric === "revenue"
-        ? r.revenue.toNumber()
+        ? money.revenue.toNumber()
         : params.metric === "profit"
-          ? profit.toNumber()
+          ? money.profit.toNumber()
           : roi;
 
     const m = byDateOffer.get(key) ?? new Map<string, number>();
@@ -1054,6 +1047,7 @@ export async function getWorkspaceCalendarData(params: {
   startDate: Date;
   endDate: Date;
   offerId?: string; // Se fornecido, filtra apenas esta oferta
+  currencyView?: CurrencyViewMode;
 }): Promise<{
   days: WorkspaceCalendarDay[];
   offers: Array<{ id: string; name: string }>;
@@ -1087,16 +1081,10 @@ export async function getWorkspaceCalendarData(params: {
 
       for (const r of rows) {
         const dateKey = toDateKey(startOfDayUTC(r.date));
-        const fee = calculateFee({
-          revenue: r.revenue,
-          sales: r.sales,
-          checkoutPercentage: r.checkoutPercentageSnapshot,
-          gatewayFeePerSale: r.gatewayFeePerSaleSnapshot,
-          taxPercentage: r.taxPercentageSnapshot
-        });
-        const profit = r.revenue.sub(r.investment.add(fee));
-        const denom = r.investment.add(fee);
-        const roi = denom.equals(0) ? new Decimal(0) : r.revenue.div(denom);
+        const money = performanceMoneyInView(r, params.currencyView ?? "CONVERTED");
+        if (!money) continue;
+        const denom = money.investment.add(money.fee);
+        const roi = denom.equals(0) ? new Decimal(0) : money.revenue.div(denom);
 
         offersSet.set(r.offerId, r.offer.name);
 
@@ -1104,8 +1092,8 @@ export async function getWorkspaceCalendarData(params: {
         dayOffers.set(r.offerId, {
           offerId: r.offerId,
           offerName: r.offer.name,
-          lucro: profit.toNumber(),
-          faturamento: r.revenue.toNumber(),
+          lucro: money.profit.toNumber(),
+          faturamento: money.revenue.toNumber(),
           roi: roi.toNumber()
         });
         byDate.set(dateKey, dayOffers);
