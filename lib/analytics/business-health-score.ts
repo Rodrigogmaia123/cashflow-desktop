@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import type { BusinessAlert } from "./business-alerts";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 import { getWorkspaceDashboard } from "./dashboard";
 import { getWorkspaceCashflow } from "./cashflow";
 import { startOfDay, addDaysUTC, endOfDay } from "./date-range-utils";
@@ -89,6 +90,7 @@ export async function getBusinessHealthScore(params: {
   workspaceId: string;
   startDate: Date;
   endDate: Date;
+  currencyView?: CurrencyViewMode;
 }): Promise<BusinessHealthScore> {
   return measure(
     "analytics.businessHealthScore",
@@ -100,12 +102,14 @@ export async function getBusinessHealthScore(params: {
       const [dashboardData, cashflowData] = await Promise.all([
         getWorkspaceDashboard({
           workspaceId: params.workspaceId,
-          range: { type: "absolute", startDate, endDate }
+          range: { type: "absolute", startDate, endDate },
+          currencyView: params.currencyView
         }),
         getWorkspaceCashflow({
           workspaceId: params.workspaceId,
           startDate,
-          endDate
+          endDate,
+          currencyView: params.currencyView
         })
       ]);
 
@@ -120,7 +124,8 @@ export async function getBusinessHealthScore(params: {
         const previousCashflow = await getWorkspaceCashflow({
           workspaceId: params.workspaceId,
           startDate: previousRange.startDate,
-          endDate: previousRange.endDate
+          endDate: previousRange.endDate,
+          currencyView: params.currencyView
         });
 
         const currentRevenue = cashflowData.kpis.totalRevenue.toNumber();
@@ -141,7 +146,8 @@ export async function getBusinessHealthScore(params: {
         alerts = await getBusinessAlerts({
           workspaceId: params.workspaceId,
           startDate,
-          endDate
+          endDate,
+          currencyView: params.currencyView
         });
       } catch (error) {
         // Ignora erros ao buscar alertas

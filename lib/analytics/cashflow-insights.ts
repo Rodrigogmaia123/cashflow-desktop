@@ -4,6 +4,7 @@ import { getWorkspaceCashflow } from "@/lib/analytics/cashflow";
 import { resolvePreviousDateRange } from "@/lib/analytics/date-range";
 import { requireAdvancedReports } from "@/lib/plans/authorization";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 
 export type CashflowInsight = {
   id: string;
@@ -41,6 +42,7 @@ export async function getCashflowInsights(params: {
   workspaceId: string;
   startDate: Date;
   endDate: Date;
+  currencyView?: CurrencyViewMode;
 }): Promise<CashflowInsight[]> {
   // Bloqueio: Insights requerem relatórios avançados (comparação de períodos)
   const advancedReportsCheck = await requireAdvancedReports();
@@ -53,7 +55,8 @@ export async function getCashflowInsights(params: {
   const current = await getWorkspaceCashflow({
     workspaceId: params.workspaceId,
     startDate: params.startDate,
-    endDate: params.endDate
+    endDate: params.endDate,
+    currencyView: params.currencyView
   });
 
   const previousRange = resolvePreviousDateRange({
@@ -64,7 +67,8 @@ export async function getCashflowInsights(params: {
   const previous = await getWorkspaceCashflow({
     workspaceId: params.workspaceId,
     startDate: previousRange.startDate,
-    endDate: previousRange.endDate
+    endDate: previousRange.endDate,
+    currencyView: params.currencyView
   });
 
   const insights: CashflowInsight[] = [];

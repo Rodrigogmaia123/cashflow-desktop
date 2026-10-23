@@ -10,7 +10,6 @@ import { isDesktopMode } from "@/lib/desktop";
 import type { DesktopEdition } from "@/lib/desktop-edition";
 import { desktopProductName } from "@/lib/desktop-edition";
 import { QuickCaptureTrigger } from "@/components/quick-capture/quick-capture-trigger";
-import { BrandMark } from "@/components/brand/brand-mark";
 
 type NavItem = { href: string; label: string; editions?: DesktopEdition[] };
 
@@ -21,6 +20,7 @@ const MAIN_NAV_ITEMS: NavItem[] = [
   { href: "/app/cashflow", label: "Fluxo de caixa" },
   { href: "/app/plans", label: "Projetos" },
   { href: "/app/budgets", label: "Orçamentos" },
+  { href: "/app/anotacoes", label: "Anotações" },
   { href: "/app/reports", label: "Relatórios" },
   { href: "/app/notifications", label: "Notificações" },
   { href: "/app/support", label: "Suporte" },
@@ -81,6 +81,7 @@ export function Sidebar({
 }: SidebarProps) {
   const isMobile = variant === "mobile";
   const productName = desktopProductName(edition);
+  const editionBadge = edition === "pessoal" ? "PESSOAL" : "PRO";
   const mainItems = MAIN_NAV_ITEMS.filter((item) => visibleForEdition(item, edition)).filter(
     (item) => item.href !== "/app/support" || desktopMode
   );
@@ -89,31 +90,29 @@ export function Sidebar({
   
   return (
     <aside className={cn(
-      "flex flex-col border-r border-white/5 bg-background-secondary",
-      isMobile ? "w-full h-full" : "w-64 h-screen flex-shrink-0"
+      "flex flex-col border-r border-white/10 bg-background-secondary",
+      isMobile ? "w-full h-full" : "w-[232px] h-screen flex-shrink-0"
     )}>
-      {/* Header - Logo */}
       <div className={cn(
-        "border-b border-white/5 flex-shrink-0",
-        isMobile ? "px-4 py-4" : "px-6 py-5"
+        "flex-shrink-0",
+        isMobile ? "px-3.5 pt-4" : "px-3.5 pt-[18px]"
       )} data-tour="sidebar-header">
-        <div className="flex items-center gap-2">
-          <BrandMark size={32} />
-          <div>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              {productName}
-            </span>
-          </div>
+        <div className="flex items-center gap-2.5 px-1.5 pb-4 font-display text-[17px] font-semibold text-foreground">
+          <span className="grid h-7 w-7 place-items-center rounded-lg bg-accent text-[15px] font-bold text-accent-foreground">
+            C
+          </span>
+          <span>Cashflow</span>
+          <span className="rounded-[5px] border border-primary/40 px-1.5 py-px font-mono text-[10px] font-medium tracking-[0.08em] text-primary">
+            {editionBadge}
+          </span>
         </div>
+        <span className="sr-only">{productName}</span>
+        <QuickCaptureTrigger />
       </div>
 
-      {/* Navigation - Scrollable */}
-      <nav className="flex-1 overflow-y-auto space-y-1 px-3 py-4 text-sm scrollbar-thin">
-        <div className="px-0 pb-3">
-          <QuickCaptureTrigger />
-        </div>
-        <div className="space-y-1">
-          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <nav className="flex-1 overflow-y-auto space-y-1 px-3.5 py-2 text-sm scrollbar-thin">
+        <div className="space-y-0.5">
+          <div className="px-2 pb-1 pt-3 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
             Navegação
           </div>
           {mainItems.map((item) => (
@@ -126,7 +125,7 @@ export function Sidebar({
           ))}
         </div>
         <div className="space-y-1 pt-4">
-          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="px-2 pb-1 pt-3 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
             Configurações
           </div>
           {settingsItems.map((item) => (
@@ -140,7 +139,7 @@ export function Sidebar({
         </div>
         {userPlan === "BUSINESS" && !isDesktopMode() && (
           <div className="space-y-1 pt-4">
-            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="px-2 pb-1 pt-3 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
               Business
             </div>
             {BUSINESS_NAV_ITEMS_BASE.map((item) => {
@@ -159,7 +158,7 @@ export function Sidebar({
         )}
         {!isDesktopMode() && (
         <div className="space-y-1 pt-4">
-          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="px-2 pb-1 pt-3 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
             Conta
           </div>
           {accountItems.map((item) => (
@@ -183,8 +182,8 @@ export function Sidebar({
 
       {/* Footer - Fixed (Workspace + Avatar) */}
       <div className={cn(
-        "border-t border-white/5 space-y-3 bg-card/50 flex-shrink-0",
-        isMobile ? "px-3 py-3" : "px-4 py-4"
+        "mt-auto border-t border-white/10 flex-shrink-0 space-y-2",
+        isMobile ? "px-3.5 py-3" : "px-3.5 pb-4 pt-3"
       )} data-tour="workspace-selector">
         {workspaces.length > 0 && (
           <WorkspaceSelector
@@ -197,7 +196,7 @@ export function Sidebar({
           email={userEmail}
           image={userImage}
         />
-        <OnboardingTrigger className="w-full justify-start" />
+        <OnboardingTrigger className="h-auto w-full justify-start px-2 py-0 text-[11px] font-normal text-muted hover:bg-transparent hover:text-foreground" />
       </div>
     </aside>
   );

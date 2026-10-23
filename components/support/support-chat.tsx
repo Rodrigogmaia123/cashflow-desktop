@@ -142,7 +142,7 @@ export function SupportComposer({
         placeholder={placeholder}
         className="flex-1 resize-none rounded-xl border-0 bg-[#0F131A] px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary"
       />
-      <Button type="submit" disabled={disabled || !value.trim()} className="h-10">
+      <Button type="submit" variant="accent" disabled={disabled || !value.trim()} className="h-10">
         Enviar
       </Button>
     </form>

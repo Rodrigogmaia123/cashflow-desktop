@@ -29,23 +29,20 @@ export function getComparisonDateRanges(type: ComparisonPeriodType): {
   }
 
   if (type === "7d") {
-    const currentStart = addDaysUTC(todayStart, -6);
-    const previousEnd = addDaysUTC(todayStart, -1);
-    const previousStart = addDaysUTC(previousEnd, -6);
-
-    return {
-      current: { startDate: currentStart, endDate: todayEnd },
-      previous: { startDate: startOfDayUTC(previousStart), endDate: endOfDayUTC(previousEnd) }
-    };
+    return pairedWindows(todayStart, todayEnd, 7);
   }
 
-  // 30d
-  const currentStart = addDaysUTC(todayStart, -29);
-  const previousEnd = addDaysUTC(todayStart, -1);
-  const previousStart = addDaysUTC(previousEnd, -29);
+  return pairedWindows(todayStart, todayEnd, 30);
+}
+
+/** Janela atual termina hoje. A anterior tem o mesmo tamanho e termina no dia anterior ao início da atual. */
+function pairedWindows(todayStart: Date, todayEnd: Date, lengthDays: number) {
+  const currentStart = addDaysUTC(todayStart, -(lengthDays - 1));
+  const previousEnd = addDaysUTC(currentStart, -1);
+  const previousStart = addDaysUTC(previousEnd, -(lengthDays - 1));
 
   return {
-    current: { startDate: currentStart, endDate: todayEnd },
+    current: { startDate: startOfDayUTC(currentStart), endDate: todayEnd },
     previous: { startDate: startOfDayUTC(previousStart), endDate: endOfDayUTC(previousEnd) }
   };
 }

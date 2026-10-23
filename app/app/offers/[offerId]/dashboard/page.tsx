@@ -15,7 +15,6 @@ import { exportOfferCSV } from "@/app/app/exports/actions";
 import { PeriodComparisonSection } from "@/components/comparison/period-comparison-section";
 import { PeriodComparisonControls } from "@/components/comparison/period-comparison-controls";
 import { MainAlert } from "@/components/dashboard/main-alert";
-import { MetricCard } from "@/components/dashboard/metric-card";
 import { DashboardSection } from "@/components/dashboard/dashboard-section";
 import { SoftBadge } from "@/components/dashboard/soft-badge";
 import { getBusinessAlerts } from "@/lib/analytics/business-alerts";
@@ -32,6 +31,49 @@ type Props = {
 
 function formatMoney(value: Decimal | number, currency: CurrencyCode) {
   return formatMoneyCurrency(value, currency);
+}
+
+function DeltaPill({ value }: { value?: number }) {
+  if (value === undefined || Number.isNaN(value)) {
+    return <span className="mt-1.5 inline-block rounded-full bg-white/5 px-2 py-0.5 font-mono text-[11px] text-[#9ca9a1]">sem base</span>;
+  }
+  const down = value < 0;
+  return (
+    <span className={down
+      ? "mt-1.5 inline-block rounded-full bg-[rgba(240,138,122,0.12)] px-2 py-0.5 font-mono text-[11px] font-medium text-[#f08a7a]"
+      : "mt-1.5 inline-block rounded-full bg-[rgba(143,211,122,0.12)] px-2 py-0.5 font-mono text-[11px] font-medium text-[#8fd37a]"}>
+      {down ? "↓" : "↑"} {Math.abs(value).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+    </span>
+  );
+}
+
+function OfferKpi({
+  label,
+  value,
+  hint,
+  accent = false,
+  valueClass,
+  delta
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  accent?: boolean;
+  valueClass?: string;
+  delta?: number;
+}) {
+  return (
+    <section className={accent
+      ? "rounded-2xl border border-[rgba(199,241,86,0.3)] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px] shadow-[0_0_60px_-26px_rgba(199,241,86,0.55)]"
+      : "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]"}>
+      <div className={accent ? "font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-[#c7f156]" : "font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-[#64706a]"}>
+        {label}
+      </div>
+      <div className={`mt-1.5 font-display text-[28px] font-semibold leading-tight tracking-tight ${valueClass ?? ""}`}>{value}</div>
+      {delta !== undefined && <DeltaPill value={delta} />}
+      <div className="mt-1 text-xs text-[#64706a]">{hint}</div>
+    </section>
+  );
 }
 
 
@@ -130,11 +172,14 @@ export default async function OfferDashboardPage({ params, searchParams }: Props
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Dashboard da Oferta
+          <Link href="/app/offers" className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted hover:text-foreground">
+            ← Ofertas
+          </Link>
+          <h1 className="font-display text-[28px] font-bold tracking-tight">
+            {offer.name}
           </h1>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
-            {offer.name} • <SoftBadge variant={getStatusVariant(offer.status)}>{offer.status}</SoftBadge>
+            <SoftBadge variant={getStatusVariant(offer.status)}>{offer.status}</SoftBadge>
           </p>
           <p className="text-xs text-muted-foreground">
             Centro de decisão da oferta (histórico imutável via snapshots). Período:{" "}
@@ -170,58 +215,26 @@ export default async function OfferDashboardPage({ params, searchParams }: Props
       <OfferDashboardFilters offerId={offer.id} active={built.activeUi} />
 
       {/* SEÇÃO 1: KPIs PRINCIPAIS */}
-      <DashboardSection>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <MetricCard
-            label="Investimento"
-            value={formatMoney(kpis.investmentTotal, offerCurrency)}
-            tooltip="Total do período"
-          />
-          <MetricCard
-            label="Faturamento"
-            value={formatMoney(kpis.revenueTotal, offerCurrency)}
-            tooltip="Total do período"
-          />
-          <MetricCard
-            label="Vendas"
-            value={kpis.salesTotal.toLocaleString("pt-BR")}
-            tooltip="Total do período"
-          />
-          <MetricCard
-            label="Fee"
-            value={formatMoney(kpis.feeTotal, offerCurrency)}
-            tooltip="Somando fees diárias (snapshots)"
-          />
-          <MetricCard
-            label="Lucro"
-            value={formatMoney(kpis.profitTotal, offerCurrency)}
-            delta={
-              comparison?.profit.deltaPct !== undefined
-                ? {
-                    value: comparison.profit.delta,
-                    percentage: comparison.profit.deltaPct
-                  }
-                : null
-            }
-            tooltip="Revenue - (Investimento + Fees)"
-            className={!kpis.profitTotal.lessThan(0) ? "ring-1 ring-success-vibrant/20" : ""}
-          />
-          <MetricCard
-            label="ROI real"
-            value={`${kpis.roiWeighted.mul(100).toFixed(2)}%`}
-            delta={
-              comparison?.roi.deltaPct !== undefined
-                ? {
-                    value: comparison.roi.delta,
-                    percentage: comparison.roi.deltaPct
-                  }
-                : null
-            }
-            tooltip="Receita / (Investimento + Fee)"
-            className={!kpis.roiWeighted.lessThan(1) ? "ring-1 ring-primary/20" : ""}
-          />
-        </div>
-      </DashboardSection>
+      <div className="grid gap-[18px] md:grid-cols-2 xl:grid-cols-3">
+        <OfferKpi label="Investimento" value={formatMoney(kpis.investmentTotal, offerCurrency)} hint="Total do período" />
+        <OfferKpi label="Faturamento" value={formatMoney(kpis.revenueTotal, offerCurrency)} hint="Total do período" />
+        <OfferKpi label="Vendas" value={kpis.salesTotal.toLocaleString("pt-BR")} hint="Total do período" />
+        <OfferKpi label="Fee" value={formatMoney(kpis.feeTotal, offerCurrency)} hint="Somando fees diárias (snapshots)" />
+        <OfferKpi
+          label="Lucro"
+          value={formatMoney(kpis.profitTotal, offerCurrency)}
+          hint="Receita − (Investimento + Fees)"
+          accent={!kpis.profitTotal.lessThan(0)}
+          valueClass={kpis.profitTotal.lessThan(0) ? "text-[#f08a7a]" : "text-[#c7f156]"}
+          delta={comparison?.profit.deltaPct}
+        />
+        <OfferKpi
+          label="ROI real"
+          value={`${kpis.roiWeighted.mul(100).toFixed(2)}%`}
+          hint="Receita ÷ (Investimento + Fee)"
+          delta={comparison?.roi.deltaPct}
+        />
+      </div>
 
       {/* SEÇÃO 2: ALERTA PRINCIPAL */}
       <DashboardSection>

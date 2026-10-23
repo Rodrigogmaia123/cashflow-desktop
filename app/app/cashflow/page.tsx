@@ -8,10 +8,8 @@ import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { requireActiveWorkspaceId } from "@/lib/workspace";
 import { resolveDateRange, type DashboardRange } from "@/lib/analytics/date-range";
 import { getWorkspaceCashflow } from "@/lib/analytics/cashflow";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { CashflowChartPanel } from "@/components/cashflow/cashflow-chart-panel";
-import { MetricCard } from "@/components/dashboard/metric-card";
 import { DashboardSection } from "@/components/dashboard/dashboard-section";
 import { MainAlert } from "@/components/dashboard/main-alert";
 import { getBusinessAlerts } from "@/lib/analytics/business-alerts";
@@ -178,12 +176,14 @@ export default async function CashflowPage({ searchParams }: Props) {
     getCashflowInsights({
       workspaceId,
       startDate: resolved.startDate,
-      endDate: resolved.endDate
+      endDate: resolved.endDate,
+      currencyView
     }),
     getBusinessAlerts({
       workspaceId,
       startDate: resolved.startDate,
-      endDate: resolved.endDate
+      endDate: resolved.endDate,
+      currencyView
     })
   ]);
   // Filtros de categoria
@@ -337,11 +337,13 @@ export default async function CashflowPage({ searchParams }: Props) {
   const personal = isPersonalEdition();
 
   function healthBadge() {
-    const base = "inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-semibold border";
-    if (health.status === "healthy") return `${base} bg-success-soft text-success-vibrant border-success-vibrant/30`;
-    if (health.status === "neutral") return `${base} bg-warning-soft text-warning border-warning/30`;
-    return `${base} bg-destructive-soft text-destructive-vibrant border-destructive-vibrant/30`;
+    const base = "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium";
+    if (health.status === "healthy") return `${base} bg-[rgba(143,211,122,0.16)] text-[#8fd37a]`;
+    if (health.status === "neutral") return `${base} bg-[rgba(201,162,39,0.16)] text-[#c9a227]`;
+    return `${base} bg-[rgba(240,138,122,0.16)] text-[#f08a7a]`;
   }
+
+  const periodLabel = `${resolved.startDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })} → ${resolved.endDate.toLocaleDateString("pt-BR", { timeZone: "UTC" })}`;
 
   return (
     <section className="space-y-6 md:space-y-8">
@@ -349,8 +351,8 @@ export default async function CashflowPage({ searchParams }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3 md:gap-4">
         <div className="space-y-1 md:space-y-2">
           <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
-              Cashflow
+            <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">
+              Fluxo de caixa
             </h1>
             <span
               className={healthBadge()}
@@ -359,12 +361,8 @@ export default async function CashflowPage({ searchParams }: Props) {
               {health.label}
             </span>
           </div>
-          <p className="text-xs md:text-sm text-muted-foreground">
-            Período:{" "}
-            <span className="font-medium text-foreground">
-              {resolved.startDate.toISOString().split("T")[0]} →{" "}
-              {resolved.endDate.toISOString().split("T")[0]}
-            </span>
+          <p className="text-xs text-[#9ca9a1]">
+            Período: <span className="text-foreground">{periodLabel}</span>
           </p>
         </div>
 
@@ -384,153 +382,46 @@ export default async function CashflowPage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* SEÇÃO 1: CAMADA 1 — RESULTADO FINAL (Hero KPIs) - Mobile: 1 coluna */}
-      <DashboardSection>
-        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
-          {/* LUCRO LÍQUIDO — Hero Card */}
-          <Card className={`relative overflow-hidden border-2 transition-all hover:shadow-xl hover:-translate-y-1 ${
-            !kpis.netProfit.lessThan(0) 
-              ? "border-[#4DFF88]/30 bg-gradient-to-br from-[#4DFF88]/10 via-[#4DFF88]/5 to-transparent" 
-              : "border-[#FF5C5C]/30 bg-gradient-to-br from-[#FF5C5C]/10 via-[#FF5C5C]/5 to-transparent"
-          }`}>
-            <CardContent className="p-4 md:p-8">
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Lucro Líquido
-                </div>
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                  !kpis.netProfit.lessThan(0) 
-                    ? "bg-[#4DFF88]/20" 
-                    : "bg-[#FF5C5C]/20"
-                }`}>
-                  {!kpis.netProfit.lessThan(0) ? (
-                    <svg className="h-6 w-6 text-[#4DFF88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                  ) : (
-                    <svg className="h-6 w-6 text-[#FF5C5C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <div className={`text-2xl md:text-4xl font-bold tracking-tight ${
-                !kpis.netProfit.lessThan(0) ? "text-[#4DFF88]" : "text-[#FF5C5C]"
-              }`}>
-                {formatMoney(kpis.netProfit, displayCurrency)}
-              </div>
-              <p className="mt-2 md:mt-3 text-[10px] md:text-xs text-muted-foreground">Receita - Saídas</p>
-            </CardContent>
-          </Card>
+      <div className="grid gap-3 xl:grid-cols-3">
+        <Kpi
+          label="Lucro líquido"
+          value={formatMoney(kpis.netProfit, displayCurrency)}
+          hint="Receita − saídas"
+          valueClass={!kpis.netProfit.lessThan(0) ? "text-[#c7f156]" : "text-[#f08a7a]"}
+          highlight={!kpis.netProfit.lessThan(0)}
+        />
+        <Kpi
+          label="Saldo acumulado"
+          value={formatMoney(kpis.endingBalance, displayCurrency)}
+          hint="Acumulado do net diário"
+          valueClass="text-[#c9bcff]"
+        />
+        <Kpi
+          label="Projeção de caixa (30 dias)"
+          value={formatMoney(new Decimal(projection.projectedBalance), displayCurrency)}
+          hint={`Baseado na média do período (média diária: ${formatMoney(new Decimal(projection.dailyNetAverage), displayCurrency)})`}
+          valueClass={projection.projectedBalance >= 0 ? "text-[#8eb6ff]" : "text-[#f08a7a]"}
+        />
+      </div>
 
-          {/* SALDO ACUMULADO — Hero Card */}
-          <Card className="relative overflow-hidden border-2 border-[#A855F7]/30 bg-gradient-to-br from-[#A855F7]/10 via-[#A855F7]/5 to-transparent transition-all hover:shadow-xl hover:-translate-y-1 hover:shadow-[#A855F7]/20">
-            <CardContent className="p-4 md:p-8">
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Saldo Acumulado
-                </div>
-                <div className="h-12 w-12 rounded-xl bg-[#A855F7]/20 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-[#A855F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="text-2xl md:text-4xl font-bold tracking-tight text-[#A855F7]">
-                {formatMoney(kpis.endingBalance, displayCurrency)}
-              </div>
-              <p className="mt-2 md:mt-3 text-[10px] md:text-xs text-muted-foreground">Acumulado do net diário</p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardSection>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Kpi
+          label="Receita total"
+          value={formatMoney(kpis.totalRevenue, displayCurrency)}
+          hint={`Ofertas: ${formatMoney(kpis.revenueFromOffers, displayCurrency)} · Outras: ${formatMoney(kpis.revenueFromManual, displayCurrency)}`}
+        />
+        <Kpi
+          label="Saídas totais"
+          value={formatMoney(kpis.totalOutflow, displayCurrency)}
+          hint="Ads + Fees (snapshots) + Despesas"
+          valueClass="text-[#f08a7a]"
+        />
+      </div>
 
-      {/* SEÇÃO 2: CAMADA 2 — MOVIMENTO (Receita vs Saídas) */}
-      <DashboardSection>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="border-[#7CFF6B]/20 bg-gradient-to-br from-[#7CFF6B]/5 to-transparent transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-[#7CFF6B]/10">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Receita Total
-                </div>
-                <div className="h-10 w-10 rounded-lg bg-[#7CFF6B]/20 flex items-center justify-center">
-                  <svg className="h-5 w-5 text-[#7CFF6B]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="text-3xl font-bold tracking-tight text-[#7CFF6B]">
-                {formatMoney(kpis.totalRevenue, displayCurrency)}
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Ofertas: {formatMoney(kpis.revenueFromOffers, displayCurrency)} • Outras: {formatMoney(kpis.revenueFromManual, displayCurrency)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[#FF5C5C]/20 bg-gradient-to-br from-[#FF5C5C]/5 to-transparent transition-all hover:shadow-lg hover:-translate-y-0.5 hover:shadow-[#FF5C5C]/10">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Saídas Totais
-                </div>
-                <div className="h-10 w-10 rounded-lg bg-[#FF5C5C]/20 flex items-center justify-center">
-                  <svg className="h-5 w-5 text-[#FF5C5C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-              </div>
-              <div className="text-3xl font-bold tracking-tight text-[#FF5C5C]">
-                {formatMoney(kpis.totalOutflow, displayCurrency)}
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Ads + Fees (snapshots) + Despesas
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardSection>
-
-      {/* SEÇÃO 3: CAMADA 3 — FUTURO (Projeção) */}
-      <DashboardSection>
-        <Card className={`border-2 transition-all hover:shadow-xl hover:-translate-y-1 max-w-md ${
-          projection.projectedBalance >= 0 
-            ? "border-[#3B82F6]/30 bg-gradient-to-br from-[#3B82F6]/10 via-[#3B82F6]/5 to-transparent hover:shadow-[#3B82F6]/20" 
-            : "border-[#FF5C5C]/30 bg-gradient-to-br from-[#FF5C5C]/10 via-[#FF5C5C]/5 to-transparent"
-        }`}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Projeção de Caixa (30 dias)
-              </div>
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                projection.projectedBalance >= 0 ? "bg-[#3B82F6]/20" : "bg-[#FF5C5C]/20"
-              }`}>
-                <svg className={`h-5 w-5 ${projection.projectedBalance >= 0 ? "text-[#3B82F6]" : "text-[#FF5C5C]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-            </div>
-            <div className={`text-3xl font-bold tracking-tight ${
-              projection.projectedBalance >= 0 ? "text-[#3B82F6]" : "text-[#FF5C5C]"
-            }`}>
-              {formatMoney(new Decimal(projection.projectedBalance), displayCurrency)}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Baseado na média do período (média diária: {formatMoney(new Decimal(projection.dailyNetAverage), displayCurrency)})
-            </p>
-          </CardContent>
-        </Card>
-      </DashboardSection>
-
-      {/* SEÇÃO 4: FILTROS E TOGGLE DE VISUALIZAÇÃO */}
-      <DashboardSection>
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <CashflowFilters active={activeUi} userPlan={user.plan} workspaceId={workspaceId} />
-          <ViewToggle />
-        </div>
-      </DashboardSection>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <CashflowFilters active={activeUi} userPlan={user.plan} workspaceId={workspaceId} />
+        <ViewToggle />
+      </div>
 
       {/* SEÇÃO 5: GRÁFICO OU PLANILHA - Condicional baseado no modo */}
       {viewMode === "spreadsheet" ? (
@@ -647,11 +538,7 @@ export default async function CashflowPage({ searchParams }: Props) {
       {/* SEÇÃO 8: ORIGEM DO DINHEIRO (Breakdowns - Relatórios Avançados) */}
       <DashboardSection title="De onde o dinheiro vem">
         {hasAdvancedReports ? (
-          <Card>
-            <CardContent className="p-6">
-              <IncomeBreakdownPanel data={incomeBreakdown} currency={displayCurrency} hideOffers={personal} />
-            </CardContent>
-          </Card>
+          <IncomeBreakdownPanel data={incomeBreakdown} currency={displayCurrency} hideOffers={personal} />
         ) : (
           <FeatureLock
             feature="advanced_reports"
@@ -666,11 +553,7 @@ export default async function CashflowPage({ searchParams }: Props) {
       {/* SEÇÃO 9: DESTINO DO DINHEIRO (Breakdowns - Relatórios Avançados) */}
       <DashboardSection title="Para onde o dinheiro está indo">
         {hasAdvancedReports ? (
-          <Card>
-            <CardContent className="p-6">
-              <OutflowBreakdownPanel data={outflowBreakdown} currency={displayCurrency} hideOfferSources={personal} />
-            </CardContent>
-          </Card>
+          <OutflowBreakdownPanel data={outflowBreakdown} currency={displayCurrency} hideOfferSources={personal} />
         ) : (
           <FeatureLock
             feature="advanced_reports"
@@ -909,6 +792,28 @@ export default async function CashflowPage({ searchParams }: Props) {
         </Card>
       </DashboardSection>
     </section>
+  );
+}
+
+function Kpi({
+  label,
+  value,
+  hint,
+  valueClass = "text-foreground",
+  highlight = false
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  valueClass?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <article className={`rounded-2xl border bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] px-4 py-4 ${highlight ? "border-[rgba(199,241,86,0.45)]" : "border-white/10"}`}>
+      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">{label}</div>
+      <div className={`mt-2 font-display text-[28px] font-semibold leading-none tracking-tight ${valueClass}`}>{value}</div>
+      <p className="mt-2 text-[11px] text-[#64706a]">{hint}</p>
+    </article>
   );
 }
 

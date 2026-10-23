@@ -36,11 +36,11 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId }: WorkspaceSe
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
 
   return (
-    <div className="space-y-2">
-      <div className="px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="space-y-1">
+      <div className="px-2 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
         Workspace
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {workspaces.map((workspace) => {
           const isActive = workspace.id === activeWorkspaceId;
           return (
@@ -48,16 +48,16 @@ export function WorkspaceSelector({ workspaces, activeWorkspaceId }: WorkspaceSe
               key={workspace.id}
               onClick={() => handleSelect(workspace.id)}
               disabled={isPending || isActive}
-              className={`group relative w-full rounded-xl px-3 py-2 text-left text-xs transition-all ${
+              className={`group relative w-full rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors ${
                 isActive
-                  ? "bg-primary-soft text-primary font-medium shadow-sm"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                  ? "bg-popover text-foreground"
+                  : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
               } ${isPending ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <div className="flex items-center justify-between">
                 <span className="truncate">{workspace.name}</span>
                 {isActive && (
-                  <div className="ml-2 h-2 w-2 rounded-full bg-primary shadow-lg shadow-primary/50" />
+                  <div className="ml-2 h-1.5 w-1.5 rounded-full bg-primary" />
                 )}
               </div>
             </button>

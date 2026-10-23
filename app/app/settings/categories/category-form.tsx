@@ -59,11 +59,7 @@ export function CategoryForm({ isAdmin }: { isAdmin: boolean }) {
         <option value="EXPENSE">Saída</option>
         <option value="BOTH">Ambos</option>
       </select>
-      <Button 
-        type="submit" 
-        disabled={!isAdmin || isPending}
-        className="bg-gradient-to-r from-[#8B5CF6] to-purple-600 hover:from-[#8B5CF6]/90 hover:to-purple-600/90"
-      >
+      <Button type="submit" variant="accent" disabled={!isAdmin || isPending}>
         {isPending ? "Criando..." : "Criar"}
       </Button>
       {!isAdmin && (

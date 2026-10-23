@@ -40,11 +40,11 @@ export function SidebarLink({ href, label, iconName, badge, exact, onClick }: Si
       {...dataTourAttr}
       onClick={onClick}
       className={cn(
-        "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-all duration-200",
-        "min-h-[44px] touch-manipulation", // Mobile-friendly touch target
+        "group relative flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm transition-colors duration-200",
+        "min-h-[36px] touch-manipulation",
         isActive
-          ? "bg-primary-soft text-primary font-medium"
-          : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+          ? "bg-primary-soft text-foreground shadow-[inset_2px_0_0_hsl(var(--primary))]"
+          : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
       )}
     >
       {Icon && (
@@ -58,11 +58,6 @@ export function SidebarLink({ href, label, iconName, badge, exact, onClick }: Si
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">
           {badge}
         </span>
-      )}
-      {isActive && (
-        <>
-          <span className="absolute inset-y-0 left-0 w-1 rounded-r-full bg-primary shadow-lg shadow-primary/50" />
-        </>
       )}
     </Link>
   );

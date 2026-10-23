@@ -107,7 +107,7 @@ export function AvatarDropdown({
               unoptimized
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-xs font-semibold text-primary">
+            <div className="flex h-full w-full items-center justify-center bg-popover font-display text-xs font-semibold text-primary">
               {getInitials(name)}
             </div>
           )}

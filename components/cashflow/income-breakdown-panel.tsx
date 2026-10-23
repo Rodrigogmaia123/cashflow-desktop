@@ -1,4 +1,4 @@
-import { DonutChart, type DonutSlice } from "@/components/cashflow/donut-chart";
+import { DonutChart, DonutEmpty, type DonutSlice } from "@/components/cashflow/donut-chart";
 import type { CurrencyCode } from "@/lib/domain/currency";
 
 type IncomeBreakdown = {
@@ -13,11 +13,13 @@ type IncomeBreakdown = {
 };
 
 const sourceColors = {
-  offers: "#7CFF6B", // Verde Lima
-  manual: "#3B82F6" // Azul Elétrico
+  offers: "#c7f156",
+  manual: "#6aa7ff"
 } as const;
 
-const manualCategoryPalette = ["#3B82F6", "#7CFF6B", "#8B5CF6", "#A855F7", "#4DFF88"] as const;
+const manualCategoryPalette = ["#6aa7ff", "#ac93ff", "#c7f156", "#f0b35a", "#8fd37a", "#f08a7a"] as const;
+
+const donutCard = "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]";
 
 export function IncomeBreakdownPanel({
   data,
@@ -64,26 +66,22 @@ export function IncomeBreakdownPanel({
   }));
 
   return (
-    <div className={hideOffers ? "grid gap-8" : "grid gap-8 md:grid-cols-2"}>
+    <div className={hideOffers ? "grid gap-[18px]" : "grid gap-[18px] md:grid-cols-2"}>
       {!hideOffers && (
-      <div className="space-y-4">
-        <div className="text-sm font-semibold text-foreground">Entradas por origem</div>
+      <section className={donutCard}>
+        <h2 className="font-display text-base font-semibold">Entradas por origem</h2>
         <DonutChart data={bySource} currency={currency} />
-      </div>
+      </section>
       )}
 
-      <div className="space-y-4">
-        <div className="text-sm font-semibold text-foreground">Entradas manuais por categoria</div>
+      <section className={donutCard}>
+        <h2 className="font-display text-base font-semibold">Entradas manuais por categoria</h2>
         {data.bySource.manual === 0 ? (
-          <div className="flex items-center justify-center h-64 rounded-xl border border-white/5 bg-card-secondary/30">
-            <p className="text-sm text-muted-foreground">
-              Sem entradas manuais no período.
-            </p>
-          </div>
+          <DonutEmpty message="Sem entradas manuais no período." />
         ) : (
           <DonutChart data={manualByCategory} currency={currency} />
         )}
-      </div>
+      </section>
     </div>
   );
 }

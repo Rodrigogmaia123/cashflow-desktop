@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { formatCurrency, formatPercentage, getCategoryStatus } from "@/types/report";
 import type { PeriodReport, CategoryBudgetReport } from "@/types/report";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle } from "lucide-react";
+import { surface } from "@/lib/ui/screen";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 interface PeriodReportViewProps {
   report: PeriodReport;
@@ -17,160 +19,83 @@ export function PeriodReportView({ report }: PeriodReportViewProps) {
       : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header - Resumo Executivo */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <section className={cn(surface, "p-5")}>
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Relatório de Fechamento
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {new Date(report.startDate).toLocaleDateString("pt-BR")} -{" "}
-              {new Date(report.endDate).toLocaleDateString("pt-BR")}
+            <h2 className="font-display text-base font-semibold">Relatório de fechamento</h2>
+            <p className="text-xs text-[#64706a]">
+              {new Date(report.startDate).toLocaleDateString("pt-BR")} – {new Date(report.endDate).toLocaleDateString("pt-BR")}
             </p>
           </div>
-          <div
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg",
-              isPositive
-                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200"
-                : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200"
-            )}
-          >
-            {isPositive ? (
-              <TrendingUp className="w-5 h-5" />
-            ) : (
-              <TrendingDown className="w-5 h-5" />
-            )}
-            <span className="font-bold text-lg">
-              {isPositive ? "+" : ""}
-              {formatCurrency(report.netDifference)}
-            </span>
+          <div className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-sm font-medium",
+            isPositive ? "bg-[rgba(143,211,122,0.12)] text-[#8fd37a]" : "bg-[rgba(240,138,122,0.12)] text-[#f08a7a]"
+          )}>
+            {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            {isPositive ? "+" : ""}
+            {formatCurrency(report.netDifference)}
           </div>
         </div>
-
-        {/* Estatísticas Principais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <StatCard
-            label="Orçado Total"
-            value={formatCurrency(report.totalBudgeted)}
-            color="blue"
-          />
-          <StatCard
-            label="Gasto Total"
-            value={formatCurrency(report.totalSpent)}
-            color="purple"
-          />
-          <StatCard
-            label="Economizado"
-            value={formatCurrency(report.totalSaved)}
-            color="green"
-            icon={<CheckCircle className="w-4 h-4" />}
-          />
-          <StatCard
-            label="Estourado"
-            value={formatCurrency(report.totalExceeded)}
-            color="red"
-            icon={<AlertCircle className="w-4 h-4" />}
-          />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <StatCard label="Orçado total" value={formatCurrency(report.totalBudgeted)} tone="neutral" />
+          <StatCard label="Gasto total" value={formatCurrency(report.totalSpent)} tone="neutral" />
+          <StatCard label="Economizado" value={formatCurrency(report.totalSaved)} tone="good" />
+          <StatCard label="Estourado" value={formatCurrency(report.totalExceeded)} tone="bad" />
         </div>
-      </div>
+      </section>
 
-      {/* Performance */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Performance Geral
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {report.categoriesWithBudget}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Com Orçamento
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600">
-              {report.categoriesOK}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">OK</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-600">
-              {report.categoriesExceeded}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Estouraram
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-gray-500">
-              {report.categoriesWithoutBudget}
-            </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Sem Orçamento
-            </div>
-          </div>
+      <section className={cn(surface, "p-5")}>
+        <h3 className="mb-4 font-display text-base font-semibold">Performance geral</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <Metric n={report.categoriesWithBudget} label="Com orçamento" />
+          <Metric n={report.categoriesOK} label="OK" />
+          <Metric n={report.categoriesExceeded} label="Estouraram" />
+          <Metric n={report.categoriesWithoutBudget} label="Sem orçamento" />
         </div>
-
-        {/* Barra de Performance */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Taxa de Sucesso
-            </span>
-            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
-              {formatPercentage(performanceRate)}
-            </span>
+        <div className="mt-6 border-t border-white/10 pt-4">
+          <div className="mb-2 flex items-center justify-between text-sm">
+            <span className="text-[#9ca9a1]">Taxa de sucesso</span>
+            <span className="font-mono font-medium">{formatPercentage(performanceRate)}</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+          <div className="h-1.5 w-full rounded-full bg-white/10">
             <div
-              className={cn(
-                "h-3 rounded-full transition-all",
-                performanceRate >= 80
-                  ? "bg-green-500"
-                  : performanceRate >= 50
-                  ? "bg-yellow-500"
-                  : "bg-red-500"
-              )}
+              className={cn("h-1.5 rounded-full", performanceRate >= 80 ? "bg-[#8fd37a]" : performanceRate >= 50 ? "bg-[#c9a227]" : "bg-[#f08a7a]")}
               style={{ width: `${performanceRate}%` }}
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Recomendações */}
       {report.recommendations.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            Recomendações
-          </h3>
-          <ul className="space-y-2">
+        <section className="rounded-2xl border border-[rgba(172,147,255,0.28)] bg-[rgba(172,147,255,0.08)] p-5">
+          <h3 className="mb-3 font-display text-base font-semibold text-[#c9c0e8]">Recomendações</h3>
+          <ul className="space-y-2 text-sm text-[#c9c0e8]">
             {report.recommendations.map((rec, idx) => (
-              <li
-                key={idx}
-                className="text-sm text-blue-800 dark:text-blue-200 flex items-start gap-2"
-              >
-                <span className="text-blue-600 dark:text-blue-400">•</span>
+              <li key={idx} className="flex gap-2">
+                <span>•</span>
                 <span>{rec}</span>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
 
-      {/* Detalhes por Categoria */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Detalhes por Categoria
-        </h3>
+        <h3 className="font-display text-base font-semibold">Detalhes por categoria</h3>
         {report.categories.map((category) => (
           <CategoryReportCard key={category.categoryId} category={category} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function Metric({ n, label }: { n: number; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="font-display text-3xl font-semibold">{n}</div>
+      <div className="text-xs text-[#64706a]">{label}</div>
     </div>
   );
 }
@@ -180,36 +105,15 @@ export function PeriodReportView({ report }: PeriodReportViewProps) {
 interface StatCardProps {
   label: string;
   value: string;
-  color: "blue" | "purple" | "green" | "red";
-  icon?: React.ReactNode;
+  tone: "neutral" | "good" | "bad";
 }
 
-function StatCard({ label, value, color, icon }: StatCardProps) {
-  const colorClasses = {
-    blue: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
-    purple:
-      "bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800",
-    green:
-      "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800",
-    red: "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800",
-  };
-
-  const textClasses = {
-    blue: "text-blue-900 dark:text-blue-100",
-    purple: "text-purple-900 dark:text-purple-100",
-    green: "text-green-900 dark:text-green-100",
-    red: "text-red-900 dark:text-red-100",
-  };
-
+function StatCard({ label, value, tone }: StatCardProps) {
+  const valueClass = tone === "good" ? "text-[#8fd37a]" : tone === "bad" ? "text-[#f08a7a]" : "text-foreground";
   return (
-    <div className={cn("rounded-lg p-4 border", colorClasses[color])}>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-          {label}
-        </span>
-        {icon}
-      </div>
-      <div className={cn("text-xl font-bold", textClasses[color])}>{value}</div>
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[#64706a]">{label}</div>
+      <div className={cn("mt-1 font-display text-xl font-semibold", valueClass)}>{value}</div>
     </div>
   );
 }
@@ -221,109 +125,54 @@ interface CategoryReportCardProps {
 function CategoryReportCard({ category }: CategoryReportCardProps) {
   const status = getCategoryStatus(category);
 
-  const colorClasses = {
-    green: "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800",
-    red: "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800",
-    orange:
-      "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800",
-    blue: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800",
-    gray: "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700",
-  };
+  const dot = {
+    green: "bg-[#8fd37a]",
+    red: "bg-[#f08a7a]",
+    orange: "bg-[#f0b35a]",
+    blue: "bg-[#6aa7ff]",
+    gray: "bg-[#9ca9a1]"
+  }[status.color as "green" | "red" | "orange" | "blue" | "gray"] ?? "bg-[#9ca9a1]";
 
   return (
-    <div
-      className={cn(
-        "rounded-lg p-4 border transition-all",
-        colorClasses[status.color as keyof typeof colorClasses]
-      )}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{status.icon}</span>
+    <div className={cn(surface, "p-4")}>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className={cn("h-2.5 w-2.5 rounded-full", dot)} />
           <div>
-            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-              {category.categoryName}
-            </h4>
-            {category.budgetName && (
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {category.budgetName}
-              </p>
-            )}
+            <h4 className="font-medium">{category.categoryName}</h4>
+            {category.budgetName && <p className="text-xs text-[#64706a]">{category.budgetName}</p>}
           </div>
         </div>
-        <span
-          className={cn(
-            "px-3 py-1 rounded-full text-xs font-medium",
-            status.color === "green" &&
-              "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200",
-            status.color === "red" &&
-              "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200",
-            status.color === "orange" &&
-              "bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200",
-            status.color === "blue" &&
-              "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200",
-            status.color === "gray" &&
-              "bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-200"
-          )}
-        >
+        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-[#9ca9a1]">
           {status.label}
         </span>
       </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+      <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
         <div>
-          <div className="text-gray-600 dark:text-gray-400">Orçado</div>
-          <div className="font-semibold text-gray-900 dark:text-gray-100">
-            {formatCurrency(category.budgetedAmount)}
-          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#64706a]">Orçado</div>
+          <div className="font-medium">{formatCurrency(category.budgetedAmount)}</div>
+          {category.budgetedAmount <= 0 && (
+            <Link href="/app/budgets" className="mt-1 inline-block text-[11px] text-[#9ca9a1] underline-offset-2 hover:underline">
+              Definir orçamento
+            </Link>
+          )}
         </div>
         <div>
-          <div className="text-gray-600 dark:text-gray-400">Gasto</div>
-          <div className="font-semibold text-gray-900 dark:text-gray-100">
-            {formatCurrency(category.actualSpent)}
-          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#64706a]">Gasto</div>
+          <div className="font-medium">{formatCurrency(category.actualSpent)}</div>
         </div>
         <div>
-          <div className="text-gray-600 dark:text-gray-400">Diferença</div>
-          <div
-            className={cn(
-              "font-semibold",
-              category.difference >= 0 ? "text-green-600" : "text-red-600"
-            )}
-          >
+          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#64706a]">Diferença</div>
+          <div className={cn("font-medium", category.difference >= 0 ? "text-[#8fd37a]" : "text-[#f08a7a]")}>
             {category.difference >= 0 ? "+" : ""}
             {formatCurrency(category.difference)}
           </div>
         </div>
         <div>
-          <div className="text-gray-600 dark:text-gray-400">% Usado</div>
-          <div className="font-semibold text-gray-900 dark:text-gray-100">
-            {category.budgetedAmount > 0
-              ? formatPercentage(category.percentUsed)
-              : "N/A"}
-          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#64706a]">% Usado</div>
+          <div className="font-medium">{category.budgetedAmount > 0 ? formatPercentage(category.percentUsed) : "N/A"}</div>
         </div>
       </div>
-
-      {category.budgetedAmount > 0 && (
-        <div className="mt-3">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div
-              className={cn(
-                "h-2 rounded-full transition-all",
-                category.hasExceeded
-                  ? "bg-red-500"
-                  : category.percentUsed >= 90
-                  ? "bg-orange-500"
-                  : "bg-green-500"
-              )}
-              style={{
-                width: `${Math.min(category.percentUsed, 100)}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

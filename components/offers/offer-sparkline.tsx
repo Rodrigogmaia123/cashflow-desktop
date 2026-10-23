@@ -6,13 +6,14 @@ type Props = {
   data: number[];
   isPositive: boolean;
   className?: string;
+  color?: string;
 };
 
 /**
  * Sparkline compacta para mostrar tendência de ROI
  * Verde para positivo, vermelho para negativo
  */
-export function OfferSparkline({ data, isPositive, className }: Props) {
+export function OfferSparkline({ data, isPositive, className, color }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className={`h-8 w-16 flex items-center justify-center ${className || ""}`}>
@@ -30,7 +31,7 @@ export function OfferSparkline({ data, isPositive, className }: Props) {
     value: ((value - min) / range) * 100
   }));
 
-  const color = isPositive ? "#4ADE80" : "#EF4444"; // Verde ou vermelho
+  const stroke = color ?? (isPositive ? "#c7f156" : "#f08a7a");
 
   return (
     <div className={`h-8 w-16 ${className || ""}`}>
@@ -39,7 +40,7 @@ export function OfferSparkline({ data, isPositive, className }: Props) {
           <Line
             type="monotone"
             dataKey="value"
-            stroke={color}
+            stroke={stroke}
             strokeWidth={1.5}
             dot={false}
             isAnimationActive={false}

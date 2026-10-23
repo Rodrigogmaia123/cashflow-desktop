@@ -10,45 +10,96 @@
   --card-secondary: 220 20% 13%;
   --card-hover: 220 22% 17%; /* #1B2030 */
   --popover: 220 20% 13%;
-  
+
   /* Text Colors */
   --foreground: 220 13% 91%; /* #E5E7EB */
   --card-foreground: 220 13% 91%;
   --popover-foreground: 220 13% 91%;
   --muted-foreground: 215 16% 63%; /* #9CA3AF */
   --muted: 215 13% 45%; /* #6B7280 */
-  
+
   /* Borders */
   --border: 0 0% 100% / 0.06;
   --input: 0 0% 100% / 0.08;
   --ring: 270 91% 65%; /* #A855F7 */
-  
+
   /* Brand Colors (Identidade Premium) */
-  --primary: 270 91% 65%; /* #A855F7 - Violeta premium */
+  --primary: 270 91% 65%; /* #A855F7 */
   --primary-soft: 270 91% 65% / 0.1;
   --primary-foreground: 0 0% 100%;
-  
-  --accent: 72 100% 50%; /* #C7F000 - Verde-lima elegante */
+
+  --accent: 72 100% 50%; /* #C7F000 */
   --accent-soft: 72 100% 50% / 0.1;
-  --accent-foreground: 220 25% 7%; /* Texto escuro sobre lime */
-  
+  --accent-foreground: 220 25% 7%;
+
   --secondary: 240 5% 25%;
   --secondary-foreground: 0 0% 100%;
-  
-  /* Semantic Colors (Financeiro - mantém significado) */
-  --success: 142 76% 46%; /* #22C55E - Lucro */
-  --success-vibrant: 142 81% 56%; /* #4ADE80 */
+
+  --success: 142 76% 46%;
+  --success-vibrant: 142 81% 56%;
   --success-soft: 142 76% 46% / 0.1;
   --success-foreground: 0 0% 100%;
-  
-  --destructive: 0 84% 60%; /* #EF4444 - Prejuízo */
-  --destructive-vibrant: 0 84% 66%; /* #F87171 */
+
+  --destructive: 0 84% 60%;
+  --destructive-vibrant: 0 84% 66%;
   --destructive-soft: 0 84% 60% / 0.1;
   --destructive-foreground: 0 0% 100%;
-  
-  --warning: 48 96% 53%; /* #FACC15 - Alerta */
+
+  --warning: 48 96% 53%;
   --warning-soft: 48 96% 53% / 0.1;
   --warning-foreground: 220 25% 7%;
+
+  --radius: 0.75rem;
+}
+
+/* Tema do app (redesign). O site público continua no :root. */
+.cf-app {
+  --background: 144 20% 5%; /* #0a0f0c */
+  --background-secondary: 150 26% 7%; /* #0d1612 */
+  --card: 150 22% 9%; /* #121c17 */
+  --card-secondary: 150 22% 9%;
+  --card-hover: 146 16% 17%; /* #25332b */
+  --popover: 150 21% 11%; /* #16221c */
+  
+  /* Text Colors */
+  --foreground: 135 25% 96%; /* #f3f7f4 */
+  --card-foreground: 135 25% 96%;
+  --popover-foreground: 135 25% 96%;
+  --muted-foreground: 143 7% 64%; /* #9ca9a1 */
+  --muted: 150 6% 42%; /* #64706a */
+  
+  /* Borders */
+  --border: 140 18% 93% / 0.1;
+  --input: 140 18% 93% / 0.14;
+  --ring: 254 100% 79%; /* #ac93ff */
+  
+  /* Lilás — navegação ativa e foco */
+  --primary: 254 100% 79%; /* #ac93ff */
+  --primary-soft: 254 100% 79% / 0.12;
+  --primary-foreground: 144 20% 5%;
+  
+  /* Lima — ação principal */
+  --accent: 76 85% 64%; /* #c7f156 */
+  --accent-soft: 76 85% 64% / 0.1;
+  --accent-foreground: 144 20% 5%;
+  
+  --secondary: 146 16% 17%;
+  --secondary-foreground: 135 25% 96%;
+  
+  /* Semantic Colors (Financeiro) */
+  --success: 106 49% 65%; /* #8fd37a */
+  --success-vibrant: 106 49% 65%;
+  --success-soft: 106 49% 65% / 0.12;
+  --success-foreground: 144 20% 5%;
+  
+  --destructive: 8 80% 71%; /* #f08a7a */
+  --destructive-vibrant: 8 80% 71%;
+  --destructive-soft: 8 80% 71% / 0.12;
+  --destructive-foreground: 144 20% 5%;
+  
+  --warning: 43 72% 47%; /* #c9a227 */
+  --warning-soft: 43 72% 47% / 0.12;
+  --warning-foreground: 144 20% 5%;
   
   /* Border Radius */
   --radius: 0.75rem; /* 12px */
@@ -70,6 +121,32 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+.cf-app {
+  background:
+    radial-gradient(520px 420px at 0% 0%, rgba(111, 143, 31, 0.1), transparent 70%),
+    radial-gradient(520px 480px at 100% 70%, rgba(122, 87, 240, 0.18), transparent 70%),
+    hsl(var(--background));
+}
+
+.cf-app h1 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+html.cf-app .cf-surface:not(.cf-solid) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: transparent !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html.cf-app .cf-surface:not(.cf-solid):hover {
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* Smooth transitions */

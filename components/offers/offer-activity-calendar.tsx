@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { parseLocalDate, formatBrazilianDate, formatLocalDate } from "@/lib/utils/date-local";
 import { useState, useMemo } from "react";
-import type { CSSProperties } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatMoney, type CurrencyCode } from "@/lib/domain/currency";
 
@@ -42,49 +41,14 @@ const MONTHS = [
  * - ROI > 1.5 → verde (bom desempenho)
  * - Sem dado → cinza neutro
  */
-function getDayColorByROI(roi: number | null | undefined): { className: string; style?: CSSProperties } {
-  // Sem snapshot = cinza neutro visível
-  if (roi === null || roi === undefined) {
-    return { className: "bg-neutral-700/70 border-neutral-600/50" };
+function getDayColorByROI(roi: number | null | undefined): string {
+  if (roi === null || roi === undefined || Number.isNaN(Number(roi))) {
+    return "bg-[#16221c] text-[#9ca9a1]";
   }
-
-  // Converter para número e tratar NaN
   const roiValue = Number(roi);
-  if (isNaN(roiValue)) {
-    return { className: "bg-neutral-700/70 border-neutral-600/50" };
-  }
-
-  // ROI < 1.0 → Vermelho (prejuízo)
-  // Intensidade: quanto menor o ROI, mais intenso o vermelho
-  // ROI 0.0 → alpha 0.8, ROI 0.99 → alpha 0.4
-  if (roiValue < 1.0) {
-    const intensity = Math.max(0.3, roiValue); // Evita vermelho invisível
-    const alpha = 0.4 + (1.0 - intensity) * 0.4; // 0.4 a 0.8
-    return {
-      className: "border-red-600/50",
-      style: { backgroundColor: `rgba(239, 68, 68, ${alpha})` }
-    };
-  }
-
-  // 1.0 ≤ ROI ≤ 1.5 → Amarelo (empate/leve ganho)
-  // Intensidade: ROI 1.0 → alpha 0.5, ROI 1.5 → alpha 0.9
-  if (roiValue <= 1.5) {
-    const intensity = (roiValue - 1.0) / 0.5; // 0.0 a 1.0
-    const alpha = 0.5 + intensity * 0.4; // 0.5 a 0.9
-    return {
-      className: "border-yellow-500/50",
-      style: { backgroundColor: `rgba(234, 179, 8, ${alpha})` }
-    };
-  }
-
-  // ROI > 1.5 → Verde (bom desempenho)
-  // Intensidade: ROI 1.5 → alpha 0.6, ROI ≥ 2.5 → alpha 1.0 (capado)
-  const intensity = Math.min(1.0, (roiValue - 1.5) / 1.0); // 0.0 a 1.0 (capado em 1.0)
-  const alpha = 0.6 + intensity * 0.4; // 0.6 a 1.0
-  return {
-    className: "border-green-600/50",
-    style: { backgroundColor: `rgba(34, 197, 94, ${alpha})` }
-  };
+  if (roiValue < 1) return "bg-[#b4413a] text-[#f3f7f4]";
+  if (roiValue <= 1.5) return "bg-[#c9a227] text-[#0a0f0c]";
+  return "bg-[#3da56a] text-[#0a0f0c]";
 }
 
 function formatROI(value: number): string {
@@ -199,39 +163,34 @@ export function OfferActivityCalendar({ data, currency }: OfferActivityCalendarP
   const hasDataInMonth = monthData.days.some((d) => d.value !== null || d.roi !== null);
 
   return (
-    <div className="space-y-3">
-      <div>
-        <h3 className="text-sm font-medium text-zinc-200 mb-0.5">
-          Atividade Mensal
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          Intensidade de performance por dia
-        </p>
-      </div>
-
-      <div className="rounded-lg bg-gradient-to-b from-zinc-900/60 to-zinc-950/80 border border-white/5 p-3">
-        {/* Navegação do mês */}
-        <div className="flex items-center justify-between mb-3">
+    <section className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-[22px]">
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-base font-semibold">Atividade mensal</h2>
+          <p className="text-xs text-[#64706a]">Intensidade de performance por dia</p>
+        </div>
+        <div className="flex items-center gap-1.5">
           <button
             onClick={goToPreviousMonth}
-            className="p-1 rounded-sm hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
+            className="grid h-[30px] w-[30px] place-items-center rounded-lg border border-white/10 bg-[#16221c] text-foreground"
             aria-label="Mês anterior"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
-
-          <div className="text-xs font-medium text-zinc-200 capitalize">
-            {MONTHS[currentMonth]} de {currentYear}
+          <div className="min-w-[110px] text-center font-display text-[13px] font-medium capitalize">
+            {MONTHS[currentMonth]} {currentYear}
           </div>
-
           <button
             onClick={goToNextMonth}
-            className="p-1 rounded-sm hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
+            className="grid h-[30px] w-[30px] place-items-center rounded-lg border border-white/10 bg-[#16221c] text-foreground"
             aria-label="Próximo mês"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
+      </div>
+
+      <div className="mt-3">
 
         {!hasDataInMonth ? (
           <div className="py-8 text-center">
@@ -242,90 +201,44 @@ export function OfferActivityCalendar({ data, currency }: OfferActivityCalendarP
         ) : (
           <>
             {/* Header dos dias da semana */}
-            <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+            <div className="mb-1.5 grid grid-cols-7 gap-1.5">
               {DAYS_OF_WEEK.map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-[10px] font-medium text-muted-foreground"
-                >
+                <div key={day} className="text-center font-mono text-[11px] font-medium text-[#64706a]">
                   {day}
                 </div>
               ))}
             </div>
 
-            {/* Grid do calendário */}
             <div className="grid grid-cols-7 gap-1.5">
               {monthData.days.map(({ date, value, roi }, index) => {
                 const isCurrentMonth = date.getMonth() === currentMonth;
-                
-                // Determinar se tem dados (valor ou ROI)
                 const hasData = (value !== null && value !== undefined) || (roi !== null && roi !== undefined);
                 const isEmpty = !hasData;
-                
-                // Usar ROI para determinar a cor e estilo
-                const colorConfig = getDayColorByROI(roi);
-                
-                // Determinar se é válido para interação
-                const isValidValue = hasData && roi !== null && roi !== undefined && !isNaN(Number(roi));
+                const colorClass = isCurrentMonth ? getDayColorByROI(hasData ? roi : null) : "bg-transparent text-transparent";
 
                 return (
                   <div
                     key={index}
                     className={cn(
-                      "w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-sm",
-                      "transition-all duration-200 ease-out",
-                      "relative flex items-start justify-start p-0.5",
-                      "border",
-                      isValidValue && "cursor-pointer hover:ring-1 hover:ring-white/20 hover:scale-[1.05]",
-                      isEmpty && "cursor-pointer hover:bg-neutral-700 hover:border-neutral-500",
-                      colorConfig.className,
-                      !isCurrentMonth && "opacity-30"
+                      "aspect-square rounded-lg p-1 font-mono text-[11px] font-medium",
+                      colorClass,
+                      isCurrentMonth && "cursor-pointer"
                     )}
-                    style={colorConfig.style}
-                    onMouseEnter={(e) => handleDayHover(date, value, roi, e)}
+                    onMouseEnter={(e) => isCurrentMonth && handleDayHover(date, value, roi, e)}
                     onMouseLeave={handleDayLeave}
                     title={isEmpty && isCurrentMonth ? "Sem atividade neste dia" : undefined}
                   >
-                    {isCurrentMonth && (
-                      <span className={cn(
-                        "text-[10px] font-normal leading-none",
-                        hasData ? "text-zinc-300" : "text-zinc-400"
-                      )}>
-                        {date.getDate()}
-                      </span>
-                    )}
+                    {isCurrentMonth ? date.getDate() : ""}
                   </div>
                 );
               })}
             </div>
 
-            {/* Legenda baseada em ROI */}
-            <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1">
-                <div 
-                  className="w-2.5 h-2.5 rounded-sm border border-red-600/50" 
-                  style={{ backgroundColor: "rgba(239, 68, 68, 0.6)" }}
-                />
-                <span className="text-[10px] text-muted-foreground">ROI &lt; 1.0</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div 
-                  className="w-2.5 h-2.5 rounded-sm border border-yellow-500/50" 
-                  style={{ backgroundColor: "rgba(234, 179, 8, 0.7)" }}
-                />
-                <span className="text-[10px] text-muted-foreground">1.0 ≤ ROI ≤ 1.5</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div 
-                  className="w-2.5 h-2.5 rounded-sm border border-green-600/50" 
-                  style={{ backgroundColor: "rgba(34, 197, 94, 0.8)" }}
-                />
-                <span className="text-[10px] text-muted-foreground">ROI &gt; 1.5</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-sm bg-neutral-700/70 border border-neutral-600/50" />
-                <span className="text-[10px] text-muted-foreground">Sem dado</span>
-              </div>
+            <div className="mt-3.5 flex flex-wrap items-center justify-center gap-[18px] text-xs text-[#9ca9a1]">
+              <span className="inline-flex items-center"><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#b4413a]" />&lt; 1,0</span>
+              <span className="inline-flex items-center"><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#c9a227]" />1,0–1,5</span>
+              <span className="inline-flex items-center"><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#3da56a]" />&gt; 1,5</span>
+              <span className="inline-flex items-center"><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#16221c]" />Sem dado</span>
             </div>
           </>
         )}
@@ -334,7 +247,7 @@ export function OfferActivityCalendar({ data, currency }: OfferActivityCalendarP
       {/* Tooltip */}
       {hoveredDay && (
         <div
-          className="fixed z-50 rounded-md border border-white/10 bg-zinc-900/95 backdrop-blur-sm px-3 py-2 shadow-lg pointer-events-none"
+          className="pointer-events-none fixed z-50 min-w-[150px] rounded-xl border border-white/15 bg-[#16221c] px-3 py-2.5 font-mono text-xs shadow-[0_18px_40px_-16px_rgba(0,0,0,0.7)]"
           style={{
             left: `${hoveredDay.x}px`,
             top: `${hoveredDay.y - 10}px`,
@@ -376,7 +289,7 @@ export function OfferActivityCalendar({ data, currency }: OfferActivityCalendarP
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 

@@ -17,17 +17,24 @@ export default async function SupportPage() {
   }
 
   return (
-    <section className="space-y-6 max-w-3xl">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-primary to-blue-400 bg-clip-text text-transparent">
-          Suporte
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Conversa direta com a operação. Sem internet o programa continua; as
-          mensagens sobem quando conectar, como a confirmação da chave.
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <h1 className="font-display text-[28px] font-bold tracking-tight text-foreground">Suporte</h1>
+        <p className="max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+          Conversa direta com a operação. Sem internet o programa continua; as mensagens sobem quando conectar, como a confirmação da chave.
         </p>
       </div>
-      <CustomerSupportDesk />
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(16rem,0.7fr)]">
+        <CustomerSupportDesk />
+        <aside className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-5">
+          <h2 className="font-display text-base font-semibold">Como funciona</h2>
+          <div className="mt-4 space-y-4 text-sm text-[#9ca9a1]">
+            <p><span className="block font-medium text-foreground">Funciona offline.</span> O programa continua sem internet. Suas mensagens ficam na fila.</p>
+            <p><span className="block font-medium text-foreground">Sobem ao reconectar.</span> Assim que a conexão volta, a fila é enviada, como a confirmação da chave.</p>
+            <p><span className="block font-medium text-foreground">Atendimento identificado.</span> A conversa usa o e-mail da sua conta.</p>
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }

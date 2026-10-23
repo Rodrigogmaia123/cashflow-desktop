@@ -3,19 +3,22 @@ import { getPeriodComparison } from "@/lib/analytics/period-comparison";
 import { getComparisonDateRanges, type ComparisonPeriodType } from "@/lib/analytics/period-comparison-ranges";
 import { prisma } from "@/lib/db";
 import type { CurrencyCode } from "@/lib/domain/currency";
+import type { CurrencyViewMode } from "@/lib/domain/currency-view";
 
 type PeriodComparisonSectionProps = {
   workspaceId: string;
   offerId?: string;
   comparisonType: ComparisonPeriodType;
   currency?: CurrencyCode;
+  currencyView?: CurrencyViewMode;
 };
 
 export async function PeriodComparisonSection({
   workspaceId,
   offerId,
   comparisonType,
-  currency
+  currency,
+  currencyView
 }: PeriodComparisonSectionProps) {
   const dateRanges = getComparisonDateRanges(comparisonType);
 
@@ -24,7 +27,8 @@ export async function PeriodComparisonSection({
       workspaceId,
       offerId,
       current: dateRanges.current,
-      previous: dateRanges.previous
+      previous: dateRanges.previous,
+      currencyView
     }),
     currency
       ? Promise.resolve(null)

@@ -11,6 +11,7 @@ import {
   YAxis,
   Area,
   Bar,
+  ReferenceLine,
   type TooltipProps
 } from "recharts";
 import { parseLocalDate } from "@/lib/utils/date-local";
@@ -51,6 +52,7 @@ type Props = {
   shown: Record<OfferChartMetricId, boolean>;
   focus: OfferChartMetricId;
   currency: CurrencyCode;
+  variant?: "default" | "pair";
 };
 
 function formatPercent(value: number) {
@@ -141,15 +143,15 @@ function ActiveTooltip({
   const attribution = (payload?.[0]?.payload as PerformanceChartPoint | undefined)?.offers ?? null;
 
   return (
-    <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
-      <div className="text-[11px] font-medium text-muted-foreground">
-        Data: {typeof label === "string" ? formatDate(label) : label}
+    <div className="min-w-[170px] rounded-xl border border-white/15 bg-[#16221c] px-3 py-2.5 font-mono text-xs shadow-[0_18px_40px_-16px_rgba(0,0,0,0.7)]">
+      <div className="mb-1 text-[#64706a]">
+        {typeof label === "string" ? formatDate(label) : label}
       </div>
       <div className="mt-1 space-y-1">
         {items.map((it) => (
-          <div key={it.label} className="flex items-center justify-between gap-6">
-            <span className="text-muted-foreground">{it.label}</span>
-            <span className="font-medium">{it.value}</span>
+          <div key={it.label} className="mt-1 flex items-center justify-between gap-4 text-[#9ca9a1]">
+            <span>{it.label}</span>
+            <b className="font-medium text-[#f3f7f4]">{it.value}</b>
           </div>
         ))}
       </div>
@@ -174,7 +176,7 @@ function ActiveTooltip({
 }
 
 
-export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
+export function OfferPerformanceChart({ data, shown, focus, currency, variant = "default" }: Props) {
   const gradientPrefix = useId().replace(/[^a-zA-Z0-9]/g, "");
   const sparseByKey = useMemo(() => {
     const map = new Map<string, boolean>();
@@ -191,9 +193,22 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
   }
 
   const visibleSeries = seriesConfig.filter((series) => shown[series.metricId]);
-  const barSeries = visibleSeries.filter((series) => sparseByKey.get(String(series.dataKey)));
-  const curveSeries = visibleSeries.filter((series) => !sparseByKey.get(String(series.dataKey)));
-  const maxBarSize = barSeries.length <= 1 ? 22 : 12;
+  const pair = variant === "pair";
+  const barSeries = pair
+    ? visibleSeries.filter((series) => series.metricId === "revenue" || series.metricId === "investment")
+    : visibleSeries.filter((series) => sparseByKey.get(String(series.dataKey)));
+  const curveSeries = pair
+    ? []
+    : visibleSeries.filter((series) => !sparseByKey.get(String(series.dataKey)));
+  const pairColor = (metricId: OfferChartMetricId, fallback: string) => {
+    if (!pair) return fallback;
+    if (metricId === "revenue") return "#c7f156";
+    if (metricId === "investment") return "#ac93ff";
+    return fallback;
+  };
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const showToday = pair && data.some((point) => point.date === todayKey);
+  const maxBarSize = pair ? 7 : barSeries.length <= 1 ? 22 : 12;
   const barKeys = new Set(barSeries.map((series) => String(series.dataKey)));
   const chartData = data.map((point) => {
     if (barKeys.size === 0) return point;
@@ -259,12 +274,14 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
               })}
             </defs>
           )}
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(234,240,236,0.08)" />
           <XAxis
             dataKey="date"
             tickFormatter={formatDate}
             tickMargin={8}
-            fontSize={11}
+            fontSize={10}
+            stroke="transparent"
+            tick={{ fill: "#64706a", fontFamily: "IBM Plex Mono, ui-monospace, monospace" }}
           />
 
           <YAxis
@@ -289,6 +306,8 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
                 minimumFractionDigits: 0
               })
             }
+            stroke="transparent"
+            tick={{ fill: "#64706a", fontFamily: "IBM Plex Mono, ui-monospace, monospace" }}
           />
           {showPercentAxis && (
             <YAxis
@@ -311,10 +330,27 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
           )}
 
           <Tooltip
+            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            wrapperStyle={{ outline: "none" }}
             content={(props: TooltipProps<number, string>) => (
               <ActiveTooltip {...props} shown={shown} currency={currency} />
             )}
           />
+          {showToday && (
+            <ReferenceLine
+              yAxisId="money"
+              x={todayKey}
+              stroke="#ac93ff"
+              strokeDasharray="3 4"
+              strokeOpacity={0.6}
+              label={{
+                value: `hoje · ${formatDate(todayKey)}`,
+                fill: "#ac93ff",
+                fontSize: 10,
+                position: "insideTopLeft"
+              }}
+            />
+          )}
 
           {curveSeries.map((c) => {
             const focused = focus === c.metricId;
@@ -366,11 +402,11 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
                 yAxisId={yAxisId}
                 dataKey={key}
                 name={c.name}
-                fill={`url(#${gradientPrefix}-${key})`}
-                stroke={c.color}
+                fill={pair ? pairColor(c.metricId, c.color) : `url(#${gradientPrefix}-${key})`}
+                stroke={pair ? "none" : c.color}
                 strokeOpacity={focused ? 1 : 0.45}
-                strokeWidth={focused ? 1.5 : 1}
-                radius={[4, 4, 0, 0]}
+                strokeWidth={pair ? 0 : focused ? 1.5 : 1}
+                radius={pair ? [2, 2, 0, 0] : [4, 4, 0, 0]}
                 maxBarSize={maxBarSize}
                 barSize={maxBarSize}
               />
@@ -379,7 +415,7 @@ export function OfferPerformanceChart({ data, shown, focus, currency }: Props) {
         </ComposedChart>
       </ResponsiveContainer>
     </div>
-    {barSeries.length > 0 && (
+    {barSeries.length > 0 && !pair && (
       <p className="text-[11px] text-muted-foreground">
         Lançamentos com dias vazios no meio entram em barras, no dia do registro.
         A altura é o valor anotado, e o modo Acumulado segue em curva contínua.

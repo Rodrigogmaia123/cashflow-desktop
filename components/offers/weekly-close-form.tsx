@@ -73,8 +73,8 @@ export function WeeklyCloseForm({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-sm font-semibold text-foreground mb-1">Fechamento semanal</h2>
-        <p className="text-xs text-muted-foreground">
+        <h2 className="font-display text-base font-semibold text-foreground">Fechamento semanal</h2>
+        <p className="mt-0.5 text-xs text-[#64706a]">
           Opcional. Escolha o início e o fim — pode ser 21 a 24, uns dias ou a semana inteira.
           Os totais entram como um lançamento no último dia. Se algum dia do intervalo já tiver
           diário, use o formulário de cima — este não mistura os dois.
@@ -101,7 +101,7 @@ export function WeeklyCloseForm({
       >
         <input type="hidden" name="offerId" value={offerId} />
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-muted-foreground">Início</label>
+          <label className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]">Início</label>
           <input
             type="date"
             name="periodStart"
@@ -113,11 +113,11 @@ export function WeeklyCloseForm({
               setPeriodStart(next);
               if (periodEnd && next > periodEnd) setPeriodEnd(next);
             }}
-            className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-muted-foreground">Fim</label>
+          <label className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]">Fim</label>
           <input
             type="date"
             name="periodEnd"
@@ -129,14 +129,14 @@ export function WeeklyCloseForm({
               setPeriodEnd(next);
               if (periodStart && next < periodStart) setPeriodStart(next);
             }}
-            className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
           />
         </div>
         <p className="md:col-span-2 text-[11px] text-muted-foreground">
           Período {rangeLabel}. O total entra no último dia do intervalo.
         </p>
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-muted-foreground">
+          <label className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]">
             Investimento ({currency})
           </label>
           <input
@@ -146,11 +146,11 @@ export function WeeklyCloseForm({
             min={0}
             required
             disabled={blocked || pending}
-            className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+            className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff] disabled:opacity-40"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] font-medium text-muted-foreground">
+          <label className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]">
             Faturamento ({currency})
           </label>
           <input
@@ -160,11 +160,11 @@ export function WeeklyCloseForm({
             min={0}
             required
             disabled={blocked || pending}
-            className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+            className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff] disabled:opacity-40"
           />
         </div>
         <div className="space-y-1 md:col-span-2">
-          <label className="text-[11px] font-medium text-muted-foreground">Vendas</label>
+          <label className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]">Vendas</label>
           <input
             name="sales"
             type="number"
@@ -172,7 +172,7 @@ export function WeeklyCloseForm({
             step={1}
             required
             disabled={blocked || pending}
-            className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+            className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff] disabled:opacity-40"
           />
         </div>
         {blocked && (
@@ -194,7 +194,7 @@ export function WeeklyCloseForm({
         )}
         {error && <p className="md:col-span-2 text-xs text-destructive">{error}</p>}
         <div className="md:col-span-2">
-          <Button type="submit" size="sm" className="w-full" disabled={blocked || pending}>
+          <Button type="submit" variant="outline" className="mt-4 h-auto w-full rounded-[10px] py-3" disabled={blocked || pending}>
             {pending ? "Salvando..." : "Fechar período"}
           </Button>
         </div>

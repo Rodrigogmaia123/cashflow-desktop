@@ -1,109 +1,78 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tooltip } from "@/components/ui/tooltip";
+import Link from "next/link";
 import type { BusinessHealthScore as BusinessHealthScoreType } from "@/lib/analytics/business-health-score";
+import { surface } from "@/lib/ui/screen";
+import { cn } from "@/lib/utils";
+
+type Banner = {
+  name: string;
+  detail: string;
+  href: string;
+};
 
 type BusinessHealthScoreProps = {
   score: BusinessHealthScoreType;
+  notice?: string;
+  banner?: Banner | null;
 };
 
-function getScoreColor(score: number) {
-  if (score >= 70) return "text-accent";
-  if (score >= 40) return "text-warning";
-  return "text-destructive-vibrant";
-}
-
-function getScoreBgColor(score: number) {
-  if (score >= 70) return "bg-accent-soft";
-  if (score >= 40) return "bg-warning-soft";
-  return "bg-destructive-soft";
-}
-
-function getScoreRingColor(score: number) {
-  if (score >= 70) return "stroke-accent";
-  if (score >= 40) return "stroke-warning";
-  return "stroke-destructive-vibrant";
-}
-
-function getScoreGradientId(score: number) {
-  if (score >= 70) return "healthScoreGradient";
-  return undefined;
+function ringColor(score: number) {
+  if (score >= 70) return "#c7f156";
+  if (score >= 40) return "#c9a227";
+  return "#f08a7a";
 }
 
 function ScoreCircle({ score }: { score: number }) {
-  const circumference = 2 * Math.PI * 45; // raio = 45
-  const offset = circumference - (score / 100) * circumference;
-  const hasGradient = score >= 70;
-  const gradientId = getScoreGradientId(score);
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.max(0, Math.min(score, 100)) / 100) * circumference;
+  const color = ringColor(score);
 
   return (
-    <div className="relative h-24 w-24">
-      <svg className="h-24 w-24 -rotate-90 transform" viewBox="0 0 100 100">
-        {hasGradient && (
-          <defs>
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#C7F000" stopOpacity="1" />
-              <stop offset="100%" stopColor="#4ADE80" stopOpacity="1" />
-            </linearGradient>
-          </defs>
-        )}
-        {/* Círculo de fundo */}
+    <div className="relative h-[108px] w-[108px] shrink-0">
+      <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r={radius} stroke="rgba(255,255,255,0.08)" strokeWidth="7" fill="none" />
         <circle
           cx="50"
           cy="50"
-          r="45"
-          stroke="currentColor"
-          strokeWidth="8"
-          fill="none"
-          className="text-muted"
-        />
-        {/* Círculo do progresso */}
-        <circle
-          cx="50"
-          cy="50"
-          r="45"
-          stroke={hasGradient ? `url(#${gradientId})` : "currentColor"}
-          strokeWidth="8"
+          r={radius}
+          stroke={color}
+          strokeWidth="7"
           fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={hasGradient ? "transition-all duration-500" : `transition-all duration-500 ${getScoreRingColor(score)}`}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-2xl font-bold ${score >= 70 ? "text-accent" : getScoreColor(score)}`}>{score}</span>
+      <div className="absolute inset-0 grid place-items-center">
+        <span className="font-display text-[34px] font-semibold leading-none" style={{ color }}>{score}</span>
       </div>
     </div>
   );
 }
 
-export function BusinessHealthScore({ score }: BusinessHealthScoreProps) {
+export function BusinessHealthScore({ score, notice, banner }: BusinessHealthScoreProps) {
+  const tone = ringColor(score.score);
+
   return (
-    <Card className={`transition-all hover:shadow-lg hover:-translate-y-0.5 ${score.score >= 70 ? "hover:shadow-accent/10" : ""}`}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold">Business Health Score</h3>
-              <Tooltip content="Score de 0-100 calculado com base em lucro, ROI, alertas e tendência de receita. Quanto maior, melhor a saúde do negócio.">
-                <span className="cursor-help text-[10px] text-muted-foreground">ℹ️</span>
-              </Tooltip>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Indicador geral de saúde financeira</p>
-          </div>
+    <section className={cn(surface, "flex h-full flex-col p-5")}>
+      <div className="flex items-center gap-5">
+        <ScoreCircle score={score.score} />
+        <div className="min-w-0">
+          <h2 className="font-display text-[28px] font-semibold leading-none" style={{ color: tone }}>{score.label}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-[#9ca9a1]">{notice ?? score.description}</p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-6">
-          <ScoreCircle score={score.score} />
-          <div className="flex-1 space-y-3">
-            <div className={`inline-flex items-center rounded-xl border px-4 py-2 ${getScoreBgColor(score.score)} ${score.score >= 70 ? "border-accent/30" : score.score >= 40 ? "border-warning/30" : "border-destructive-vibrant/30"}`}>
-              <span className={`text-sm font-semibold ${getScoreColor(score.score)}`}>{score.label}</span>
-            </div>
-            <p className="text-xs leading-relaxed text-muted-foreground">{score.description}</p>
-          </div>
+      </div>
+      {banner && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+          <p className="min-w-0 text-sm text-[#c9c0e8]">
+            <span className="mr-2 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[#ac93ff]">Melhor oferta</span>
+            <span className="text-foreground">{banner.name}</span> {banner.detail}
+          </p>
+          <Link href={banner.href} className="shrink-0 text-sm text-[#c7f156] hover:underline">
+            Ver ofertas →
+          </Link>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </section>
   );
 }

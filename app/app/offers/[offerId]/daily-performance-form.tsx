@@ -29,15 +29,15 @@ export function DailyPerformanceForm({
     <form
       ref={formRef}
       action={handleSubmit}
-      className="mt-3 grid gap-3 text-xs sm:text-sm md:grid-cols-2"
+      className="grid gap-x-3.5 text-sm md:grid-cols-2"
       data-tour="daily-performance-form"
     >
       <input type="hidden" name="offerId" value={offerId} />
 
-      <div className="space-y-1">
+      <div className="space-y-1 md:col-span-2">
         <label
           htmlFor="date"
-          className="text-[11px] font-medium text-muted-foreground"
+          className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]"
         >
           Data
         </label>
@@ -46,14 +46,14 @@ export function DailyPerformanceForm({
           name="date"
           type="date"
           required
-          className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
         />
       </div>
 
       <div className="space-y-1">
         <label
           htmlFor="investment"
-          className="text-[11px] font-medium text-muted-foreground"
+          className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]"
         >
           Investimento ({currency})
         </label>
@@ -64,14 +64,14 @@ export function DailyPerformanceForm({
           step="0.01"
           min={0}
           required
-          className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
         />
       </div>
 
       <div className="space-y-1">
         <label
           htmlFor="revenue"
-          className="text-[11px] font-medium text-muted-foreground"
+          className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]"
         >
           Faturamento ({currency})
         </label>
@@ -82,14 +82,14 @@ export function DailyPerformanceForm({
           step="0.01"
           min={0}
           required
-          className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
         />
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1 md:col-span-2">
         <label
           htmlFor="sales"
-          className="text-[11px] font-medium text-muted-foreground"
+          className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]"
         >
           Vendas
         </label>
@@ -100,14 +100,14 @@ export function DailyPerformanceForm({
           min={0}
           step={1}
           required
-          className="w-full rounded-md border px-2 py-1.5 text-xs sm:text-sm text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="w-full rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] focus:border-[#ac93ff]"
         />
       </div>
 
       <div className="md:col-span-2">
         <label
           htmlFor="comment"
-          className="mb-1 block text-[11px] font-medium text-muted-foreground"
+          className="mb-1.5 mt-3.5 block text-xs text-[#9ca9a1]"
         >
           Comentário (opcional)
         </label>
@@ -116,12 +116,12 @@ export function DailyPerformanceForm({
           name="comment"
           rows={3}
           placeholder="Ex.: queda de ROI por instabilidade no gateway, troca de criativo, campanha pausada..."
-          className="w-full rounded-md border px-2 py-2 text-xs text-gray-900 bg-white dark:bg-gray-100 dark:text-gray-900 outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder:text-gray-500"
+          className="min-h-[70px] w-full resize-y rounded-[10px] border border-white/10 bg-[#0d1612] px-3.5 py-2.5 text-sm text-[#f3f7f4] outline-none [color-scheme:dark] placeholder:text-[#64706a] focus:border-[#ac93ff]"
         />
       </div>
 
       <div className="md:col-span-2">
-        <Button type="submit" size="sm" className="w-full">
+        <Button type="submit" variant="accent" className="mt-4 h-auto w-full rounded-[10px] py-3 shadow-none hover:scale-100">
           Registrar performance
         </Button>
       </div>

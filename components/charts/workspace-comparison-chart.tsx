@@ -124,11 +124,32 @@ export function WorkspaceComparisonChart({ metric, lines, data, currency }: Prop
               }
             />
             <Tooltip
-              formatter={(value: unknown, name: string) => {
-                if (typeof value !== "number") return [String(value), name];
-                return isPercent ? [`${(value * 100).toFixed(2)}%`, name] : [formatMoney(value, currency), name];
+              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              wrapperStyle={{ outline: "none" }}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+                const rows = payload.filter((item) => typeof item.value === "number");
+                if (rows.length === 0) return null;
+                return (
+                  <div className="min-w-[170px] rounded-xl border border-white/15 bg-[#16221c] px-3 py-2.5 font-mono text-xs shadow-[0_18px_40px_-16px_rgba(0,0,0,0.7)]">
+                    <div className="mb-1 text-[#64706a]">
+                      {typeof label === "string" ? formatDate(label) : String(label ?? "")}
+                    </div>
+                    {rows.map((item) => {
+                      const value = item.value as number;
+                      const text = isPercent
+                        ? `${(value * 100).toFixed(2)}%`
+                        : formatMoney(value, currency);
+                      return (
+                        <div key={String(item.dataKey)} className="mt-1 flex justify-between gap-4 text-[#9ca9a1]">
+                          <span className="truncate">{item.name}</span>
+                          <b className="font-medium text-[#f3f7f4]">{text}</b>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
               }}
-              labelFormatter={(label) => `Data: ${typeof label === "string" ? formatDate(label) : label}`}
             />
 
             {curveLines.map((line) => (

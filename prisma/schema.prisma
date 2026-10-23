@@ -32,6 +32,7 @@ model User {
   personalExpenses  PersonalExpense[]
   stripeCustomer    StripeCustomer?  // Relação 1:1 com StripeCustomer
   subscriptions     Subscription[]   // Relação 1:N com Subscription (histórico)
+  notes             Note[]
 }
 
 model Workspace {
@@ -56,6 +57,7 @@ model Workspace {
   budgets      Budget[]
   budgetNotifications BudgetNotification[]
   spendPlans   SpendPlan[]
+  notes        Note[]
 }
 
 model UserWorkspace {
@@ -607,6 +609,42 @@ model LicenseOrder {
   @@index([stripePaymentIntentId])
   @@index([licenseId])
   @@index([provider])
+}
+
+// Anotações: agenda e notas avulsas. Privada é do usuário; compartilhada é do workspace.
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String?
+  visibility  String   @default("PRIVATE")
+  kind        String   @default("NOTE")
+  title       String
+  body        String?
+  theme       String?
+  date        DateTime?
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  items     NoteChecklistItem[]
+
+  @@index([userId, visibility])
+  @@index([workspaceId, visibility])
+  @@index([date])
+}
+
+model NoteChecklistItem {
+  id       String  @id @default(cuid())
+  noteId   String
+  text     String
+  done     Boolean @default(false)
+  position Int     @default(0)
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId, position])
 }
 
 // Um fio por e-mail de compra (Pro e Pessoal juntos).

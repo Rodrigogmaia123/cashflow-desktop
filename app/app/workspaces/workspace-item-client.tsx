@@ -222,8 +222,7 @@ export function WorkspaceItemClient({
               <Button
                 type="submit"
                 size="sm"
-                variant={isActive ? "default" : "outline"}
-                className={isActive ? "bg-[#8B5CF6] hover:bg-[#8B5CF6]/90" : ""}
+                variant={isActive ? "accent" : "outline"}
               >
                 {isActive ? "Ativo" : "Ativar"}
               </Button>

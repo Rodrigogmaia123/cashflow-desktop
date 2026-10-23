@@ -296,6 +296,48 @@ export async function ensureSqliteSchema() {
   await prisma.$executeRawUnsafe(
     `CREATE INDEX IF NOT EXISTS "SupportMessage_threadId_createdAt_idx" ON "SupportMessage"("threadId", "createdAt")`
   );
+
+  await ensureTable(`
+    CREATE TABLE IF NOT EXISTS "Note" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "userId" TEXT NOT NULL,
+      "workspaceId" TEXT,
+      "visibility" TEXT NOT NULL DEFAULT 'PRIVATE',
+      "kind" TEXT NOT NULL DEFAULT 'NOTE',
+      "title" TEXT NOT NULL,
+      "body" TEXT,
+      "theme" TEXT,
+      "date" DATETIME,
+      "status" TEXT NOT NULL DEFAULT 'OPEN',
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL,
+      CONSTRAINT "Note_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT "Note_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    )
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Note_userId_visibility_idx" ON "Note"("userId", "visibility")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Note_workspaceId_visibility_idx" ON "Note"("workspaceId", "visibility")`
+  );
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Note_date_idx" ON "Note"("date")`
+  );
+
+  await ensureTable(`
+    CREATE TABLE IF NOT EXISTS "NoteChecklistItem" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "noteId" TEXT NOT NULL,
+      "text" TEXT NOT NULL,
+      "done" BOOLEAN NOT NULL DEFAULT false,
+      "position" INTEGER NOT NULL DEFAULT 0,
+      CONSTRAINT "NoteChecklistItem_noteId_fkey" FOREIGN KEY ("noteId") REFERENCES "Note" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    )
+  `);
+  await prisma.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "NoteChecklistItem_noteId_position_idx" ON "NoteChecklistItem"("noteId", "position")`
+  );
 }
 
 let ensuring: Promise<void> | null = null;

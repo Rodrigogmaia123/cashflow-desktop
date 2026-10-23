@@ -50,7 +50,7 @@ export function PlanListClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">Projetos</h1>
+          <h1 className="font-display text-[28px] font-bold tracking-tight">Projetos</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
             Planeje viagem, obra, compra. Nada disso entra no caixa até você
             registrar o pagamento. O fluxo de caixa continua igual.
@@ -59,7 +59,7 @@ export function PlanListClient({
         {isAdmin ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button type="button" size="sm">
+              <Button type="button" size="sm" variant="accent">
                 Novo projeto
               </Button>
             </DialogTrigger>

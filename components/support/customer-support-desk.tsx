@@ -65,10 +65,11 @@ export function CustomerSupportDesk({ compact }: { compact?: boolean }) {
   const needsProof = view?.needsProof ?? true;
 
   return (
-    <Card className={compact ? "border-white/10" : undefined}>
+    <Card solid className="border-white/10 bg-[#121c17] shadow-none">
       <CardHeader>
-        <div className="space-y-1">
-          <h2 className="font-semibold">Falar com o suporte</h2>
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+          <h2 className="font-display text-base font-semibold">Falar com o suporte</h2>
           <p className="text-xs font-normal text-muted-foreground">
             {view?.offline
               ? "Sem internet agora. O programa segue; a conversa sobe quando conectar."
@@ -76,6 +77,12 @@ export function CustomerSupportDesk({ compact }: { compact?: boolean }) {
                 ? `Atendimento como ${view.emailMasked}`
                 : "Mesmo canal da operação. Pro e Pessoal entram no mesmo e-mail de compra."}
           </p>
+          </div>
+          {view && !needsProof && (
+            <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] ${view.offline ? "border-white/10 text-[#9ca9a1]" : "border-[rgba(143,211,122,0.35)] text-[#8fd37a]"}`}>
+              {view.offline ? "Offline" : "Conectado"}
+            </span>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
