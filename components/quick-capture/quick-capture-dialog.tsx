@@ -19,9 +19,19 @@ import {
   listQuickCaptureOffers
 } from "@/app/app/quick-capture/actions";
 import { PaymentFields } from "@/components/cashflow/payment-fields";
-import { todayUtcKey } from "@/lib/utils/date-utc";
+import { addUtcDays, todayUtcKey, utcDateFromKey, utcKey } from "@/lib/utils/date-utc";
 
 const LAST_OFFER_KEY = "cashflow.quick-capture.offerId";
+const LAST_CATEGORY_KEY = "cashflow.quick-capture.categoryId";
+
+function nextDateKey(key: string) {
+  return utcKey(addUtcDays(utcDateFromKey(key), 1));
+}
+
+function labelDate(key: string) {
+  const [, month, day] = key.split("-");
+  return `${day}/${month}`;
+}
 
 type OfferOption = {
   id: string;
@@ -45,10 +55,15 @@ export function QuickCaptureDialog({
   const [offers, setOffers] = useState<OfferOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [offerId, setOfferId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [entryDate, setEntryDate] = useState(todayUtcKey);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [savedCount, setSavedCount] = useState(0);
   const [pending, startTransition] = useTransition();
   const investmentRef = useRef<HTMLInputElement>(null);
   const amountRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLInputElement>(null);
   const [investment, setInvestment] = useState("");
   const [revenue, setRevenue] = useState("");
   const [sales, setSales] = useState("");
@@ -56,12 +71,22 @@ export function QuickCaptureDialog({
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setNotice(null);
+    setSavedCount(0);
+    setEntryDate(todayUtcKey());
     setInvestment("");
     setRevenue("");
     setSales("");
     setMode(personal ? "expense" : "offer");
     listQuickCaptureExpenseCategories()
-      .then(setCategories)
+      .then((rows) => {
+        setCategories(rows);
+        const stored = window.localStorage.getItem(LAST_CATEGORY_KEY) ?? "";
+        setCategoryId((current) => {
+          if (current && rows.some((row) => row.id === current)) return current;
+          return rows.some((row) => row.id === stored) ? stored : "";
+        });
+      })
       .catch(() => setCategories([]));
     if (!personal) {
       listQuickCaptureOffers()
@@ -89,7 +114,6 @@ export function QuickCaptureDialog({
   }, [open, mode]);
 
   const selectedOffer = offers.find((o) => o.id === offerId);
-  const today = todayUtcKey();
 
   function submitOffer(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -99,11 +123,15 @@ export function QuickCaptureDialog({
       try {
         await createDailyPerformance(formData);
         if (offerId) window.localStorage.setItem(LAST_OFFER_KEY, offerId);
+        const nextDate = nextDateKey(String(formData.get("date") || entryDate));
+        setEntryDate(nextDate);
         setInvestment("");
         setRevenue("");
         setSales("");
-        onOpenChange(false);
+        setSavedCount((count) => count + 1);
+        setNotice(`Salvo. Próximo dia: ${labelDate(nextDate)}.`);
         router.refresh();
+        requestAnimationFrame(() => investmentRef.current?.focus());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Falha ao lançar.");
       }
@@ -117,8 +145,15 @@ export function QuickCaptureDialog({
     startTransition(async () => {
       try {
         await createExpense(formData);
-        onOpenChange(false);
+        if (categoryId) window.localStorage.setItem(LAST_CATEGORY_KEY, categoryId);
+        const nextDate = nextDateKey(String(formData.get("date") || entryDate));
+        setEntryDate(nextDate);
+        if (amountRef.current) amountRef.current.value = "";
+        if (descriptionRef.current) descriptionRef.current.value = "";
+        setSavedCount((count) => count + 1);
+        setNotice(`Salvo. Próximo dia: ${labelDate(nextDate)}.`);
         router.refresh();
+        requestAnimationFrame(() => amountRef.current?.focus());
       } catch (err) {
         setError(err instanceof Error ? err.message : "Falha ao lançar despesa.");
       }
@@ -131,7 +166,9 @@ export function QuickCaptureDialog({
         <DialogHeader>
           <DialogTitle>Captura rápida</DialogTitle>
           <DialogDescription>
-            Três números e Enter. Continua sendo o mesmo lançamento de sempre.
+            {notice
+              ? `${notice}${savedCount > 1 ? ` ${savedCount} nesta sessão.` : ""}`
+              : "Depois de salvar, a data avança um dia. Oferta, categoria e cartão continuam."}
           </DialogDescription>
         </DialogHeader>
 
@@ -156,7 +193,17 @@ export function QuickCaptureDialog({
 
         {mode === "offer" && !personal ? (
           <form onSubmit={submitOffer} className="space-y-3">
-            <input type="hidden" name="date" value={today} />
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Data</label>
+              <input
+                name="date"
+                type="date"
+                required
+                value={entryDate}
+                onChange={(event) => setEntryDate(event.target.value)}
+                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none [color-scheme:dark] focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-muted-foreground">Oferta</label>
               <select
@@ -247,14 +294,24 @@ export function QuickCaptureDialog({
                 Duplicar ontem
               </Button>
               <Button type="submit" size="sm" disabled={pending || !offerId}>
-                {pending ? "Salvando..." : "Registrar hoje"}
+                {pending ? "Salvando..." : "Registrar e continuar"}
               </Button>
             </DialogFooter>
           </form>
         ) : (
           <form onSubmit={submitExpense} className="space-y-3">
-            <input type="hidden" name="date" value={today} />
             <input type="hidden" name="type" value="VARIABLE" />
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-muted-foreground">Data</label>
+              <input
+                name="date"
+                type="date"
+                required
+                value={entryDate}
+                onChange={(event) => setEntryDate(event.target.value)}
+                className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none [color-scheme:dark] focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <label className="text-[11px] font-medium text-muted-foreground">Valor</label>
@@ -272,7 +329,8 @@ export function QuickCaptureDialog({
                 <label className="text-[11px] font-medium text-muted-foreground">Categoria</label>
                 <select
                   name="categoryId"
-                  defaultValue=""
+                  value={categoryId}
+                  onChange={(event) => setCategoryId(event.target.value)}
                   className="h-9 w-full rounded-md border bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <option value="">Sem categoria</option>
@@ -287,6 +345,7 @@ export function QuickCaptureDialog({
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-muted-foreground">Descrição</label>
               <input
+                ref={descriptionRef}
                 name="description"
                 type="text"
                 required
@@ -299,7 +358,7 @@ export function QuickCaptureDialog({
             {error && <p className="text-xs text-destructive">{error}</p>}
             <DialogFooter>
               <Button type="submit" size="sm" disabled={pending}>
-                {pending ? "Salvando..." : "Registrar despesa"}
+                {pending ? "Salvando..." : "Registrar e continuar"}
               </Button>
             </DialogFooter>
           </form>

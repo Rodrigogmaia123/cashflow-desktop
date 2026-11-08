@@ -14,6 +14,16 @@ export type ReleaseNote = {
  */
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.2.7",
+    items: [
+      {
+        title: "Importar extrato",
+        description:
+          "Um botão Importar cola saídas, cola entradas ou lê o PDF do banco. Sicoob, Nubank, Itaú, Bradesco, Banco do Brasil e Inter têm leitura própria. Outro banco entra na leitura geral, para você conferir antes de salvar.",
+      },
+    ],
+  },
+  {
     version: "0.2.6",
     items: [
       {

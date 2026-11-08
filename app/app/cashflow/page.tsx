@@ -18,6 +18,7 @@ import {
   type ExpenseRow,
   type CategoryOption
 } from "@/components/cashflow/expense-dialogs";
+import { ImportLaunchButton } from "@/components/cashflow/import-launch-button";
 import { ExpenseListClient } from "@/components/cashflow/expense-list-client";
 import { createExpense, deleteExpense, updateExpense } from "@/app/app/cashflow/actions";
 import { CashflowFilters } from "@/components/cashflow/cashflow-filters";
@@ -591,6 +592,12 @@ export default async function CashflowPage({ searchParams }: Props) {
                 actions={{ createExpense, updateExpense, deleteExpense }}
                 categories={expenseCategoryOptions}
               />
+              <ImportLaunchButton
+                isAdmin={isAdmin}
+                expenseCategories={expenseCategoryOptions}
+                incomeCategories={incomeCategoryOptions}
+                currency={baseCurrency}
+              />
               <CreateManualIncomeDialog
                 isAdmin={isAdmin}
                 categories={incomeCategoryOptions}
@@ -615,11 +622,13 @@ export default async function CashflowPage({ searchParams }: Props) {
       <DashboardSection 
         title="Entradas manuais do período"
         actions={
-          <CategoryFilter
-            categories={incomeCategoryOptions.map((c) => ({ id: c.id, name: c.name }))}
-            filterType="income"
-            label="Filtrar Entradas"
-          />
+          <>
+            <CategoryFilter
+              categories={incomeCategoryOptions.map((c) => ({ id: c.id, name: c.name }))}
+              filterType="income"
+              label="Filtrar Entradas"
+            />
+          </>
         }
       >
         <Card className="overflow-hidden" data-tour="manual-income">

@@ -8,6 +8,7 @@ import { getUserWorkspaceRole } from "@/lib/rbac/workspace-permissions";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { calculateDailyMetrics } from "@/lib/domain/finance";
 import { DailyPerformanceForm } from "./daily-performance-form";
+import { MonthPerformanceGrid } from "@/components/offers/month-performance-grid";
 import { WeeklyCloseForm } from "@/components/offers/weekly-close-form";
 import { getOfferDashboard } from "@/lib/analytics/dashboard";
 import { getBusinessAlerts } from "@/lib/analytics/business-alerts";
@@ -257,6 +258,19 @@ export default async function OfferDetailPage({ params }: OfferPageProps) {
         editFormComponent={canEdit ? PerformanceTableEditForm : undefined}
         deleteButtonComponent={canDelete ? PerformanceTableDeleteButton : undefined}
       />
+
+      {canCreate && (
+        <MonthPerformanceGrid
+          offerId={offer.id}
+          currency={offer.currency}
+          entries={serializedPerformances.map((performance) => ({
+            date: performance.date,
+            investment: performance.investment,
+            revenue: performance.revenue,
+            sales: performance.sales
+          }))}
+        />
+      )}
 
       {/* Formulário de lançamento (mantido para funcionalidade) */}
       {canCreate && (

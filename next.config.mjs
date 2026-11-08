@@ -9,7 +9,7 @@ const nextConfig = {
   },
   output: process.env.DESKTOP_MODE === "true" ? "standalone" : undefined,
   distDir: process.env.DESKTOP_MODE === "true" ? ".next-desktop" : ".next",
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: ["@prisma/client", "prisma", "unpdf"],
   typescript: {
     ignoreBuildErrors: true,
   },

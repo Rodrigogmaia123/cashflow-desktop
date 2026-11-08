@@ -28,7 +28,7 @@ const createDailyPerformanceSchema = z.object({
   revenue: z.coerce.number().nonnegative(),
   sales: z.coerce.number().int().nonnegative(),
   comment: z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
     z.string().max(2000).optional()
   )
 });
@@ -41,7 +41,7 @@ const updateDailyPerformanceSchema = z.object({
   revenue: z.coerce.number().nonnegative(),
   sales: z.coerce.number().int().nonnegative(),
   comment: z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
     z.string().max(2000).optional()
   )
 });
@@ -116,6 +116,129 @@ export async function createDailyPerformance(formData: FormData) {
       } catch (error) {
         console.error("Erro ao criar performance diária:", error);
         throw new Error(error instanceof Error ? error.message : "Falha ao criar lançamento diário.");
+      }
+    },
+    {}
+  );
+}
+
+const monthRowSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  investment: z.coerce.number().nonnegative(),
+  revenue: z.coerce.number().nonnegative(),
+  sales: z.coerce.number().int().nonnegative()
+});
+
+export async function saveDailyPerformanceBatch(formData: FormData) {
+  return measure(
+    "action.saveDailyPerformanceBatch",
+    async () => {
+      try {
+        const workspaceId = await requireActiveWorkspaceId();
+        await requireWorkspacePermission(workspaceId, "create");
+
+        const offerId = String(formData.get("offerId") ?? "");
+        const dates = formData.getAll("date").map((value) => String(value));
+        const investments = formData.getAll("investment").map((value) => String(value));
+        const revenues = formData.getAll("revenue").map((value) => String(value));
+        const sales = formData.getAll("sales").map((value) => String(value));
+
+        if (!offerId || dates.length === 0) {
+          throw new Error("Nenhum dia preenchido.");
+        }
+        if (dates.length > 62) {
+          throw new Error("Envie no máximo dois meses por vez.");
+        }
+
+        const rows = dates.map((date, index) => {
+          const parsed = monthRowSchema.safeParse({
+            date,
+            investment: investments[index] || "0",
+            revenue: revenues[index] || "0",
+            sales: sales[index] || "0"
+          });
+          if (!parsed.success) {
+            throw new Error(`Dia ${date || index + 1} está inválido.`);
+          }
+          utcDateFromKey(parsed.data.date);
+          return parsed.data;
+        });
+
+        const seen = new Set<string>();
+        for (const row of rows) {
+          if (seen.has(row.date)) {
+            throw new Error("Tem data repetida na grade.");
+          }
+          seen.add(row.date);
+        }
+
+        const offer = await prisma.offer.findFirst({
+          where: { id: offerId, workspaceId },
+          select: { id: true }
+        });
+        if (!offer) {
+          throw new Error("Oferta não encontrada no workspace atual.");
+        }
+
+        const existing = await prisma.dailyPerformance.findMany({
+          where: {
+            offerId: offer.id,
+            date: { in: rows.map((row) => utcDateFromKey(row.date)) }
+          },
+          select: { date: true, comment: true }
+        });
+        const existingByDay = new Map(existing.map((row) => [utcKey(row.date), row.comment]));
+        const newDays = rows.filter((row) => !existingByDay.has(row.date)).length;
+
+        const transactionCheck = await checkTransactionLimit();
+        if (!transactionCheck.allowed) {
+          throw new Error(
+            transactionCheck.reason || "Limite de lançamentos mensais atingido. Faça upgrade para continuar."
+          );
+        }
+        if (
+          newDays > 0 &&
+          transactionCheck.currentLimit != null &&
+          transactionCheck.currentValue != null &&
+          transactionCheck.currentValue + newDays > transactionCheck.currentLimit
+        ) {
+          throw new Error(
+            `Esse lote passa do limite de ${transactionCheck.currentLimit} lançamentos/mês no plano FREE.`
+          );
+        }
+
+        let saved = 0;
+        for (const row of rows) {
+          try {
+            await persistDailyPerformance({
+              workspaceId,
+              offerId: offer.id,
+              date: utcDateFromKey(row.date),
+              investment: row.investment,
+              revenue: row.revenue,
+              sales: row.sales,
+              comment: existingByDay.get(row.date) ?? null,
+              ifExists: "update"
+            });
+            saved += 1;
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : "Falha ao salvar a grade.";
+            if (saved > 0) {
+              throw new Error(`${detail} ${saved} dia(s) deste lote já tinham sido salvos.`);
+            }
+            throw error;
+          }
+        }
+
+        revalidatePath(`/app/offers/${offer.id}`, "page");
+        revalidatePath(`/app/offers/${offer.id}/dashboard`, "page");
+        revalidatePath("/app/offers/[offerId]", "page");
+        revalidatePath("/app/dashboard", "page");
+        revalidatePath("/app/cashflow", "page");
+        revalidatePath("/app", "layout");
+      } catch (error) {
+        console.error("Erro ao salvar grade do mês:", error);
+        throw new Error(error instanceof Error ? error.message : "Falha ao salvar a grade do mês.");
       }
     },
     {}
