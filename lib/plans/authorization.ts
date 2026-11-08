@@ -170,7 +170,11 @@ export async function checkTransactionLimit(): Promise<AuthorizationResult> {
   const totalTransactions = expensesCount + incomesCount + dailyPerfCount;
 
   if (totalTransactions < limits.maxTransactionsPerMonth) {
-    return { allowed: true };
+    return {
+      allowed: true,
+      currentLimit: limits.maxTransactionsPerMonth,
+      currentValue: totalTransactions
+    };
   }
 
   return {

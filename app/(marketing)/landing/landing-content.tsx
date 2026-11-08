@@ -37,6 +37,12 @@ const VISIBLE_UPDATES = 5;
 
 const UPDATES = [
   {
+    version: "0.2.7",
+    when: "24 OUT",
+    title: "Importar extrato",
+    body: "Um botão cola saídas, cola entradas ou lê o PDF. Sicoob, Nubank, Itaú, Bradesco, Banco do Brasil e Inter têm leitura própria. Outro banco entra na leitura geral.",
+  },
+  {
     version: "0.2.6",
     when: "23 OUT",
     title: "Design novo",

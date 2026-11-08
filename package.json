@@ -1,6 +1,6 @@
 {
   "name": "cashflow-pro",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "private": true,
   "main": "electron/main.cjs",
   "scripts": {
@@ -64,6 +64,7 @@
     "resend": "^6.6.0",
     "stripe": "^17.3.1",
     "tailwind-merge": "^2.5.2",
+    "unpdf": "^1.9.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

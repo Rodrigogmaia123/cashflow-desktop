@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/get-current-user";
 import { requireActiveWorkspaceId } from "@/lib/workspace";
 import { measure } from "@/lib/observability/measure";
-import { checkTransactionLimit } from "@/lib/plans/authorization";
+import { checkCategoryLimit, checkTransactionLimit } from "@/lib/plans/authorization";
 import { listBudgetsWithUsage } from "@/lib/domain/budget";
 import { autoGenerateNotifications } from "@/lib/domain/budget-alerts";
 import { parsePaymentFields } from "@/lib/domain/payment";
@@ -189,6 +189,50 @@ export async function createExpense(formData: FormData) {
     },
     {}
   );
+}
+
+const CLASSIFY_CATEGORY_NAME = "A classificar";
+
+export async function ensureClassifyCategory(
+  kind: "EXPENSE" | "INCOME" = "EXPENSE"
+): Promise<string | null> {
+  const { workspaceId } = await requireAdminWorkspace();
+  const accepted = kind === "INCOME" ? (["INCOME", "BOTH"] as const) : (["EXPENSE", "BOTH"] as const);
+  const existing = await prisma.category.findFirst({
+    where: {
+      workspaceId,
+      name: CLASSIFY_CATEGORY_NAME,
+      type: { in: [...accepted] }
+    },
+    select: { id: true }
+  });
+  if (existing) return existing.id;
+
+  const categoryCheck = await checkCategoryLimit();
+  if (!categoryCheck.allowed) return null;
+
+  try {
+    const created = await prisma.category.create({
+      data: {
+        workspaceId,
+        name: CLASSIFY_CATEGORY_NAME,
+        type: kind
+      },
+      select: { id: true }
+    });
+    revalidatePath("/app/settings/categories", "page");
+    return created.id;
+  } catch {
+    const again = await prisma.category.findFirst({
+      where: {
+        workspaceId,
+        name: CLASSIFY_CATEGORY_NAME,
+        type: { in: [...accepted] }
+      },
+      select: { id: true }
+    });
+    return again?.id ?? null;
+  }
 }
 
 export async function updateExpense(formData: FormData) {
