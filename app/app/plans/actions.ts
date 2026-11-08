@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
@@ -263,14 +264,77 @@ export async function deleteSpendPlanItem(formData: FormData) {
   const id = String(formData.get("id") || "");
   const item = await prisma.spendPlanItem.findFirst({
     where: { id, group: { plan: { workspaceId } } },
-    include: { entries: { select: { id: true } } }
+    select: { id: true }
   });
   if (!item) throw new Error("Item não encontrado.");
-  if (item.entries.length > 0 || item.expenseId) {
-    throw new Error("Item já gerou despesa. Apague a despesa no fluxo de caixa se quiser desfazer.");
-  }
   await prisma.spendPlanItem.delete({ where: { id } });
-  refresh();
+  refreshAfterPayment();
+}
+
+async function syncItemPayments(tx: Prisma.TransactionClient, itemId: string) {
+  const entries = await tx.spendPlanEntry.findMany({
+    where: { itemId },
+    orderBy: { date: "asc" },
+    select: { amount: true, date: true, expenseId: true }
+  });
+  const paid = entries.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+  const last = entries[entries.length - 1];
+  await tx.spendPlanItem.update({
+    where: { id: itemId },
+    data: {
+      actualAmount: entries.length > 0 ? new Decimal(paid) : null,
+      paidAt: last?.date ?? null,
+      expenseId: last?.expenseId ?? null
+    }
+  });
+}
+
+export async function updateSpendPlanEntry(formData: FormData) {
+  const { workspaceId } = await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const amount = Number(formData.get("amount"));
+  const dateRaw = String(formData.get("date") || "");
+  const note = String(formData.get("note") || "").trim();
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Valor inválido.");
+
+  const entry = await prisma.spendPlanEntry.findFirst({
+    where: { id, item: { group: { plan: { workspaceId } } } },
+    include: { item: { select: { description: true } } }
+  });
+  if (!entry) throw new Error("Lançamento não encontrado.");
+
+  const date = utcDateFromKey(dateRaw);
+  const description = note ? `${entry.item.description} — ${note}` : entry.item.description;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.spendPlanEntry.update({
+      where: { id },
+      data: { amount: new Decimal(amount), note: note || null, date }
+    });
+    await tx.expense.update({
+      where: { id: entry.expenseId },
+      data: { amount: new Decimal(amount), date, description }
+    });
+    await syncItemPayments(tx, entry.itemId);
+  });
+  refreshAfterPayment();
+}
+
+export async function deleteSpendPlanEntry(formData: FormData) {
+  const { workspaceId } = await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const entry = await prisma.spendPlanEntry.findFirst({
+    where: { id, item: { group: { plan: { workspaceId } } } },
+    select: { id: true, itemId: true, expenseId: true }
+  });
+  if (!entry) throw new Error("Lançamento não encontrado.");
+
+  await prisma.$transaction(async (tx) => {
+    await tx.spendPlanEntry.delete({ where: { id: entry.id } });
+    await tx.expense.delete({ where: { id: entry.expenseId } });
+    await syncItemPayments(tx, entry.itemId);
+  });
+  refreshAfterPayment();
 }
 
 export async function paySpendPlanItem(formData: FormData) {

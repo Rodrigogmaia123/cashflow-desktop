@@ -28,8 +28,10 @@ import {
   skipSpendPlanItem,
   toggleSpendPlanStatus,
   updateSpendPlan,
+  updateSpendPlanEntry,
   updateSpendPlanGroup,
-  updateSpendPlanItem
+  updateSpendPlanItem,
+  deleteSpendPlanEntry
 } from "@/app/app/plans/actions";
 
 const fieldClass =
@@ -270,7 +272,9 @@ function GroupCard({
               <form
                 action={deleteSpendPlanGroup}
                 onSubmit={(event) => {
-                  if (!confirm("Apagar este bloco e os itens não pagos?")) event.preventDefault();
+                  if (!confirm("Apagar este bloco e os itens? Os gastos continuam no fluxo de caixa.")) {
+                    event.preventDefault();
+                  }
                 }}
               >
                 <input type="hidden" name="id" value={group.id} />
@@ -385,31 +389,53 @@ function ItemRow({
                 </Button>
               </form>
             ) : null}
-            {canSkipOrDelete ? (
-              <form
-                action={deleteSpendPlanItem}
-                onSubmit={(event) => {
-                  if (!confirm("Apagar este item do plano?")) event.preventDefault();
-                }}
-              >
-                <input type="hidden" name="id" value={item.id} />
-                <Button type="submit" size="sm" variant="ghost">
-                  Apagar
-                </Button>
-              </form>
-            ) : null}
+            <form
+              action={deleteSpendPlanItem}
+              onSubmit={(event) => {
+                const message =
+                  item.entries.length > 0
+                    ? "Apagar este item do projeto? Os gastos continuam no fluxo de caixa."
+                    : "Apagar este item do plano?";
+                if (!confirm(message)) event.preventDefault();
+              }}
+            >
+              <input type="hidden" name="id" value={item.id} />
+              <Button type="submit" size="sm" variant="ghost">
+                Apagar
+              </Button>
+            </form>
           </div>
         ) : null}
       </div>
       {item.entries.length > 0 ? (
         <ul className="space-y-1 rounded-md bg-white/[0.03] px-2 py-1.5 text-xs text-muted-foreground">
           {item.entries.map((entry) => (
-            <li key={entry.id} className="flex flex-wrap justify-between gap-2">
+            <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2">
               <span>
                 {formatEntryDate(entry.date)}
                 {entry.note ? ` · ${entry.note}` : ""}
               </span>
-              <span className="text-foreground/80">{formatMoney(entry.amount, currency)}</span>
+              <span className="flex items-center gap-2">
+                <span className="text-foreground/80">{formatMoney(entry.amount, currency)}</span>
+                {isAdmin ? (
+                  <>
+                    <EditEntryDialog entry={entry} />
+                    <form
+                      action={deleteSpendPlanEntry}
+                      onSubmit={(event) => {
+                        if (!confirm("Apagar este gasto do projeto e do fluxo de caixa?")) {
+                          event.preventDefault();
+                        }
+                      }}
+                    >
+                      <input type="hidden" name="id" value={entry.id} />
+                      <Button type="submit" size="sm" variant="ghost" className="h-7 px-2 text-xs">
+                        Apagar
+                      </Button>
+                    </form>
+                  </>
+                ) : null}
+              </span>
             </li>
           ))}
         </ul>
@@ -422,6 +448,62 @@ function formatEntryDate(isoDay: string) {
   const [year, month, day] = isoDay.split("-").map(Number);
   if (!year || !month || !day) return isoDay;
   return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}`;
+}
+
+function EditEntryDialog({ entry }: { entry: PlanEntryView }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs">
+          Editar
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar gasto</DialogTitle>
+          <DialogDescription>Atualiza o projeto e a despesa no fluxo de caixa.</DialogDescription>
+        </DialogHeader>
+        <form
+          action={async (formData) => {
+            await updateSpendPlanEntry(formData);
+            setOpen(false);
+          }}
+          className="space-y-3"
+        >
+          <input type="hidden" name="id" value={entry.id} />
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">Detalhe</label>
+            <input name="note" defaultValue={entry.note ?? ""} className={fieldClass} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">Valor</label>
+            <input
+              name="amount"
+              type="number"
+              step="0.01"
+              min="0.01"
+              required
+              defaultValue={entry.amount}
+              className={fieldClass}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">Data</label>
+            <input name="date" type="date" required defaultValue={entry.date} className={fieldClass} />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button type="submit">Salvar</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function RepeatableField({ defaultChecked }: { defaultChecked?: boolean }) {

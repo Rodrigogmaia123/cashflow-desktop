@@ -48,7 +48,9 @@ export function summarizePlanItems(items: PlanItemTotalsInput[]) {
   const active = items.filter((item) => !item.skipped);
   const planned = active.reduce((sum, item) => sum + item.plannedAmount, 0);
   const paid = active.reduce((sum, item) => sum + item.paidAmount, 0);
-  const remaining = active.reduce((sum, item) => sum + remainingOf(item), 0);
+  // O que falta no bloco é o plano menos o que já saiu. Estourar um item
+  // reduz o que ainda cabe no bloco, em vez de deixar a sobra intacta.
+  const remaining = Math.max(0, planned - paid);
   const paidCount = active.filter((item) => item.paidAmount > 0).length;
 
   return {
